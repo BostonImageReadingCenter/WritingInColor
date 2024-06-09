@@ -1,0 +1,1 @@
+{"version":3,"sources":["../scss/style.scss"],"names":[],"mappings":"AAEA,KACC,oBAHK","file":"style.css","sourcesContent":["$red: rgb(255, 0, 0);\n\nbody {\n\tbackground-color: $red;\n}\n"]}

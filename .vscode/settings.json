@@ -1,0 +1,6 @@
+{
+    "autominify.enableCSSMinification": false,
+    "autominify.enableJSMinification": false,
+    "autominify.onlyMinUnderSubFolder": "",
+    "autominify.enableHTMLMinification": false
+}

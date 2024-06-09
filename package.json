@@ -1,11 +1,13 @@
 {
   "name": "writingincolor",
   "version": "1.0.0",
+  "type": "module",
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "dev": "vite build && node server/server.mjs",
+    "build": "vite build",
+    "start": "node server/server.mjs"
   },
   "repository": {
     "type": "git",
@@ -16,5 +18,16 @@
   "bugs": {
     "url": "https://github.com/BostonImageReadingCenter/WritingInColor/issues"
   },
-  "homepage": "https://github.com/BostonImageReadingCenter/WritingInColor#readme"
+  "homepage": "https://github.com/BostonImageReadingCenter/WritingInColor#readme",
+  "dependencies": {
+    "@fastify/static": "^7.0.4",
+    "@fastify/view": "^9.1.0",
+    "@simplewebauthn/server": "^10.0.0",
+    "body-parser": "^1.20.2",
+    "express": "^4.19.2",
+    "nunjucks": "^3.2.4"
+  },
+  "devDependencies": {
+    "sass": "^1.77.4"
+  }
 }
