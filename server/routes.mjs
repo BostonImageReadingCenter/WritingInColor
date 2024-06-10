@@ -4,11 +4,13 @@ const rpId = "localhost";
 const expectedOrigin = "http://localhost:3000";
 nunjucks.configure("dist", { autoescape: true });
 async function routes(fastify, options) {
+	let visits = 0;
 	fastify.get("/", async (request, reply) => {
+		visits++;
 		reply
 			.code(200)
 			.header("Content-Type", "text/html")
-			.send(nunjucks.render("index.html", { rpId, expectedOrigin }));
+			.send(nunjucks.render("index.html", { visits }));
 		return reply;
 	});
 	fastify.post("/passkeys/register/start", async (request, reply) => {});

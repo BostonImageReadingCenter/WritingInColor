@@ -25,7 +25,8 @@ const start = async () => {
 		await fastify.listen({ port: 3000 });
 	} catch (err) {
 		fastify.log.error(err);
-		// process.exit(1);
+		process.exit(1);
+		// TODO: Enable proper error handling for production environment.
 	}
 };
 start();
