@@ -9,13 +9,15 @@ $menu-bar-size: 50px;
 	align-items: center;
 	position: relative;
 	font-size: 18px;
-	li {
-		padding: 0 15px;
+	background-color: $dark-background-color;
+	& > li {
+		padding: 0 17px;
 		font-family: sans-serif;
-		position: relative;
 		text-align: center;
 		vertical-align: middle;
 		text-wrap: nowrap;
+		user-select: none;
+		line-height: $menu-bar-size;
 		cursor: default;
 		&:hover {
 			background-color: $accent-color;
@@ -24,11 +26,12 @@ $menu-bar-size: 50px;
 			cursor: pointer;
 		}
 	}
-	.hover-menu {
-		font-family: sans-serif;
+	& > .hover-menu {
 		position: relative;
-		.hover-menu__text {
-			padding: 0 15px;
+		font-family: sans-serif;
+		& > .hover-menu__text {
+			user-select: none;
+			padding: 0 17px;
 			line-height: $menu-bar-size;
 			text-align: center;
 			text-wrap: nowrap;
@@ -36,79 +39,73 @@ $menu-bar-size: 50px;
 				cursor: pointer;
 			}
 		}
-		.hover-menu__content {
-			background-color: $darker-background-color;
+		& > .hover-menu__content {
+			// background-color: $darker-background-color;
 			color: $light-font-color;
 			font-size: 16px;
+			padding: 0;
+			margin: 0;
 		}
-		&:hover {
+		&:hover > .hover-menu__text {
 			background-color: $accent-color;
 		}
 	}
-}
-.hover-menu {
-	.hover-menu__text {
+	&.horizontal {
+		flex-direction: row;
+		justify-content: left;
+		height: $menu-bar-size;
+		& > .hover-menu {
+			height: 100%;
+			& > .hover-menu__text {
+				line-height: $menu-bar-size;
+				height: 100%;
+			}
+		}
+		& > li {
+			height: 100%;
+			line-height: $menu-bar-size;
+		}
 	}
-	.hover-menu__content {
+	&.vertical {
+		flex-direction: column;
+		justify-content: start;
 		width: max-content;
-		min-width: 100%;
+		& > .hover-menu {
+			width: 100%;
+			& > .hover-menu__text {
+				width: 100%;
+			}
+		}
+		& > li {
+			width: 100%;
+		}
+	}
+}
+
+// Any hover menu. This is just functionality, no style.
+.hover-menu {
+	& > .hover-menu__text {
+	}
+	& > .hover-menu__content {
 		position: absolute;
 		display: none;
 	}
-	.hover-menu__content.bottom {
+	& > .hover-menu__content.bottom {
 		top: 100%;
 	}
-	.hover-menu__content.top {
+	& > .hover-menu__content.top {
 		bottom: 100%;
 	}
-	.hover-menu__content.left {
+	& > .hover-menu__content.left {
 		right: 100%;
 		top: 0;
 	}
-	.hover-menu__content.right {
+	& > .hover-menu__content.right {
 		left: 100%;
 		top: 0;
 	}
 
-	&:hover {
-		.hover-menu__content {
-			display: flex;
-		}
-	}
-}
-.clickable {
-	cursor: pointer;
-}
-
-.menu-bar.horizontal {
-	flex-direction: row;
-	justify-content: left;
-	height: $menu-bar-size;
-	.hover-menu {
-		height: 100%;
-		.hover-menu__text {
-			line-height: $menu-bar-size;
-			height: 100%;
-		}
-	}
-	li {
-		height: 100%;
-		line-height: $menu-bar-size;
-	}
-}
-.menu-bar.vertical {
-	flex-direction: column;
-	justify-content: start;
-	width: max-content;
-	min-width: 100%;
-	.hover-menu {
-		width: 100%;
-		.hover-menu__text {
-			// line-height: $menu-bar-size;
-			width: 100%;
-		}
-	}
-	li {
-		width: 100%;
+	&:hover > .hover-menu__content {
+		display: flex;
 	}
 }
