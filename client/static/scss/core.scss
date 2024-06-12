@@ -6,6 +6,10 @@ $accent-color: rgb(0, 122, 255);
 $dark-font-color: black;
 $light-font-color: white;
 
+* {
+	box-sizing: border-box;
+}
+
 body {
 	background-color: $light-background-color;
 	color: $dark-font-color;

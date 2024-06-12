@@ -16,6 +16,11 @@ const HANDLERS = {
 			element.style.border = "none";
 		});
 	},
+	image: (element) => {},
+	video: (element) => {},
+	iframe: (element) => {},
+	audio: (element) => {},
+	link: (element) => {},
 };
 window.addEventListener("load", () => {
 	for (let type in EDITABLE) {
