@@ -1,0 +1,34 @@
+{% import 'admin-panel.html' as admin %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- Meta tags -->
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>{% block title %}Writing in Color{% endblock %}</title>
+
+        <!-- CSS -->
+        <link rel="stylesheet" href="/static/css/core.css" />
+        {% if user.admin %}
+            <link rel="stylesheet" href="/static/css/admin-panel.css" />
+            <script type="module" src="/static/javascript/admin-panel.js"></script>
+        {% endif %}
+
+        <!-- JavaScript -->
+        <script type="module" src="/static/javascript/core.js"></script>
+        <script type="module" src="/static/javascript/effects.js"></script>
+
+        {% block head %}
+        {% endblock %}
+    </head>
+    <body>
+        {% if user.admin %}
+            {{ admin.admin_panel() }}
+        {% endif %}
+        {% block body %}
+        {% endblock %}
+        <footer>
+
+        </footer>
+    </body>
+</html>

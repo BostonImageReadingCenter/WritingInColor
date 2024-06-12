@@ -1,0 +1,31 @@
+{% import 'admin-panel.html' as admin %}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <!-- Meta tags -->
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>{% block title %}Writing in Color{% endblock %}</title>
+
+        <!-- CSS -->
+        {% if user.admin %}
+        {% endif %}
+
+        <!-- JavaScript -->
+
+        {% block head %}
+        {% endblock %}
+      <script type="module" crossorigin src="/assets/layout-uN9KCPO-.js"></script>
+      <link rel="stylesheet" crossorigin href="/assets/layout-CAah4sqs.css">
+    </head>
+    <body>
+        {% if user.admin %}
+            {{ admin.admin_panel() }}
+        {% endif %}
+        {% block body %}
+        {% endblock %}
+        <footer>
+
+        </footer>
+    </body>
+</html>

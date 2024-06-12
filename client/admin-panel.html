@@ -1,0 +1,34 @@
+{% macro admin_panel() %}
+<div id="admin-panel">
+    <div class="menu-bar">
+        <div class="hover-menu">
+            <div class="hover-menu__text symbol">File</div>
+            <ul class="hover-menu__content">
+                <li class="hover-menu__item">Open version...</li>
+                <li class="hover-menu__item">Save as...</li>
+                <li class="hover-menu__item">Publish</li>
+            </ul>
+        </div>
+        <div class="hover-menu">
+            <div class="hover-menu__text symbol">Edit</div>
+            <ul class="hover-menu__content">
+                <li class="hover-menu__item">Item 1</li>
+                <li class="hover-menu__item">Item 2</li>
+                <li class="hover-menu__item">Item 3</li>
+            </ul>
+        </div>
+        <div class="hover-menu">
+            <div class="hover-menu__text symbol">Database</div>
+            <ul class="hover-menu__content">
+                <li class="hover-menu__item">Courses</li>
+                <li class="hover-menu__item">Team</li>
+                <li class="hover-menu__item">Item 3</li>
+            </ul>
+        </div>
+    </div>
+    <div id="edit-mode-toggle-container">
+        <label for="edit-mode-toggle" id="edit-mode-toggle-label">Edit Mode</label>
+        <input id="edit-mode-toggle" type="checkbox" />
+    </div>
+</div>
+{% endmacro %}

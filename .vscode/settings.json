@@ -2,5 +2,8 @@
     "autominify.enableCSSMinification": false,
     "autominify.enableJSMinification": false,
     "autominify.onlyMinUnderSubFolder": "",
-    "autominify.enableHTMLMinification": false
+    "autominify.enableHTMLMinification": false,
+    "cSpell.words": [
+        "fastify"
+    ]
 }
