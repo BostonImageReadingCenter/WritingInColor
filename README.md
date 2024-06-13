@@ -23,4 +23,8 @@ The server code can be found in the `server` directory. The database is not yet 
 ## During Development
 Edits require a server restart.
 
+
+## Notes to myself:
+https://github.com/corbado/passkey-tutorial/tree/main
+https://www.corbado.com/blog/passkey-tutorial-how-to-implement-passkeys
 # TODO: finish this readme.
