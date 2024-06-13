@@ -1,6 +1,7 @@
 // vite.config.mjs
 import { defineConfig } from "vite";
 import { resolve } from "path";
+import pages from "vite-plugin-pages";
 
 export default defineConfig({
 	root: "./client",
@@ -17,6 +18,7 @@ export default defineConfig({
 			},
 		},
 	},
+	plugins: [pages()],
 	// server: {
 	// 	port: 3000,
 	// },

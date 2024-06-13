@@ -1,31 +1,49 @@
 {% macro admin_panel() %}
+<!-- Follow my comments to learn how this works. -->
 <div id="admin-panel">
-    <div class="menu-bar">
-        <div class="hover-menu">
+    <menu class="menu-bar horizontal"> <!-- This creates a horizontal menu bar. -->
+        <div class="hover-menu"> <!-- This creates a element that, when hovered, shows content. -->
             <div class="hover-menu__text symbol">File</div>
-            <ul class="hover-menu__content">
-                <li class="hover-menu__item">Open version...</li>
-                <li class="hover-menu__item">Save as...</li>
-                <li class="hover-menu__item">Publish</li>
-            </ul>
+            <div class="hover-menu__content bottom"> <!-- The bottom class here tells it to open this menu under the element. -->
+                <menu class="menu-bar vertical"> <!-- This creates a vertical menu bar. -->
+                    <div class="hover-menu">
+                        <div class="hover-menu__text">Open version ➣</div>
+                        <ul class="hover-menu__content right">
+                            <menu class="menu-bar vertical">
+                                <li class="hover-menu__item clickable">Item 1</li>
+                                <li class="hover-menu__item clickable">Item 2</li>
+                                <li class="hover-menu__item clickable">Item 3</li>
+                                <li class="hover-menu__item clickable">Item 4</li>
+                            </menu>
+                        </ul>
+                    </div>
+                    <li class="clickable">Save As</li>
+                    <li class="clickable">Publish</li>
+                </menu>
+            </div>
         </div>
         <div class="hover-menu">
             <div class="hover-menu__text symbol">Edit</div>
-            <ul class="hover-menu__content">
-                <li class="hover-menu__item">Item 1</li>
-                <li class="hover-menu__item">Item 2</li>
-                <li class="hover-menu__item">Item 3</li>
-            </ul>
+            <div class="hover-menu__content bottom">
+                <menu class="menu-bar vertical">
+                    <li class="clickable">Item 1</li>
+                    <li class="clickable">Item 2</li>
+                    <li class="clickable">Item 3</li>
+                </menu>
+            </div>
         </div>
         <div class="hover-menu">
             <div class="hover-menu__text symbol">Database</div>
-            <ul class="hover-menu__content">
-                <li class="hover-menu__item">Courses</li>
-                <li class="hover-menu__item">Team</li>
-                <li class="hover-menu__item">Item 3</li>
-            </ul>
+            <div class="hover-menu__content bottom">
+                <menu class="menu-bar vertical">
+                    <li class="clickable">Courses</li>
+                    <li class="clickable">Store</li>
+                    <li class="clickable">Team</li>
+                </menu>
+            </div>
         </div>
-    </div>
+        <li class="clickable">Help</li> <!-- This creates a normal menu item. The clickable class applies `cursor: pointer` -->
+    </menu>
     <div id="edit-mode-toggle-container">
         <label for="edit-mode-toggle" id="edit-mode-toggle-label">Edit Mode</label>
         <input id="edit-mode-toggle" type="checkbox" />
