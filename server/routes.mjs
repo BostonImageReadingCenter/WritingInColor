@@ -12,7 +12,6 @@ const client_root = join(__dirname, "../client/");
 
 nunjucks.configure(client_root, { autoescape: true }); // Use dist in production.
 async function routes(fastify, options) {
-	console.log("client root: " + client_root);
 	fastify.register(fastifyStatic, {
 		root: client_root,
 		// prefix: "/",
