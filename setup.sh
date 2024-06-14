@@ -1,9 +1,12 @@
 #!/bin/bash
 
 export $(grep -v '^#' .env | xargs)
-echo "Username: $DB_USERNAME"
-echo "Password: $DB_PASSWORD"
-printf "Please enter your MySQL root password.\n"
+printf "Creating MySQL database and user as defined in .env\n"
+echo "Database:   $DB_NAME"
+echo "Host:       $DB_HOST"
+echo "Username:   $DB_USERNAME"
+echo "Password:   $DB_PASSWORD"
+printf "\n\x1b[34;1mPlease enter your MySQL root password.\x1b[0m\n"
 mysql -u root -p -e "
 -- Get @username and @password variables
 SET @username = '${env:DB_USERNAME}';
@@ -65,3 +68,4 @@ CREATE TABLE IF NOT EXISTS user_roles (
 
 INSERT INTO roles (role_name) VALUES ('admin'), ('moderator'), ('instructor'), ('developer'), ('student');
 "
+chmod 777 build.sh

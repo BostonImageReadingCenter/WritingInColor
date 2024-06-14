@@ -1,12 +1,10 @@
 {% extends "layout.html" %}
 {% block title %}Writing in Color – Home{% endblock %}
-{% block head %}
-
-{% endblock %}
+{% block head %}{% endblock %}
 {% block body %}
     <main>
         <h1>Hello World</h1>
-        <img src="/static/media/image/logotype/logotype.svg" />
-        <h3>From the templating engine: You are visitor #{{visits}}.</h3>
+        <img src="/static/media/image/logotype/logotype.svg"/>
+        <h3>From the templating engine: You are visitor #{{ visits }}.</h3>
     </main>
 {% endblock %}

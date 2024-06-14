@@ -3,6 +3,7 @@ import User from "./user.mjs";
 import fastifyStatic from "@fastify/static";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "url";
+import { initDatabase } from "./db.mjs";
 
 // Constants
 const rpId = "localhost";
@@ -20,11 +21,13 @@ nunjucks.configure(client_root, { autoescape: true });
 // Define routes
 async function routes(fastify, options) {
 	console.log("\x1b[34mServing from:", client_root, "\x1b[0m");
+
 	// Serve static files
 	fastify.register(fastifyStatic, {
 		root: client_root,
 	});
 	let visits = 0;
+	const { pool, promisePool } = await initDatabase();
 
 	// Home
 	fastify.get("/", async (request, reply) => {

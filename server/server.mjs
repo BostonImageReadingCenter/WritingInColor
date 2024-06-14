@@ -15,7 +15,7 @@ const fastify = Fastify({
 	logger: true,
 });
 
-fastify.register(routes);
+fastify.register(routes, {});
 
 /**
  * Run the server!

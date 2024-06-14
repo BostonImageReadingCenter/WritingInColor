@@ -1,4 +1,6 @@
 # WritingInColor
+I'm making sure that everything is top-notch in terms of security: biometric authentication, post quantum encryption, hashed and salted pbkdf2, SHA-512
+
 
 ## Setup
 First, ensure that you have either [Bun](https://bun.run/) or [Node](https://nodejs.org/) installed. 
@@ -15,12 +17,7 @@ Next, copy the template in `.env.example` to `.env` and set your username and pa
 Finally, run `./setup.sh` to setup the database for this project.
 
 ## Usage
-To start the server, run `bun run start` or `npm run start` to start in development mode (i.e. without `vite`)
-
-For development mode, you will need to either manually compile the scss or use an extension that automatically compiles scss.
-
-To start in production mode, run `bun run production` or `npm run production`.
-Production mode will automatically compile scss.
+To start the server, run `bun run start` or `npm run start` to start.
 
 ## Navigating the code.
 - The server code can be found in the `server` directory.
@@ -29,6 +26,7 @@ Production mode will automatically compile scss.
 
 ## During Development
 Edits require a server restart.
+Make sure you have SCSS (Sass) installed. It can be found [here](https://github.com/sass/dart-sass/releases/tag/1.77.5).
 
 
 

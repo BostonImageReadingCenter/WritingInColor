@@ -4,7 +4,7 @@ import { config } from "dotenv";
 
 // Load environment variables
 config();
-console.log(process.env);
+
 // Database connection configuration
 const MySQL_config = {
 	host: process.env.DB_HOST,
@@ -73,4 +73,4 @@ async function test() {
 	}
 }
 
-export default { initDatabase, createUser, test };
+export { initDatabase, createUser, test };
