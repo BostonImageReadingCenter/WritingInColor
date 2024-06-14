@@ -6,11 +6,12 @@ First, ensure that you have either [Bun](https://bun.run/) or [Node](https://nod
 While in this directory, enter `bun install` or `npm install` to install the dependencies.
 
 
-### Database
+#### Database
 Make sure you have MySQL installed and the server is running. 
 I ran into an issue with file access when setting up the server, but my solution is [here](https://stackoverflow.com/questions/53242775/mysql-server-instance-8-0-13-automatically-turned-off-and-on-randomly/78618450#78618450).
 
-Next, open `.env` and set your username and password.
+Next, copy the template in `.env.example` to `.env` and set your username and password.
+
 Finally, run `./setup.sh` to setup the database for this project.
 
 
