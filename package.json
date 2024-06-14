@@ -24,6 +24,7 @@
     "@fastify/view": "^9.1.0",
     "@simplewebauthn/server": "^10.0.0",
     "body-parser": "^1.20.2",
+    "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "mysql2": "^3.10.0",
     "nodemon": "^3.1.3",
