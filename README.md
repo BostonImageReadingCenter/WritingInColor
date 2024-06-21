@@ -1,5 +1,5 @@
 # WritingInColor
-I'm making sure that everything is top-notch in terms of security: biometric authentication, post quantum encryption, hashed and salted pbkdf2, SHA-512
+I'm making sure that everything is top-notch in terms of security: biometric authentication, post quantum encryption, hashed and salted pbkdf2, SHA-512.
 
 
 ## Setup
@@ -7,9 +7,10 @@ First, ensure that you have either [Bun](https://bun.run/) or [Node](https://nod
 
 While in this directory, enter `bun install` or `npm install` to install the dependencies.
 
+Make sure you have SCSS (Sass) installed. It can be found [here](https://github.com/sass/dart-sass/releases/tag/1.77.5).
 
 #### Database
-Make sure you have MySQL installed and the server is running. 
+Ensure that you have MySQL installed and the server is running. 
 I ran into an issue with file access when setting up the server, but my solution is [here](https://stackoverflow.com/questions/53242775/mysql-server-instance-8-0-13-automatically-turned-off-and-on-randomly/78618450#78618450).
 
 Next, copy the template in `.env.example` to `.env` and set your username and password.
@@ -26,9 +27,7 @@ To start the server, run `bun run start` or `npm run start` to start.
 
 ## During Development
 Edits require a server restart.
-Make sure you have SCSS (Sass) installed. It can be found [here](https://github.com/sass/dart-sass/releases/tag/1.77.5).
-
-
+If you add a new JavaScript file that is used ON ITS OWN, then you will need to add it to the list in `webpack.config.js`. Then you can import it from `/static/javascript/bundle`.
 
 
 ### User Roles
@@ -37,7 +36,7 @@ Make sure you have SCSS (Sass) installed. It can be found [here](https://github.
 - Instructor: Can manage courses and create blog posts.
 - Developer: Can edit the website content.
 - Student: Can create comments, reviews, and community posts.
-
+Perhaps we should swap the role-base system out for a individual permission-based one?
 
 
 
