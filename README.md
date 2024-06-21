@@ -3,7 +3,7 @@ I'm making sure that everything is top-notch in terms of security: biometric aut
 
 
 ## Setup
-First, ensure that you have either [Bun](https://bun.run/) or [Node](https://nodejs.org/) installed. 
+First, ensure that you have [Bun](https://bun.sh/) installed.
 
 While in this directory, enter `bun install` or `npm install` to install the dependencies.
 

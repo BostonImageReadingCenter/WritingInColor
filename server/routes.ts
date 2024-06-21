@@ -4,7 +4,7 @@ import fastifyStatic from "@fastify/static";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "url";
 import { initDatabase } from "./db.mjs";
-import { login } from "./login.mjs";
+import { login } from "./login.js";
 import { v4 as uuidv4 } from "uuid";
 // Constants
 const rpId = "localhost";
@@ -66,8 +66,8 @@ async function routes(fastify, options) {
 		cleanSessions();
 		let result = await generator.next();
 		console.log(result);
-		if (generator.done) delete auth_sessions[id];
-		return reply.send({ id, done: generator.done, ...result.value });
+		if (result.done) delete auth_sessions[id];
+		return reply.send({ id, done: result.done, ...result.value });
 	});
 	fastify.post("/api/login/return", async (request, reply) => {
 		let json = request.body;

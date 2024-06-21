@@ -1,5 +1,5 @@
 import Fastify from "fastify";
-import routes from "./routes.mjs";
+import routes from "./routes.js";
 import fastify_cookie from "@fastify/cookie";
 import fp from "fastify-plugin";
 import fastifyJwt from "@fastify/jwt";
