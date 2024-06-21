@@ -14,15 +14,13 @@ SET @password = '${env:DB_PASSWORD}';
 
 -- Create database
 CREATE DATABASE IF NOT EXISTS ${DB_NAME};
-SELECT '${DB_USERNAME}' AS message;
-SELECT '${DB_PASSWORD}' AS message;
 -- Create user and grant privileges
 CREATE USER IF NOT EXISTS '${DB_USERNAME}'@'localhost' IDENTIFIED BY '${DB_PASSWORD}';
-GRANT ALL PRIVILEGES ON WritingInColor.* TO '${DB_USERNAME}'@'localhost';
+GRANT ALL PRIVILEGES ON ${DB_NAME}.* TO '${DB_USERNAME}'@'localhost';
 FLUSH PRIVILEGES;
 
 
-USE WritingInColor;
+USE ${DB_NAME};
 
 
 CREATE TABLE IF NOT EXISTS users (
@@ -33,9 +31,8 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE TABLE IF NOT EXISTS emails (
-	id BINARY(16) PRIMARY KEY,
 	user_id BINARY(16),
-	email VARCHAR(255) NOT NULL,
+	email VARCHAR(255) NOT NULL PRIMARY KEY,
 	is_primary BOOLEAN DEFAULT FALSE,
 	created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 	FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
@@ -64,6 +61,14 @@ CREATE TABLE IF NOT EXISTS user_roles (
 	PRIMARY KEY (user_id, role_id),
 	FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
 	FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS tokens (
+	value BINARY(16),
+	user_id BINARY(16),
+	can_refresh BOOLEAN,
+	provides_access BOOLEAN,
+	FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 INSERT INTO roles (role_name) VALUES ('admin'), ('moderator'), ('instructor'), ('developer'), ('student');

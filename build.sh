@@ -1,3 +1,3 @@
-npx babel client/static/javascript --out-dir client/static/javascript/babel
+npx webpack --mode production
 sass client/static/scss:client/static/css
 

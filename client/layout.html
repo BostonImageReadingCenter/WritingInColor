@@ -2,33 +2,26 @@
 <!-- This file defines the base layout of all pages. -->
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <!-- Meta tags -->
-        <meta charset="UTF-8"/>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-        <title>
-            {% block title %}Writing in Color{% endblock %}
-        </title>
+	<head>
+		<!-- Meta tags -->
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>{% block title %}Writing in Color{% endblock %}</title>
 
-        <!-- CSS -->
-        <link rel="stylesheet" href="/static/css/core.css"/>
+		<!-- CSS -->
+		<link rel="stylesheet" href="/static/css/core.css" />
 
-        <!-- JavaScript -->
-        <script type="module" src="/static/javascript/core.js"></script>
-        <script type="module" src="/static/javascript/effects.js"></script>
+		<!-- JavaScript -->
+		<script type="module" src="/static/javascript/bundle/core.js"></script>
 
-        {% block head %}{% endblock %}
-        {% if user.admin %}
-            {{ admin.admin_imports() }}
-        {% endif %}
-    </head>
-    <body>
-        {% if user.admin %}
-            {{ admin.admin_panel() }}
-        {% endif %}
-        {% block body %}{% endblock %}
-        <footer>
-            <!-- TODO: put global footer content here. -->
-        </footer>
-    </body>
+		{% block head %}{% endblock %} {% if user.admin %} {{ admin.admin_imports()
+		}} {% endif %}
+	</head>
+	<body>
+		{% if user.admin %} {{ admin.admin_panel() }} {% endif %} {% block body %}{%
+		endblock %}
+		<footer>
+			<!-- TODO: put global footer content here. -->
+		</footer>
+	</body>
 </html>

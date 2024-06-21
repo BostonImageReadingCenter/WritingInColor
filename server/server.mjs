@@ -1,21 +1,41 @@
-// Koa vs Fastify vs Express
-// Koa: https://github.com/koajs/koa
-// Fastify: https://github.com/fastify/fastify
-// Express: https://github.com/expressjs/express
-
-// Fastify is the fastest, Koa is second, and Express is by far the slowest.
-// Koa is the most customizable.
-// Express is the one I have the most experience with.
-// Fastify is fast.
-
 import Fastify from "fastify";
 import routes from "./routes.mjs";
+import fastify_cookie from "@fastify/cookie";
+import fp from "fastify-plugin";
+import fastifyJwt from "@fastify/jwt";
 
 const fastify = Fastify({
 	logger: true,
 });
 
+fastify.register(fastify_cookie, {
+	secret: "my-secret", // for cookies signature
+	parseOptions: {
+		secure: true,
+	}, // options for parsing cookies
+});
+fastify.register(
+	fp(async function (fastify, opts) {
+		fastify.register(fastifyJwt, {
+			secret: "supersecret",
+		});
+
+		fastify.decorate("authenticate", async function (request, reply) {
+			try {
+				await request.jwtVerify();
+			} catch (err) {
+				reply.send(err);
+			}
+		});
+	})
+);
 fastify.register(routes, {});
+
+/*
+
+Security: https://medium.com/@ferrosful/nodejs-security-unleashed-exploring-dos-ddos-attacks-cf089d5caff4
+
+*/
 
 /**
  * Run the server!

@@ -4,7 +4,8 @@ import fastifyStatic from "@fastify/static";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "url";
 import { initDatabase } from "./db.mjs";
-
+import { login } from "./login.mjs";
+import { v4 as uuidv4 } from "uuid";
 // Constants
 const rpId = "localhost";
 const expectedOrigin = "http://localhost:3000";
@@ -14,9 +15,17 @@ const client_root = join(
 	__dirname,
 	process.argv[2] === "production" ? "../dist" : "../client/"
 ); // Use dist in production.
+let auth_sessions = {};
 
 // Configure Nunjucks to use the client_root directory.
 nunjucks.configure(client_root, { autoescape: true });
+
+function cleanSessions() {
+	let now = Date.now() + 10;
+	for (let id in auth_sessions) {
+		if (Date.now() > auth_sessions[id].expires) delete auth_sessions[id];
+	}
+}
 
 // Define routes
 async function routes(fastify, options) {
@@ -39,11 +48,46 @@ async function routes(fastify, options) {
 			.send(nunjucks.render("index.html", { visits, user }));
 		return reply;
 	});
-
+	fastify.get("/login", async (request, reply) => {
+		reply
+			.code(200)
+			.header("Content-Type", "text/html")
+			.send(nunjucks.render("login/index.html"));
+	});
+	fastify.post("/api/login/init", async (request, reply) => {
+		let id = uuidv4();
+		let generator = login(promisePool, request.body);
+		auth_sessions[id] = {
+			id,
+			expires: Date.now() + 1000 * 60 * 1,
+			generator,
+		};
+		cleanSessions();
+		return reply.send({ id });
+	});
+	fastify.post("/api/login/return", async (request, reply) => {
+		let json = request.body;
+		let id = json.id;
+		let session = auth_sessions[id];
+		if (!session)
+			return reply
+				.code(404)
+				.send({ error: "The requested session no longer exists." });
+		if (Date.now() > session.expires) {
+			delete auth_sessions[id];
+			return reply.code(410).send({ error: "Login session has expired." });
+		}
+		session.expires += 1000 * 60 * 1;
+		let result = session.generator.next(json);
+		if (generator.done) delete auth_sessions[id];
+		return reply.code(200).send(result);
+	});
 	// Passkeys
-	fastify.post("/passkeys/register/start", async (request, reply) => {});
-	fastify.post("/passkeys/register/finish", async (request, reply) => {});
-	fastify.post("/passkeys/login/start", async (request, reply) => {});
-	fastify.post("/passkeys/login/finish", async (request, reply) => {});
+	// https://github.com/corbado/passkey-tutorial/blob/main/src/controllers/registration.ts
+	// https://github.com/corbado/passkey-tutorial/blob/main/src/controllers/authentication.ts
+	fastify.post("/api/passkeys/register/start", async (request, reply) => {});
+	fastify.post("/api/passkeys/register/finish", async (request, reply) => {});
+	fastify.post("/api/passkeys/login/start", async (request, reply) => {});
+	fastify.post("/api/passkeys/login/finish", async (request, reply) => {});
 }
 export default routes;
