@@ -3,9 +3,9 @@ const webpack = require("webpack"); // Import webpack
 
 module.exports = {
 	entry: {
-		core: "./client/static/javascript/core.js",
-		login: "./client/static/javascript/login.js",
-		adminPanel: "./client/static/javascript/admin-panel.js",
+		core: "./client/static/javascript/core.ts",
+		login: "./client/static/javascript/login.ts",
+		adminPanel: "./client/static/javascript/admin-panel.ts",
 	},
 	output: {
 		filename: "[name].js",

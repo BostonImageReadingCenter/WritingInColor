@@ -1,9 +1,8 @@
 import nunjucks from "nunjucks";
-import User from "./user.mjs";
 import fastifyStatic from "@fastify/static";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "url";
-import { initDatabase } from "./db.mjs";
+import { initDatabase } from "./db.js";
 import { login } from "./login.js";
 import { v4 as uuidv4 } from "uuid";
 // Constants
@@ -41,7 +40,7 @@ async function routes(fastify, options) {
 	// Home
 	fastify.get("/", async (request, reply) => {
 		visits++;
-		let user = new User({ admin: true }); // Placeholder user.
+		let user = { admin: true }; // Placeholder user.
 		reply
 			.code(200)
 			.header("Content-Type", "text/html")

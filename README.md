@@ -41,6 +41,6 @@ Perhaps we should swap the role-base system out for a individual permission-base
 
 
 ### Notes to myself:
-https://github.com/corbado/passkey-tutorial/tree/main
-https://www.corbado.com/blog/passkey-tutorial-how-to-implement-passkeys
-https://medium.com/@ferrosful/nodejs-security-unleashed-exploring-dos-ddos-attacks-cf089d5caff4
+- https://github.com/corbado/passkey-tutorial/tree/main
+- https://www.corbado.com/blog/passkey-tutorial-how-to-implement-passkeys
+- https://medium.com/@ferrosful/- nodejs-security-unleashed-exploring-dos-ddos-attacks-cf089d5caff4

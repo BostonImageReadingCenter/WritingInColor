@@ -5,9 +5,9 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start": "./build.sh && (bun server/server.mjs || node server/server.mjs)",
+    "start": "./build.sh && bun server/server.ts",
     "build": "./build.sh",
-    "run": "bun server/server.mjs || node server/server.mjs"
+    "run": "bun server/server.ts"
   },
   "repository": {
     "type": "git",

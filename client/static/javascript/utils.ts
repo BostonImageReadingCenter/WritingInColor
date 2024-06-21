@@ -1,20 +1,7 @@
 class EasyEl extends Element {
-	constructor(element, options) {
-		super(element, options);
-		this.element = element;
-		for (let attribute in options.attributes) {
-			this.setAttribute(attribute, options.attributes[attribute]);
-		}
-		for (let c of options.classes) {
-			this.classList.add(c);
-		}
-		if (options.id) {
-			this.id = options.id;
-		}
-	}
 	setClass(...classes) {
 		for (let c of classes) {
-			this.element.classList.add(c);
+			this.classList.add(c);
 		}
 		return this;
 	}

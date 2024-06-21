@@ -1,4 +1,4 @@
-import { easyEl, createElement } from "./utils.js";
+import { createElement } from "./utils.ts";
 let collectionMessageEl,
 	collectionHeaderEl,
 	collectionFormEl,
