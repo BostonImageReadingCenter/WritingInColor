@@ -55,6 +55,7 @@ async function routes(fastify, options) {
 			.send(nunjucks.render("login/index.html"));
 	});
 	fastify.post("/api/login/init", async (request, reply) => {
+		console.log("Login session has begun.");
 		let id = uuidv4();
 		let generator = login(promisePool, request.body);
 		auth_sessions[id] = {
@@ -63,7 +64,10 @@ async function routes(fastify, options) {
 			generator,
 		};
 		cleanSessions();
-		return reply.send({ id });
+		let result = await generator.next();
+		console.log(result);
+		if (generator.done) delete auth_sessions[id];
+		return reply.send({ id, done: generator.done, ...result.value });
 	});
 	fastify.post("/api/login/return", async (request, reply) => {
 		let json = request.body;
@@ -78,9 +82,10 @@ async function routes(fastify, options) {
 			return reply.code(410).send({ error: "Login session has expired." });
 		}
 		session.expires += 1000 * 60 * 1;
-		let result = session.generator.next(json);
-		if (generator.done) delete auth_sessions[id];
-		return reply.code(200).send(result);
+		let result = await session.generator.next(json);
+		console.log(result);
+		if (result.done) delete auth_sessions[id];
+		return reply.code(200).send({ id, done: result.done, ...result.value });
 	});
 	// Passkeys
 	// https://github.com/corbado/passkey-tutorial/blob/main/src/controllers/registration.ts

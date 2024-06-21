@@ -32,8 +32,32 @@ class EasyEl extends Element {
 	}
 }
 function createElement(elementName, options) {
-	let element = document.createElement(elementName);
-	return new Element(element, option);
+	let element = document.createElement(elementName, options);
+	for (let attribute in options.attributes) {
+		element.setAttribute(attribute, options.attributes[attribute]);
+	}
+	for (let c of options.classes) {
+		element.classList.add(c);
+	}
+	if (options.id) {
+		element.id = options.id;
+	}
+	return element;
 }
+
+function extendElementPrototype() {
+	// Get all property names of EasyEl.prototype
+	const properties = Object.getOwnPropertyNames(EasyEl.prototype);
+
+	properties.forEach((property) => {
+		if (property !== "constructor") {
+			// Copy each method from EasyEl.prototype to Element.prototype
+			Element.prototype[property] = EasyEl.prototype[property];
+		}
+	});
+}
+
+// Extend the prototype
+extendElementPrototype();
 
 export { EasyEl, createElement };
