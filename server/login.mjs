@@ -2,7 +2,7 @@ async function* login(promisePool, options) {
 	let emailData = yield {
 		action: "collect",
 		type: "email",
-		header: "What's your email?",
+		header: "Please enter your email.",
 		message: "We need your email to be sure its you.",
 	};
 	let [[user]] = await promisePool.query(
