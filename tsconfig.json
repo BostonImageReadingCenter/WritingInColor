@@ -7,6 +7,7 @@
     "noImplicitAny": false,
     "skipLibCheck": true,
     "esModuleInterop": true,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "allowImportingTsExtensions": true
   }
 }

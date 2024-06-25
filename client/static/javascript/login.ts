@@ -35,6 +35,8 @@ async function handleAction(data) {
 	console.log(data);
 	if (data.action === "collect") {
 		collect(data);
+	} else if (data.action === "register-passkey") {
+		registerPasskey(data);
 	}
 }
 async function returnData(data) {
@@ -101,15 +103,16 @@ async function collect(data) {
 	}
 }
 
-function waitForEvent(target, eventName) {
-	return new Promise((resolve, reject) => {
-		function eventHandler(event) {
-			// Remove the event listener once the event occurs
-			target.removeEventListener(eventName, eventHandler);
-			// Resolve the promise with the event data
-			resolve(event);
-		}
-		// Add the event listener
-		target.addEventListener(eventName, eventHandler);
+async function registerPasskey(data) {
+	const attestationResponse = await SimpleWebAuthnBrowser.startRegistration(
+		data.WebAuthnOptions
+	);
+	const verificationResponse = await fetch("/api/login/return", {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({
+			id: sessionID,
+			attestationResponse,
+		}),
 	});
 }

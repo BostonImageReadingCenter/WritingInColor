@@ -1,25 +1,25 @@
-class EasyEl extends Element {
+const newProperties = {
 	setClass(...classes) {
 		for (let c of classes) {
 			this.classList.add(c);
 		}
 		return this;
-	}
-	setId(id) {
+	},
+	setId(id: string) {
 		this.id = id;
 		return this;
-	}
-	setText(text) {
+	},
+	setText(text: string) {
 		this.innerText = text;
 		return this;
-	}
+	},
 	setHTML(HTML) {
 		this.innerHTML = HTML;
 		return this;
 	}
 }
-function createElement(elementName, options) {
-	let element = document.createElement(elementName, options);
+function createElement(elementType: string, options) {
+	let element = document.createElement(elementType, options);
 	for (let attribute in options.attributes) {
 		element.setAttribute(attribute, options.attributes[attribute]);
 	}
@@ -33,18 +33,12 @@ function createElement(elementName, options) {
 }
 
 function extendElementPrototype() {
-	// Get all property names of EasyEl.prototype
-	const properties = Object.getOwnPropertyNames(EasyEl.prototype);
-
-	properties.forEach((property) => {
-		if (property !== "constructor") {
-			// Copy each method from EasyEl.prototype to Element.prototype
-			Element.prototype[property] = EasyEl.prototype[property];
-		}
+	Object.keys(newProperties).forEach(methodName => {
+	Element.prototype[methodName] = newProperties[methodName];
 	});
 }
 
 // Extend the prototype
 extendElementPrototype();
 
-export { EasyEl, createElement };
+export { createElement };

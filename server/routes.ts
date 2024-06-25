@@ -5,8 +5,8 @@ import { fileURLToPath } from "url";
 import { initDatabase } from "./db.js";
 import { login } from "./login.js";
 import { v4 as uuidv4 } from "uuid";
-// Constants
-const rpId = "localhost";
+import { rpID, rpName, origin } from "./constants.js";
+
 const expectedOrigin = "http://localhost:3000";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
