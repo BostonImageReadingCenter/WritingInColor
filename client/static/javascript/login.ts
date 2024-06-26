@@ -70,7 +70,7 @@ async function collect(data) {
 			},
 			classes: [],
 			id: "",
-		});
+		}) as HTMLInputElement;
 		collectionInputsEl.appendChild(emailInputEl);
 		let listener = async (event) => {
 			event.preventDefault();
@@ -89,7 +89,7 @@ async function collect(data) {
 			},
 			classes: [],
 			id: "",
-		});
+		}) as HTMLInputElement;
 		collectionInputsEl.appendChild(consentInputEl);
 		let listener = async (event) => {
 			event.preventDefault();
@@ -125,10 +125,11 @@ async function collect(data) {
 		}
 		let listener = async (event) => {
 			event.preventDefault();
+			const selectedOption = document.querySelector(
+				'input[name="choice"]:checked'
+			) as HTMLInputElement;
 			returnData({
-				value: parseInt(
-					document.querySelector('input[name="choice"]:checked').value
-				),
+				value: parseInt(selectedOption.value),
 			});
 			collectionFormEl.removeEventListener("submit", listener);
 		};
@@ -137,6 +138,7 @@ async function collect(data) {
 }
 
 async function registerPasskey(data) {
+	// @ts-ignore
 	const attestationResponse = await SimpleWebAuthnBrowser.startRegistration(
 		data.WebAuthnOptions
 	);
@@ -157,6 +159,7 @@ async function registerPasskey(data) {
 }
 async function authenticatePasskey(data) {
 	console.log(data);
+	// @ts-ignore
 	const assertionResponse = await SimpleWebAuthnBrowser.startAuthentication(
 		data.options
 	);

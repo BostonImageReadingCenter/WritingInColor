@@ -55,7 +55,8 @@ async function beginPasskeyAuthentication() {
 		if (!passkey)
 			return {
 				verified: false,
-			};
+				authenticationInfo: null,
+			} as VerifiedAuthenticationResponse;
 		const opts: VerifyAuthenticationResponseOpts = {
 			response: assertionResponse,
 			expectedChallenge: options.challenge,
