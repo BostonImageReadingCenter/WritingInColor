@@ -7,7 +7,7 @@ First, ensure that you have [Bun](https://bun.sh/) installed.
 
 While in this directory, enter `bun install` or `npm install` to install the dependencies.
 
-Make sure you have SCSS (Sass) installed. It can be found [here](https://github.com/sass/dart-sass/releases/tag/1.77.5).
+Make sure you have SCSS (Sass) installed. It can be found [here](https://github.com/sass/dart-sass/releases/latest).
 
 #### Database
 Ensure that you have MySQL installed and the server is running. 
