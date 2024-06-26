@@ -24,9 +24,7 @@ async function loginUserWithPasskey(
 		"SELECT * FROM passkeys WHERE credential_id = ?",
 		[assertionResponse.rawId]
 	);
-	console.log("passkey", passkey);
 	const verification = await verifyAuthentication(assertionResponse, passkey);
-	console.log("verification", verification);
 	if (verification.verified && verification.authenticationInfo) {
 		console.log("\n\n\x1b[32;1mAuthentication Successful!\x1b[0m\n\n");
 		// TODO: Continue with authentication
@@ -39,7 +37,6 @@ async function loginUserWithPasskey(
 }
 
 async function* login(promisePool, options) {
-	console.log("options", options);
 	let authenticationOptions, verifyAuthentication;
 	if (options.supportsWebAuthn) {
 		let x = await beginPasskeyAuthentication();
@@ -60,14 +57,8 @@ async function* login(promisePool, options) {
 		],
 		authenticationOptions,
 	};
-	console.log(data, options.supportsWebAuthn, data.assertionResponse);
 	if (options.supportsWebAuthn && data.assertionResponse) {
-		// let { assertionResponse } = yield {
-		// 	action: "authenticate-passkey",
-		// 	WebAuthnOptions: authenticationOptions,
-		// };
 		let assertionResponse = data.assertionResponse;
-		console.log("assertionResponse", assertionResponse);
 		let success = await loginUserWithPasskey(
 			promisePool,
 			assertionResponse,
@@ -165,17 +156,15 @@ async function* login(promisePool, options) {
 			// TODO: Continue with registration, backup password, etc...
 		}
 		if (options.supportsWebAuthn) {
-			// const [passkeys] = await promisePool.query(
-			// 	"SELECT * FROM passkeys WHERE user_id = ?",
-			// 	[user.id]
-			// );
-			// console.log("passkeys", passkeys);
-			// authenticationOptions.allowCredentials = passkeys.map((passkey) => ({
-			// 	id: passkey.credential_id,
-			// 	transports: JSON.parse(passkey.transports),
-			// }));
-			// TODO: set allowCredentials so that it only shows that user's passkeys
-			console.log("authenticationOptions", authenticationOptions);
+			const [passkeys] = await promisePool.query(
+				"SELECT * FROM passkeys WHERE user_id = ?",
+				[user.id]
+			);
+			authenticationOptions.allowCredentials = passkeys.map((passkey) => ({
+				type: "public-key",
+				id: passkey.credential_id,
+				transports: JSON.parse(passkey.transports),
+			}));
 			let { assertionResponse } = yield {
 				action: "authenticate-passkey",
 				WebAuthnOptions: authenticationOptions,
