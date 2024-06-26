@@ -1,16 +1,22 @@
 import { createElement } from "./utils.ts";
-let collectionMessageEl,
+var collectionMessageEl,
 	collectionHeaderEl,
 	collectionFormEl,
 	collectionInputsEl,
-	sessionID;
+	sessionID,
+	supportsWebAuthn,
+	supportsConditionalUI,
+	authenticationOptions;
 
 window.addEventListener("load", (event) => {
-	const supportsWebAuthn =
+	supportsWebAuthn =
 		window.PublicKeyCredential &&
 		navigator.credentials &&
 		typeof navigator.credentials.create === "function" &&
 		typeof navigator.credentials.get === "function";
+	supportsConditionalUI =
+		typeof PublicKeyCredential.isConditionalMediationAvailable === "function" &&
+		PublicKeyCredential.isConditionalMediationAvailable();
 	collectionMessageEl = document.getElementById("collection-message");
 	collectionHeaderEl = document.getElementById("collection-header");
 	collectionFormEl = document.getElementById("collection-form");
@@ -22,21 +28,30 @@ window.addEventListener("load", (event) => {
 		},
 		body: JSON.stringify({
 			supportsWebAuthn,
+			supportsConditionalUI,
 		}),
 	}).then(async (response) => {
 		let json = await response.json();
 		sessionID = json.id;
+		authenticationOptions = json.value.authenticationOptions;
+		if (json.done) return;
 		// fetch("")
-		handleAction(json);
+		handleAction(json.value);
 	});
 });
 async function handleAction(data) {
-	if (data.action === "collect") {
-		collect(data);
-	} else if (data.action === "register-passkey") {
-		registerPasskey(data);
-	} else if (data.action === "authenticate-passkey") {
-		authenticatePasskey(data);
+	let actions = data.actions;
+	if (!Array.isArray(actions)) actions = [data];
+	for (let item of actions) {
+		if (item.action === "collect") {
+			collect(item);
+		} else if (item.action === "register-passkey") {
+			registerPasskey(item);
+		} else if (item.action === "authenticate-passkey") {
+			authenticatePasskey(item);
+		} else if (item.action === "init-conditional-ui") {
+			initConditionalUI(item);
+		}
 	}
 }
 async function returnData(data) {
@@ -51,7 +66,8 @@ async function returnData(data) {
 		}),
 	}).then(async (response) => {
 		let json = await response.json();
-		handleAction(json);
+		if (json.done) return;
+		handleAction(json.value);
 	});
 }
 async function collect(data) {
@@ -67,6 +83,7 @@ async function collect(data) {
 				type: "email",
 				placeholder: "Email",
 				required: true,
+				autocomplete: "email webauthn",
 			},
 			classes: [],
 			id: "",
@@ -151,17 +168,20 @@ async function registerPasskey(data) {
 		}),
 	});
 	let json = await verificationResponse.json();
-	if (json.success) {
+	if (json.value.success) {
 		// TODO: handle success
 	} else {
 		// TODO: handle failure
 	}
 }
-async function authenticatePasskey(data) {
-	console.log(data);
+async function authenticatePasskey(data = { WebAuthnOptions: null }) {
+	let WebAuthnOptions = authenticationOptions;
+	if (data.WebAuthnOptions) {
+		WebAuthnOptions = data.WebAuthnOptions;
+	}
 	// @ts-ignore
 	const assertionResponse = await SimpleWebAuthnBrowser.startAuthentication(
-		data.options
+		WebAuthnOptions
 	);
 	const verificationResponse = await fetch("/api/login/return", {
 		method: "POST",
@@ -172,9 +192,57 @@ async function authenticatePasskey(data) {
 		}),
 	});
 	let json = await verificationResponse.json();
-	if (json.success) {
+	if (json.value.success) {
 		// TODO: handle success
 	} else {
 		// TODO: handle failure
 	}
+}
+async function initConditionalUI(data) {
+	if (supportsConditionalUI) {
+		if (
+			!(
+				typeof PublicKeyCredential.isConditionalMediationAvailable ===
+					"function" && PublicKeyCredential.isConditionalMediationAvailable()
+			)
+		) {
+			return;
+		}
+		console.log(authenticationOptions);
+		// @ts-ignore
+		SimpleWebAuthnBrowser.startAuthentication(authenticationOptions, true)
+			.then(async (assertionResponse) => {
+				console.log("authentication", assertionResponse);
+				const verificationResponse = await fetch("/api/login/return", {
+					method: "POST",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						id: sessionID,
+						assertionResponse,
+					}),
+				});
+				let json = await verificationResponse.json();
+				if (json.value.success) {
+					// TODO: handle success
+				} else {
+					// TODO: handle failure
+				}
+			})
+			.catch(async (err) => {
+				console.log(err);
+				// TODO: handle failure
+			});
+	}
+	let usePasskeyButton = createElement("button", {
+		attributes: {},
+		classes: [],
+		id: "usePasskey",
+	});
+	usePasskeyButton.innerText = "Sign in with a passkey";
+	async function eventHandler(event) {
+		usePasskeyButton.removeEventListener("click", eventHandler);
+		await authenticatePasskey();
+	}
+	usePasskeyButton.addEventListener("click", eventHandler);
+	collectionFormEl.appendChild(usePasskeyButton);
 }

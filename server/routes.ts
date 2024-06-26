@@ -64,7 +64,7 @@ async function routes(fastify, options) {
 		cleanSessions();
 		let result = await generator.next();
 		if (result.done) delete auth_sessions[id];
-		return reply.send({ id, done: result.done, ...result.value });
+		return reply.send({ id, done: result.done, value: result.value });
 	});
 	fastify.post("/api/login/return", async (request, reply) => {
 		let json = request.body;
@@ -81,7 +81,7 @@ async function routes(fastify, options) {
 		session.expires += 1000 * 60 * 1;
 		let result = await session.generator.next(json);
 		if (result.done) delete auth_sessions[id];
-		return reply.code(200).send({ id, done: result.done, ...result.value });
+		return reply.code(200).send({ id, done: result.done, value: result.value });
 	});
 	// Passkeys
 	// https://github.com/corbado/passkey-tutorial/blob/main/src/controllers/registration.ts

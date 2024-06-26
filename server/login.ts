@@ -15,25 +15,72 @@ import {
 	beginPasskeyAuthentication,
 } from "./passkeys";
 
+async function loginUserWithPasskey(
+	promisePool,
+	assertionResponse,
+	verifyAuthentication
+) {
+	const [[passkey]] = await promisePool.query(
+		"SELECT * FROM passkeys WHERE credential_id = ?",
+		[assertionResponse.rawId]
+	);
+	console.log("passkey", passkey);
+	const verification = await verifyAuthentication(assertionResponse, passkey);
+	console.log("verification", verification);
+	if (verification.verified && verification.authenticationInfo) {
+		console.log("\n\n\x1b[32;1mAuthentication Successful!\x1b[0m\n\n");
+		// TODO: Continue with authentication
+		return true;
+	} else {
+		console.log("\n\n\x1b[31;1mAuthentication Failed!\x1b[0m\n\n");
+		// TODO: Handle verification failure
+		return false;
+	}
+}
+
 async function* login(promisePool, options) {
-	let choice = yield {
-		action: "collect",
-		type: "choice",
-		options: ["Login with Email", "Login with Passkey"],
-		header: "Login",
-		message: "Which method would you like to use?",
+	console.log("options", options);
+	let authenticationOptions, verifyAuthentication;
+	if (options.supportsWebAuthn) {
+		let x = await beginPasskeyAuthentication();
+		authenticationOptions = x.WebAuthnOptions;
+		verifyAuthentication = x.verify;
+	}
+	let data = yield {
+		actions: [
+			{
+				action: "collect",
+				type: "email",
+				header: "Please enter your email.",
+				message: "We need your email to be sure its you.",
+			},
+			{
+				action: "init-conditional-ui",
+			},
+		],
+		authenticationOptions,
 	};
-	console.log(choice);
-	if (choice.value === 0) {
-		let emailData = yield {
-			action: "collect",
-			type: "email",
-			header: "Please enter your email.",
-			message: "We need your email to be sure its you.",
+	console.log(data, options.supportsWebAuthn, data.assertionResponse);
+	if (options.supportsWebAuthn && data.assertionResponse) {
+		// let { assertionResponse } = yield {
+		// 	action: "authenticate-passkey",
+		// 	WebAuthnOptions: authenticationOptions,
+		// };
+		let assertionResponse = data.assertionResponse;
+		console.log("assertionResponse", assertionResponse);
+		let success = await loginUserWithPasskey(
+			promisePool,
+			assertionResponse,
+			verifyAuthentication
+		);
+		return {
+			success,
 		};
+	} else {
+		let email = data.value;
 		let [[user]] = await promisePool.query(
 			"SELECT users.* FROM users JOIN emails ON users.id = emails.user_id WHERE emails.email = ?",
-			[emailData.value]
+			[email]
 		);
 		if (!user) {
 			// User does not exist
@@ -52,7 +99,7 @@ async function* login(promisePool, options) {
 			if (options.supportsWebAuthn) {
 				let passkeyRegistrationSucceeded = false;
 				const { WebAuthnOptions, verify } = await beginPasskeyRegistration(
-					emailData.value,
+					email,
 					userID
 				);
 				let { attestationResponse } = yield {
@@ -78,7 +125,7 @@ async function* login(promisePool, options) {
 							// Add email
 							await connection.query(
 								"INSERT INTO emails (user_id, email) VALUES (?, ?)",
-								[userIDBuffer, emailData.value]
+								[userIDBuffer, email]
 							);
 
 							// Save Passkey
@@ -111,32 +158,38 @@ async function* login(promisePool, options) {
 					success: passkeyRegistrationSucceeded,
 				};
 			} else {
-				// Password only
+				// Password only registration
 				// TODO
 			}
 
 			// TODO: Continue with registration, backup password, etc...
 		}
-		// TODO: Continue with login
-		console.log(user);
-	} else if (choice.value === 1) {
-		// TODO: Continue with passkey
-		let { options, verify } = await beginPasskeyAuthentication();
-		let { assertionResponse } = yield {
-			action: "authenticate-passkey",
-			options: options,
-		};
-
-		const [[passkey]] = await promisePool.query(
-			"SELECT * FROM passkeys WHERE credential_id = ?",
-			[assertionResponse.rawId]
-		);
-		const verification = await verify(assertionResponse, passkey);
-		if (verification.verified && verification.authenticationInfo) {
-			console.log("\n\n\x1b[32;1mAuthentication Successful!\x1b[0m\n\n");
-			// TODO: Continue with authentication
+		if (options.supportsWebAuthn) {
+			// const [passkeys] = await promisePool.query(
+			// 	"SELECT * FROM passkeys WHERE user_id = ?",
+			// 	[user.id]
+			// );
+			// console.log("passkeys", passkeys);
+			// authenticationOptions.allowCredentials = passkeys.map((passkey) => ({
+			// 	id: passkey.credential_id,
+			// 	transports: JSON.parse(passkey.transports),
+			// }));
+			// TODO: set allowCredentials so that it only shows that user's passkeys
+			console.log("authenticationOptions", authenticationOptions);
+			let { assertionResponse } = yield {
+				action: "authenticate-passkey",
+				WebAuthnOptions: authenticationOptions,
+			};
+			let success = await loginUserWithPasskey(
+				promisePool,
+				assertionResponse,
+				verifyAuthentication
+			);
+			return {
+				success,
+			};
 		} else {
-			// TODO: Handle verification failure
+			// Password only login
 		}
 	}
 }

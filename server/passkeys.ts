@@ -42,14 +42,14 @@ async function beginPasskeyRegistration(userName, userID) {
 	return { WebAuthnOptions, verify };
 }
 
-async function beginPasskeyAuthentication() {
-	const options = await generateAuthenticationOptions({
+async function beginPasskeyAuthentication(allowCredentials = []) {
+	const WebAuthnOptions = await generateAuthenticationOptions({
 		timeout: 60000,
-		allowCredentials: [],
+		allowCredentials,
 		userVerification: "required",
 		rpID,
 	});
-	console.log(options);
+	console.log(WebAuthnOptions);
 
 	async function verify(assertionResponse, passkey) {
 		if (!passkey)
@@ -59,14 +59,14 @@ async function beginPasskeyAuthentication() {
 			} as VerifiedAuthenticationResponse;
 		const opts: VerifyAuthenticationResponseOpts = {
 			response: assertionResponse,
-			expectedChallenge: options.challenge,
+			expectedChallenge: WebAuthnOptions.challenge,
 			expectedOrigin: origin,
 			expectedRPID: rpID,
 			authenticator: {
 				credentialID: passkey.credential_id,
 				credentialPublicKey: base64ToUint8Array(passkey.public_key),
 				counter: passkey.counter,
-				transports: passkey.transports,
+				transports: JSON.parse(passkey.transports),
 			},
 		};
 		let verification: VerifiedAuthenticationResponse =
@@ -74,7 +74,7 @@ async function beginPasskeyAuthentication() {
 		return verification;
 	}
 
-	return { options, verify };
+	return { WebAuthnOptions, verify };
 }
 
 export { beginPasskeyRegistration, beginPasskeyAuthentication };
