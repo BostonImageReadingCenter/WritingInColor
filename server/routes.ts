@@ -2,12 +2,11 @@ import nunjucks from "nunjucks";
 import fastifyStatic from "@fastify/static";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "url";
-import { initDatabase } from "./db.js";
-import { login } from "./login.js";
+import { initDatabase } from "./db";
+import { login } from "./login";
 import { v4 as uuidv4 } from "uuid";
 import { rpID, rpName, origin } from "./constants.js";
 
-const expectedOrigin = "http://localhost:3000";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const client_root = join(
@@ -64,7 +63,6 @@ async function routes(fastify, options) {
 		};
 		cleanSessions();
 		let result = await generator.next();
-		console.log(result);
 		if (result.done) delete auth_sessions[id];
 		return reply.send({ id, done: result.done, ...result.value });
 	});
@@ -82,16 +80,11 @@ async function routes(fastify, options) {
 		}
 		session.expires += 1000 * 60 * 1;
 		let result = await session.generator.next(json);
-		console.log(result);
 		if (result.done) delete auth_sessions[id];
 		return reply.code(200).send({ id, done: result.done, ...result.value });
 	});
 	// Passkeys
 	// https://github.com/corbado/passkey-tutorial/blob/main/src/controllers/registration.ts
 	// https://github.com/corbado/passkey-tutorial/blob/main/src/controllers/authentication.ts
-	fastify.post("/api/passkeys/register/start", async (request, reply) => {});
-	fastify.post("/api/passkeys/register/finish", async (request, reply) => {});
-	fastify.post("/api/passkeys/login/start", async (request, reply) => {});
-	fastify.post("/api/passkeys/login/finish", async (request, reply) => {});
 }
 export default routes;

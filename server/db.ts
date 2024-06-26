@@ -1,6 +1,7 @@
 import mysql from "mysql2";
 import { v4 as uuidv4 } from "uuid";
 import { config } from "dotenv";
+import { parse as uuidParse } from "uuid-parse";
 
 // Load environment variables
 config();
@@ -16,50 +17,12 @@ const MySQL_config = {
 	queueLimit: 0,
 };
 
-// Utility function to convert UUID to binary
-function uuidToBinary(uuid) {
-	return Buffer.from(uuid.replace(/-/g, ""), "hex");
-}
-
 async function initDatabase() {
 	const pool = mysql.createPool(MySQL_config);
-	const promisePool = await pool.promise();
+	const promisePool = pool.promise();
 	return { pool, promisePool };
 }
-async function createUser(
-	promisePool,
-	{
-		emails = [],
-		passkeys = [],
-		roles = [],
-		password = null,
-		salt = null,
-		userID = uuidToBinary(uuidv4()),
-	}
-) {
-	await promisePool.execute(
-		"INSERT INTO users (id, salt, password) VALUES (?, ?, ?)",
-		[userID, salt, password]
-	);
 
-	for (const email of emails) {
-		await promisePool.execute(
-			"INSERT INTO emails (id, user_id, email) VALUES (?, ?, ?)",
-			[uuidToBinary(uuidv4()), userID, email]
-		);
-	}
-
-	for (const passkey of passkeys) {
-		// TODO
-	}
-
-	for (const role of roles) {
-		await promisePool.execute(
-			"INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)",
-			[userID, role]
-		);
-	}
-}
 async function test() {
 	let { pool, promisePool } = await initDatabase();
 	try {
@@ -72,5 +35,4 @@ async function test() {
 		pool.end();
 	}
 }
-
-export { initDatabase, createUser, test };
+export { initDatabase, test };

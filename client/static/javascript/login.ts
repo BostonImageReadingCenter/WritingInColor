@@ -26,17 +26,17 @@ window.addEventListener("load", (event) => {
 	}).then(async (response) => {
 		let json = await response.json();
 		sessionID = json.id;
-		console.log(json);
 		// fetch("")
 		handleAction(json);
 	});
 });
 async function handleAction(data) {
-	console.log(data);
 	if (data.action === "collect") {
 		collect(data);
 	} else if (data.action === "register-passkey") {
 		registerPasskey(data);
+	} else if (data.action === "authenticate-passkey") {
+		authenticatePasskey(data);
 	}
 }
 async function returnData(data) {
@@ -51,7 +51,6 @@ async function returnData(data) {
 		}),
 	}).then(async (response) => {
 		let json = await response.json();
-		console.log(json);
 		handleAction(json);
 	});
 }
@@ -100,6 +99,40 @@ async function collect(data) {
 			collectionFormEl.removeEventListener("submit", listener);
 		};
 		collectionFormEl.addEventListener("submit", listener);
+	} else if (data.type === "choice") {
+		// Using radio buttons
+		for (let i = 0; i < data.options.length; i++) {
+			let choiceInputEl = createElement("input", {
+				attributes: {
+					type: "radio",
+					name: "choice",
+					value: i,
+					required: true,
+				},
+				classes: [],
+				id: "",
+			});
+			collectionInputsEl.appendChild(choiceInputEl);
+			let choiceLabelEl = createElement("label", {
+				attributes: {
+					for: "choice",
+				},
+				classes: [],
+				id: "",
+			});
+			choiceLabelEl.innerText = data.options[i];
+			collectionInputsEl.appendChild(choiceLabelEl);
+		}
+		let listener = async (event) => {
+			event.preventDefault();
+			returnData({
+				value: parseInt(
+					document.querySelector('input[name="choice"]:checked').value
+				),
+			});
+			collectionFormEl.removeEventListener("submit", listener);
+		};
+		collectionFormEl.addEventListener("submit", listener);
 	}
 }
 
@@ -115,4 +148,30 @@ async function registerPasskey(data) {
 			attestationResponse,
 		}),
 	});
+	let json = await verificationResponse.json();
+	if (json.success) {
+		// TODO: handle success
+	} else {
+		// TODO: handle failure
+	}
+}
+async function authenticatePasskey(data) {
+	console.log(data);
+	const assertionResponse = await SimpleWebAuthnBrowser.startAuthentication(
+		data.options
+	);
+	const verificationResponse = await fetch("/api/login/return", {
+		method: "POST",
+		headers: { "Content-Type": "application/json" },
+		body: JSON.stringify({
+			id: sessionID,
+			assertionResponse,
+		}),
+	});
+	let json = await verificationResponse.json();
+	if (json.success) {
+		// TODO: handle success
+	} else {
+		// TODO: handle failure
+	}
 }
