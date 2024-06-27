@@ -3,32 +3,20 @@ import routes from "./routes.js";
 import fastify_cookie from "@fastify/cookie";
 import fp from "fastify-plugin";
 import fastifyJwt from "@fastify/jwt";
-
+import { rpID, rpName, origin, JWT_EXPIRATION_TIME } from "./constants.js";
+import { uint8ArrayToBase64, Uint8ArrayFromHexString } from "./utils";
 const fastify = Fastify({
 	logger: true,
 });
 
 fastify.register(fastify_cookie, {
-	secret: "my-secret", // for cookies signature
+	secret: "secret", // for cookies signature TODO: Move to .env
 	parseOptions: {
 		secure: true,
+		signed: true,
 	}, // options for parsing cookies
 });
-fastify.register(
-	fp(async function (fastify, opts) {
-		fastify.register(fastifyJwt, {
-			secret: "supersecret",
-		});
 
-		fastify.decorate("authenticate", async function (request, reply) {
-			try {
-				await request.jwtVerify();
-			} catch (err) {
-				reply.send(err);
-			}
-		});
-	})
-);
 fastify.register(routes, {});
 
 /*
