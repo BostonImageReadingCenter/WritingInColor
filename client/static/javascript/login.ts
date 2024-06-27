@@ -1,4 +1,9 @@
 import { createElement } from "./utils.ts";
+import {
+	startAuthentication,
+	startRegistration,
+} from "@simplewebauthn/browser";
+
 var collectionMessageEl,
 	collectionHeaderEl,
 	collectionFormEl,
@@ -155,10 +160,7 @@ async function collect(data) {
 }
 
 async function registerPasskey(data) {
-	// @ts-ignore
-	const attestationResponse = await SimpleWebAuthnBrowser.startRegistration(
-		data.WebAuthnOptions
-	);
+	const attestationResponse = await startRegistration(data.WebAuthnOptions);
 	const verificationResponse = await fetch("/api/login/return", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
@@ -179,10 +181,7 @@ async function authenticatePasskey(data = { WebAuthnOptions: null }) {
 	if (data.WebAuthnOptions) {
 		WebAuthnOptions = data.WebAuthnOptions;
 	}
-	// @ts-ignore
-	const assertionResponse = await SimpleWebAuthnBrowser.startAuthentication(
-		WebAuthnOptions
-	);
+	const assertionResponse = await startAuthentication(WebAuthnOptions);
 	const verificationResponse = await fetch("/api/login/return", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
@@ -209,8 +208,8 @@ async function initConditionalUI(data) {
 			return;
 		}
 		console.log(authenticationOptions);
-		// @ts-ignore
-		SimpleWebAuthnBrowser.startAuthentication(authenticationOptions, true)
+
+		startAuthentication(authenticationOptions, true)
 			.then(async (assertionResponse) => {
 				console.log("authentication", assertionResponse);
 				const verificationResponse = await fetch("/api/login/return", {
