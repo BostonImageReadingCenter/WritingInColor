@@ -6,6 +6,9 @@ import {
 	SECRET_PRIVATE_KEY,
 	SECRET_PUBLIC_KEY,
 } from "./constants.js";
+import { Pool } from "mysql2";
+import { Pool as PromisePool } from "mysql2/promise";
+
 import { v4 as uuidv4 } from "uuid";
 import { parse as uuidParse } from "uuid-parse";
 import { uint8ArrayToBase64, base64ToUint8Array } from "./utils";
@@ -18,6 +21,7 @@ import { falcon } from "falcon-crypto";
 import { JWT_REGISTERED_CLAIMS, User, LoginStatus } from "./types.js";
 import { UserService } from "./db.js";
 import { base64URLStringToBuffer } from "@simplewebauthn/browser";
+import { FastifyReply, FastifyRequest } from "fastify";
 
 export async function CreateJWT(payload: JWT_REGISTERED_CLAIMS) {
 	const jwt: string = await sign(
@@ -49,13 +53,20 @@ export function isValidJWT(jwt: JWT_REGISTERED_CLAIMS) {
 	return true;
 }
 
-export async function signCookie(value) {
+export async function signCookie(value: string) {
 	let signed = await falcon.sign(Buffer.from(value), SECRET_PRIVATE_KEY);
 	let as_text = uint8ArrayToBase64(signed);
 	return as_text;
 }
-
-export async function unsignCookie(value) {
+/**
+ * unsign a cookie
+ * @param value Base64 encoded
+ * @returns Promise<{verified: boolean, text: string | null}>
+ */
+export async function unsignCookie(value: string): Promise<{
+	verified: boolean;
+	text: string | null;
+}> {
 	try {
 		const result = await falcon.open(
 			base64ToUint8Array(value),
@@ -73,7 +84,10 @@ export async function unsignCookie(value) {
 		};
 	}
 }
-export async function isLoggedIn(request, promisePool): Promise<LoginStatus> {
+export async function isLoggedIn(
+	request: FastifyRequest,
+	promisePromisePool: PromisePool
+): Promise<LoginStatus> {
 	try {
 		let jwt = request.cookies.accessToken;
 		if (!jwt) throw "No access token";
@@ -105,7 +119,7 @@ export async function isLoggedIn(request, promisePool): Promise<LoginStatus> {
 		if (!validity) throw "Invalid refresh token";
 
 		let newAccessToken = await createAccessTokenIfNotRevoked(
-			promisePool,
+			promisePromisePool,
 			payload
 		);
 		if (newAccessToken === false) throw "Refresh token revoked";
@@ -149,19 +163,19 @@ export async function createAccessToken(refreshToken: JWT_REGISTERED_CLAIMS) {
 	return accessToken;
 }
 export async function createAccessTokenIfNotRevoked(
-	promisePool,
+	promisePromisePool: PromisePool,
 	decoded_refresh_token: JWT_REGISTERED_CLAIMS
 ): Promise<false | JWT_REGISTERED_CLAIMS> {
 	if (!decoded_refresh_token || !decoded_refresh_token.jti) return false;
-	const [revoked] = await promisePool.query(
+	const revoked = await promisePromisePool.query(
 		"SELECT * FROM revoked_refresh_tokens WHERE token_id = ?",
 		[decoded_refresh_token.jti]
-	);
+	)[0];
 	if (revoked.length > 0) return false;
 
 	return createAccessToken(decoded_refresh_token);
 }
-export async function loginUser(userID: Buffer, reply) {
+export async function loginUser(userID: Buffer) {
 	let refreshToken = await createRefreshToken(userID);
 	let accessToken = await createAccessToken(refreshToken);
 
@@ -177,13 +191,12 @@ export async function loginUser(userID: Buffer, reply) {
 	};
 }
 export async function loginUserWithPasskey(
-	promisePool,
+	promisePromisePool: PromisePool,
 	assertionResponse,
-	verifyAuthentication,
-	request,
-	reply
+	verifyAuthentication
 ) {
-	const [[passkey]] = await promisePool.query(
+	// @ts-ignore
+	const [[passkey]] = await promisePromisePool.query(
 		"SELECT * FROM passkeys WHERE credential_id = ?",
 		[assertionResponse.rawId]
 	);
@@ -192,9 +205,9 @@ export async function loginUserWithPasskey(
 		let userID = Buffer.from(
 			base64URLStringToBuffer(assertionResponse.response.userHandle)
 		);
-		// const user = await UserService.getById(userID, promisePool);
+		// const user = await UserService.getById(userID, promisePromisePool);
 		console.log("\n\n\x1b[32;1mAuthentication Successful!\x1b[0m\n\n");
-		return loginUser(userID, reply);
+		return loginUser(userID);
 	} else {
 		console.log("\n\n\x1b[31;1mAuthentication Failed!\x1b[0m\n\n");
 		// TODO: Handle verification failure
@@ -202,7 +215,7 @@ export async function loginUserWithPasskey(
 	}
 }
 
-export async function* login(promisePool, options) {
+export async function* login(promisePromisePool, options) {
 	let authenticationOptions, verifyAuthentication;
 	if (options.supportsWebAuthn) {
 		let x = await beginPasskeyAuthentication();
@@ -226,11 +239,9 @@ export async function* login(promisePool, options) {
 	if (options.supportsWebAuthn && json.assertionResponse) {
 		let assertionResponse = json.assertionResponse;
 		let success = await loginUserWithPasskey(
-			promisePool,
+			promisePromisePool,
 			assertionResponse,
-			verifyAuthentication,
-			request,
-			reply
+			verifyAuthentication
 		);
 		return {
 			success: success !== false,
@@ -238,7 +249,7 @@ export async function* login(promisePool, options) {
 		};
 	} else {
 		let email = json.value;
-		let user = await UserService.getByEmail(email, promisePool);
+		let user = await UserService.getByEmail(email, promisePromisePool);
 		if (!user) {
 			// User does not exist
 			let {
@@ -278,7 +289,7 @@ export async function* login(promisePool, options) {
 						attestationResponse.response.transports
 					);
 					// Use a single transaction to ensure atomicity
-					await promisePool.getConnection().then(async (connection) => {
+					await promisePromisePool.getConnection().then(async (connection) => {
 						await connection.beginTransaction();
 						try {
 							// Create user
@@ -329,7 +340,7 @@ export async function* login(promisePool, options) {
 			// TODO: Continue with registration, backup password, etc...
 		}
 		if (options.supportsWebAuthn) {
-			const [passkeys] = await promisePool.query(
+			const [passkeys] = await promisePromisePool.query(
 				"SELECT * FROM passkeys WHERE user_id = ?",
 				[user.id]
 			);
@@ -347,11 +358,9 @@ export async function* login(promisePool, options) {
 				WebAuthnOptions: authenticationOptions,
 			};
 			let success = await loginUserWithPasskey(
-				promisePool,
+				promisePromisePool,
 				assertionResponse,
-				verifyAuthentication,
-				request,
-				reply
+				verifyAuthentication
 			);
 			return {
 				success: success !== false,

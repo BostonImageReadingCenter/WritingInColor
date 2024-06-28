@@ -1,9 +1,13 @@
 import mysql from "mysql2";
+import { Pool as PromisePool } from "mysql2/promise";
 import { MySQLConfig } from "./constants";
 import { parse as uuidParse } from "uuid-parse";
 import { User } from "./types";
 
-async function initDatabase() {
+async function initDatabase(): Promise<{
+	pool: mysql.Pool;
+	promisePool: PromisePool;
+}> {
 	const pool = mysql.createPool(MySQLConfig);
 	const promisePool = pool.promise();
 	return { pool, promisePool };

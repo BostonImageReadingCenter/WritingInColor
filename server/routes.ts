@@ -3,6 +3,7 @@ import fastifyStatic from "@fastify/static";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "url";
 import { initDatabase } from "./db";
+import { FastifyReply, FastifyRequest } from "fastify";
 import {
 	login,
 	signCookie,
@@ -68,7 +69,7 @@ async function routes(fastify, options) {
 	};
 
 	// Home
-	fastify.get("/", async (request, reply) => {
+	fastify.get("/", async (request: FastifyRequest, reply: FastifyReply) => {
 		let is_admin = false;
 
 		let login_status = await isLoggedIn(request, promisePool);
@@ -84,43 +85,54 @@ async function routes(fastify, options) {
 			.send(nunjucks.render("index.html", { visits, user }));
 		return reply;
 	});
-	fastify.get("/login", async (request, reply) => {
-		reply
-			.code(200)
-			.header("Content-Type", "text/html")
-			.send(nunjucks.render("login/index.html"));
-	});
-	fastify.post("/api/login/init", async (request, reply) => {
-		console.log("Login session has begun.");
-		let id = uuidv4();
-		let generator = login(promisePool, request.body);
-		auth_sessions[id] = {
-			id,
-			expires: Date.now() + 1000 * 60 * 1,
-			generator,
-		};
-		cleanSessions();
-		let result = await generator.next();
-		if (result.done) delete auth_sessions[id];
-		return reply.send({ id, done: result.done, value: result.value });
-	});
-	fastify.post("/api/login/return", async (request, reply) => {
-		let json = request.body;
-		let id = json.id;
-		let session = auth_sessions[id]; // Use JWTs for login sessions???
-		if (!session)
-			return reply
-				.code(404)
-				.send({ error: "The requested session no longer exists." });
-		if (Date.now() > session.expires) {
-			delete auth_sessions[id];
-			return reply.code(410).send({ error: "Login session has expired." });
+	fastify.get(
+		"/login",
+		async (request: FastifyRequest, reply: FastifyReply) => {
+			reply
+				.code(200)
+				.header("Content-Type", "text/html")
+				.send(nunjucks.render("login/index.html"));
 		}
-		session.expires += 1000 * 60 * 1;
-		let result = await session.generator.next({ request, reply, json });
-		if (result.done) delete auth_sessions[id];
-		setCookies(result.value.setCookies, reply);
-		return reply.code(200).send({ id, done: result.done, value: result.value });
-	});
+	);
+	fastify.post(
+		"/api/login/init",
+		async (request: FastifyRequest, reply: FastifyReply) => {
+			console.log("Login session has begun.");
+			let id = uuidv4();
+			let generator = login(promisePool, request.body);
+			auth_sessions[id] = {
+				id,
+				expires: Date.now() + 1000 * 60 * 1,
+				generator,
+			};
+			cleanSessions();
+			let result = await generator.next();
+			if (result.done) delete auth_sessions[id];
+			return reply.send({ id, done: result.done, value: result.value });
+		}
+	);
+	fastify.post(
+		"/api/login/return",
+		async (request: FastifyRequest, reply: FastifyReply) => {
+			let json: any = request.body;
+			let id = json.id;
+			let session = auth_sessions[id]; // Use JWTs for login sessions???
+			if (!session)
+				return reply
+					.code(404)
+					.send({ error: "The requested session no longer exists." });
+			if (Date.now() > session.expires) {
+				delete auth_sessions[id];
+				return reply.code(410).send({ error: "Login session has expired." });
+			}
+			session.expires += 1000 * 60 * 1;
+			let result = await session.generator.next({ request, reply, json });
+			if (result.done) delete auth_sessions[id];
+			setCookies(result.value.setCookies, reply);
+			return reply
+				.code(200)
+				.send({ id, done: result.done, value: result.value });
+		}
+	);
 }
 export default routes;
