@@ -32,6 +32,24 @@ function cleanSessions() {
 		if (Date.now() > auth_sessions[id].expires) delete auth_sessions[id];
 	}
 }
+
+function setCookies(cookies: object, reply) {
+	if (cookies) {
+		for (let cookie_name in cookies) {
+			let cookie = cookies[cookie_name];
+			// SameSite strict
+			reply.setCookie(cookie_name, cookie.value, {
+				httpOnly: true,
+				signed: false,
+				path: "/",
+				sameSite: "strict",
+				secure: false, // TODO: Change this to true.
+				expires: cookie.expires,
+			});
+		}
+	}
+}
+
 // Define routes
 async function routes(fastify, options) {
 	console.log("\x1b[34mServing from:", client_root, "\x1b[0m");
@@ -48,17 +66,16 @@ async function routes(fastify, options) {
 		password: "",
 		created_at: new Date(),
 	};
-	// let json = JSON.stringify(user);
-	// let user_2 = JSON.parse(json);
-	// console.log(json, user_2, typeof user.id, typeof user_2.id);
-	// console.log(user.id, user_2.id);
 
 	// Home
 	fastify.get("/", async (request, reply) => {
 		let is_admin = false;
-		let jwt_payload = await isLoggedIn(request);
-		console.log(jwt_payload);
-		if (jwt_payload && jwt_payload.adm) is_admin = true;
+
+		let login_status = await isLoggedIn(request, promisePool);
+		setCookies(login_status.setCookies, reply);
+
+		if (login_status.valid && login_status.payload.adm) is_admin = true;
+
 		visits++;
 		let user = { admin: is_admin }; // Placeholder user.
 		reply
@@ -90,7 +107,7 @@ async function routes(fastify, options) {
 	fastify.post("/api/login/return", async (request, reply) => {
 		let json = request.body;
 		let id = json.id;
-		let session = auth_sessions[id];
+		let session = auth_sessions[id]; // Use JWTs for login sessions???
 		if (!session)
 			return reply
 				.code(404)
@@ -102,25 +119,8 @@ async function routes(fastify, options) {
 		session.expires += 1000 * 60 * 1;
 		let result = await session.generator.next({ request, reply, json });
 		if (result.done) delete auth_sessions[id];
-
+		setCookies(result.value.setCookies, reply);
 		return reply.code(200).send({ id, done: result.done, value: result.value });
-	});
-	fastify.get("/cookie-test-1", async (request, reply) => {
-		let signed = await signCookie("test");
-		console.log("Singed!");
-		let x = reply
-			.setCookie("test", signed, {
-				path: "/",
-				httpOnly: true,
-				secure: false,
-				expires: Date.now() + 1000 * 60 * 60 * 24 * 7, // 1 week
-			})
-			.send({ hello: "world" });
-		console.log("Set!");
-	});
-	fastify.get("/cookie-test-2", async (request, reply) => {
-		console.log(request.cookies);
-		console.log(await unsignCookie(request.cookies.test));
 	});
 }
 export default routes;

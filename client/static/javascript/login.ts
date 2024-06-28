@@ -207,11 +207,9 @@ async function initConditionalUI(data) {
 		) {
 			return;
 		}
-		console.log(authenticationOptions);
 
 		startAuthentication(authenticationOptions, true)
 			.then(async (assertionResponse) => {
-				console.log("authentication", assertionResponse);
 				const verificationResponse = await fetch("/api/login/return", {
 					method: "POST",
 					headers: { "Content-Type": "application/json" },

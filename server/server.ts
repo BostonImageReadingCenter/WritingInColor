@@ -6,6 +6,7 @@ import fp from "fastify-plugin";
 const fastify = Fastify({
 	logger: true,
 });
+
 // @ts-ignore
 fastify.register(fastify_cookie, {
 	parseOptions: {

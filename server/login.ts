@@ -15,7 +15,7 @@ import {
 } from "./passkeys";
 import { sign, verify, decode } from "jwt-falcon";
 import { falcon } from "falcon-crypto";
-import { JWT_REGISTERED_CLAIMS, User } from "./types.js";
+import { JWT_REGISTERED_CLAIMS, User, LoginStatus } from "./types.js";
 import { UserService } from "./db.js";
 import { base64URLStringToBuffer } from "@simplewebauthn/browser";
 
@@ -73,26 +73,55 @@ export async function unsignCookie(value) {
 		};
 	}
 }
-export async function isLoggedIn(
-	request
-): Promise<false | JWT_REGISTERED_CLAIMS> {
+export async function isLoggedIn(request, promisePool): Promise<LoginStatus> {
 	try {
 		let jwt = request.cookies.accessToken;
-		if (!jwt) return false;
+		if (!jwt) throw "No access token";
 
 		let verified = await VerifyJWT(jwt);
-		if (!verified) return false;
+		if (!verified) throw "Fraudulant access token";
 
 		let payload = await DecodeJWT(jwt);
-		if (!payload) return false;
+		if (!payload) throw "Access token malformed";
 
 		let validity = isValidJWT(payload);
-		if (!validity) return false;
+		if (!validity) throw "Invalid access token";
 
-		return payload;
-	} catch (e) {
-		return false;
-	}
+		return { payload, valid: true, setCookies: {} };
+	} catch (e) {}
+
+	// If it gets here, its invalid, so we may need to refresh it.
+	try {
+		let refreshToken = request.cookies.refreshToken;
+		if (!refreshToken) throw "No refresh token";
+
+		let verified = await VerifyJWT(refreshToken);
+		if (!verified) throw "Fraudulant refresh token";
+
+		let payload = await DecodeJWT(refreshToken);
+		if (!payload) throw "Refresh token malformed";
+
+		let validity = isValidJWT(payload);
+		if (!validity) throw "Invalid refresh token";
+
+		let newAccessToken = await createAccessTokenIfNotRevoked(
+			promisePool,
+			payload
+		);
+		if (newAccessToken === false) throw "Refresh token revoked";
+
+		return {
+			payload,
+			valid: true,
+			setCookies: {
+				accessToken: {
+					value: await CreateJWT(newAccessToken),
+					expires: newAccessToken.exp,
+				},
+			},
+		};
+	} catch (e) {}
+	return { payload: null, valid: false, setCookies: {} };
 }
 export async function createRefreshToken(userID: Buffer, is_admin = false) {
 	let refreshToken: JWT_REGISTERED_CLAIMS = {
@@ -122,7 +151,7 @@ export async function createAccessToken(refreshToken: JWT_REGISTERED_CLAIMS) {
 export async function createAccessTokenIfNotRevoked(
 	promisePool,
 	decoded_refresh_token: JWT_REGISTERED_CLAIMS
-): Promise<boolean | JWT_REGISTERED_CLAIMS> {
+): Promise<false | JWT_REGISTERED_CLAIMS> {
 	if (!decoded_refresh_token || !decoded_refresh_token.jti) return false;
 	const [revoked] = await promisePool.query(
 		"SELECT * FROM revoked_refresh_tokens WHERE token_id = ?",
@@ -135,17 +164,17 @@ export async function createAccessTokenIfNotRevoked(
 export async function loginUser(userID: Buffer, reply) {
 	let refreshToken = await createRefreshToken(userID);
 	let accessToken = await createAccessToken(refreshToken);
-	await reply.setCookie("refreshToken", await CreateJWT(refreshToken), {
-		signed: false, // It's a JWT, so it's already signed.
-		httpOnly: true,
-		secure: false, // TODO: Change this to true.
-	});
-	await reply.setCookie("accessToken", await CreateJWT(accessToken), {
-		signed: false, // It's a JWT, so it's already signed.
-		httpOnly: true,
-		secure: false, // TODO: Change this to true.
-	});
-	return true;
+
+	return {
+		refreshToken: {
+			value: await CreateJWT(refreshToken),
+			expires: refreshToken.exp,
+		},
+		accessToken: {
+			value: await CreateJWT(accessToken),
+			expires: accessToken.exp,
+		},
+	};
 }
 export async function loginUserWithPasskey(
 	promisePool,
@@ -163,11 +192,9 @@ export async function loginUserWithPasskey(
 		let userID = Buffer.from(
 			base64URLStringToBuffer(assertionResponse.response.userHandle)
 		);
-		const user = await UserService.getById(userID, promisePool);
+		// const user = await UserService.getById(userID, promisePool);
 		console.log("\n\n\x1b[32;1mAuthentication Successful!\x1b[0m\n\n");
-		// TODO: Continue with authentication
-		loginUser(userID, reply);
-		return true;
+		return loginUser(userID, reply);
 	} else {
 		console.log("\n\n\x1b[31;1mAuthentication Failed!\x1b[0m\n\n");
 		// TODO: Handle verification failure
@@ -206,7 +233,8 @@ export async function* login(promisePool, options) {
 			reply
 		);
 		return {
-			success,
+			success: success !== false,
+			setCookies: success || {},
 		};
 	} else {
 		let email = json.value;
@@ -326,7 +354,8 @@ export async function* login(promisePool, options) {
 				reply
 			);
 			return {
-				success,
+				success: success !== false,
+				setCookies: success || {},
 			};
 		} else {
 			// Password only login

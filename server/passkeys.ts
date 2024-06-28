@@ -14,7 +14,6 @@ import {
 import { base64ToUint8Array, uint8ArrayToBase64 } from "./utils";
 
 async function beginPasskeyRegistration(userName, userID) {
-	console.log(isoUint8Array.fromUTF8String(userID), userName);
 	const WebAuthnOptions = await generateRegistrationOptions({
 		rpName,
 		rpID,
@@ -49,7 +48,6 @@ async function beginPasskeyAuthentication(allowCredentials = []) {
 		userVerification: "required",
 		rpID,
 	});
-	console.log(WebAuthnOptions);
 
 	async function verify(assertionResponse, passkey) {
 		if (!passkey)
