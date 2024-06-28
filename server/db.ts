@@ -26,7 +26,7 @@ async function test() {
 	}
 }
 const UserService = {
-	getById: async (userID: Buffer, promisePool: mysql.Pool) => {
+	getById: async (userID: Buffer, promisePool: PromisePool) => {
 		// @ts-ignore
 		const user: User = await promisePool.query(
 			"SELECT * FROM users WHERE id = ?",
@@ -34,7 +34,7 @@ const UserService = {
 		);
 		return user[0][9];
 	},
-	getByEmail: async (email: string, promisePool: mysql.Pool) => {
+	getByEmail: async (email: string, promisePool: PromisePool) => {
 		// @ts-ignore
 		let user: User = await promisePool.query(
 			"SELECT users.* FROM users JOIN emails ON users.id = emails.user_id WHERE emails.email = ?",

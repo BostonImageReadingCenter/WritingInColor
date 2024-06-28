@@ -3,17 +3,17 @@ import {
 	startAuthentication,
 	startRegistration,
 } from "@simplewebauthn/browser";
+import { PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/typescript-types";
+var collectionMessageEl: HTMLElement,
+	collectionHeaderEl: HTMLElement,
+	collectionFormEl: HTMLFormElement,
+	collectionInputsEl: HTMLDivElement,
+	sessionID: string,
+	supportsWebAuthn: boolean,
+	supportsConditionalUI: boolean,
+	authenticationOptions: PublicKeyCredentialRequestOptionsJSON;
 
-var collectionMessageEl,
-	collectionHeaderEl,
-	collectionFormEl,
-	collectionInputsEl,
-	sessionID,
-	supportsWebAuthn,
-	supportsConditionalUI,
-	authenticationOptions;
-
-window.addEventListener("load", (event) => {
+window.addEventListener("load", async (event) => {
 	supportsWebAuthn =
 		window.PublicKeyCredential &&
 		navigator.credentials &&
@@ -21,11 +21,15 @@ window.addEventListener("load", (event) => {
 		typeof navigator.credentials.get === "function";
 	supportsConditionalUI =
 		typeof PublicKeyCredential.isConditionalMediationAvailable === "function" &&
-		PublicKeyCredential.isConditionalMediationAvailable();
+		(await PublicKeyCredential.isConditionalMediationAvailable());
 	collectionMessageEl = document.getElementById("collection-message");
 	collectionHeaderEl = document.getElementById("collection-header");
-	collectionFormEl = document.getElementById("collection-form");
-	collectionInputsEl = document.getElementById("collection-inputs");
+	collectionFormEl = document.getElementById(
+		"collection-form"
+	) as HTMLFormElement;
+	collectionInputsEl = document.getElementById(
+		"collection-inputs"
+	) as HTMLDivElement;
 	fetch("/api/login/init", {
 		method: "POST",
 		headers: {
@@ -94,7 +98,7 @@ async function collect(data) {
 			id: "",
 		}) as HTMLInputElement;
 		collectionInputsEl.appendChild(emailInputEl);
-		let listener = async (event) => {
+		let listener = async (event: SubmitEvent) => {
 			event.preventDefault();
 			returnData({
 				value: emailInputEl.value,
@@ -113,7 +117,7 @@ async function collect(data) {
 			id: "",
 		}) as HTMLInputElement;
 		collectionInputsEl.appendChild(consentInputEl);
-		let listener = async (event) => {
+		let listener = async (event: SubmitEvent) => {
 			event.preventDefault();
 			returnData({
 				value: consentInputEl.checked,
@@ -145,7 +149,7 @@ async function collect(data) {
 			choiceLabelEl.innerText = data.options[i];
 			collectionInputsEl.appendChild(choiceLabelEl);
 		}
-		let listener = async (event) => {
+		let listener = async (event: SubmitEvent) => {
 			event.preventDefault();
 			const selectedOption = document.querySelector(
 				'input[name="choice"]:checked'
@@ -238,7 +242,7 @@ async function initConditionalUI(data) {
 		id: "usePasskey",
 	});
 	usePasskeyButton.innerText = "Sign in with a passkey";
-	async function eventHandler(event) {
+	async function eventHandler(event: PointerEvent) {
 		usePasskeyButton.removeEventListener("click", eventHandler);
 		await authenticatePasskey();
 	}

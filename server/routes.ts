@@ -61,12 +61,6 @@ async function routes(fastify, options) {
 	});
 	let visits = 0;
 	const { pool, promisePool } = await initDatabase();
-	let user: User = {
-		id: Buffer.alloc(16),
-		salt: "",
-		password: "",
-		created_at: new Date(),
-	};
 
 	// Home
 	fastify.get("/", async (request: FastifyRequest, reply: FastifyReply) => {

@@ -6,7 +6,6 @@ import {
 	SECRET_PRIVATE_KEY,
 	SECRET_PUBLIC_KEY,
 } from "./constants.js";
-import { Pool } from "mysql2";
 import { Pool as PromisePool } from "mysql2/promise";
 
 import { v4 as uuidv4 } from "uuid";
@@ -18,10 +17,14 @@ import {
 } from "./passkeys";
 import { sign, verify, decode } from "jwt-falcon";
 import { falcon } from "falcon-crypto";
-import { JWT_REGISTERED_CLAIMS, User, LoginStatus } from "./types.js";
+import { JWT_REGISTERED_CLAIMS, User, LoginStatus, Passkey } from "./types.js";
 import { UserService } from "./db.js";
 import { base64URLStringToBuffer } from "@simplewebauthn/browser";
 import { FastifyReply, FastifyRequest } from "fastify";
+import {
+	AuthenticationResponseJSON,
+	RegistrationResponseJSON,
+} from "@simplewebauthn/typescript-types";
 
 export async function CreateJWT(payload: JWT_REGISTERED_CLAIMS) {
 	const jwt: string = await sign(
@@ -86,7 +89,7 @@ export async function unsignCookie(value: string): Promise<{
 }
 export async function isLoggedIn(
 	request: FastifyRequest,
-	promisePromisePool: PromisePool
+	promisePool: PromisePool
 ): Promise<LoginStatus> {
 	try {
 		let jwt = request.cookies.accessToken;
@@ -119,7 +122,7 @@ export async function isLoggedIn(
 		if (!validity) throw "Invalid refresh token";
 
 		let newAccessToken = await createAccessTokenIfNotRevoked(
-			promisePromisePool,
+			promisePool,
 			payload
 		);
 		if (newAccessToken === false) throw "Refresh token revoked";
@@ -163,11 +166,11 @@ export async function createAccessToken(refreshToken: JWT_REGISTERED_CLAIMS) {
 	return accessToken;
 }
 export async function createAccessTokenIfNotRevoked(
-	promisePromisePool: PromisePool,
+	promisePool: PromisePool,
 	decoded_refresh_token: JWT_REGISTERED_CLAIMS
 ): Promise<false | JWT_REGISTERED_CLAIMS> {
 	if (!decoded_refresh_token || !decoded_refresh_token.jti) return false;
-	const revoked = await promisePromisePool.query(
+	const revoked = await promisePool.query(
 		"SELECT * FROM revoked_refresh_tokens WHERE token_id = ?",
 		[decoded_refresh_token.jti]
 	)[0];
@@ -191,12 +194,12 @@ export async function loginUser(userID: Buffer) {
 	};
 }
 export async function loginUserWithPasskey(
-	promisePromisePool: PromisePool,
-	assertionResponse,
-	verifyAuthentication
+	promisePool: PromisePool,
+	assertionResponse: AuthenticationResponseJSON,
+	verifyAuthentication: Function
 ) {
 	// @ts-ignore
-	const [[passkey]] = await promisePromisePool.query(
+	const [[passkey]] = await promisePool.query(
 		"SELECT * FROM passkeys WHERE credential_id = ?",
 		[assertionResponse.rawId]
 	);
@@ -205,7 +208,7 @@ export async function loginUserWithPasskey(
 		let userID = Buffer.from(
 			base64URLStringToBuffer(assertionResponse.response.userHandle)
 		);
-		// const user = await UserService.getById(userID, promisePromisePool);
+		// const user = await UserService.getById(userID, promisePool);
 		console.log("\n\n\x1b[32;1mAuthentication Successful!\x1b[0m\n\n");
 		return loginUser(userID);
 	} else {
@@ -215,7 +218,7 @@ export async function loginUserWithPasskey(
 	}
 }
 
-export async function* login(promisePromisePool, options) {
+export async function* login(promisePool: PromisePool, options) {
 	let authenticationOptions, verifyAuthentication;
 	if (options.supportsWebAuthn) {
 		let x = await beginPasskeyAuthentication();
@@ -237,9 +240,9 @@ export async function* login(promisePromisePool, options) {
 		authenticationOptions,
 	};
 	if (options.supportsWebAuthn && json.assertionResponse) {
-		let assertionResponse = json.assertionResponse;
+		let assertionResponse: AuthenticationResponseJSON = json.assertionResponse;
 		let success = await loginUserWithPasskey(
-			promisePromisePool,
+			promisePool,
 			assertionResponse,
 			verifyAuthentication
 		);
@@ -249,7 +252,7 @@ export async function* login(promisePromisePool, options) {
 		};
 	} else {
 		let email = json.value;
-		let user = await UserService.getByEmail(email, promisePromisePool);
+		let user = await UserService.getByEmail(email, promisePool);
 		if (!user) {
 			// User does not exist
 			let {
@@ -273,14 +276,12 @@ export async function* login(promisePromisePool, options) {
 					email,
 					userID
 				);
-				let {
-					request,
-					reply,
-					json: { attestationResponse },
-				} = yield {
+				let { request, reply, json } = yield {
 					action: "register-passkey",
 					WebAuthnOptions,
 				};
+				let attestationResponse: RegistrationResponseJSON =
+					json.attestationResponse;
 				const verification = await verify(attestationResponse);
 				if (verification.verified && verification.registrationInfo) {
 					const { credentialPublicKey, credentialID, counter } =
@@ -289,7 +290,7 @@ export async function* login(promisePromisePool, options) {
 						attestationResponse.response.transports
 					);
 					// Use a single transaction to ensure atomicity
-					await promisePromisePool.getConnection().then(async (connection) => {
+					await promisePool.getConnection().then(async (connection) => {
 						await connection.beginTransaction();
 						try {
 							// Create user
@@ -340,10 +341,10 @@ export async function* login(promisePromisePool, options) {
 			// TODO: Continue with registration, backup password, etc...
 		}
 		if (options.supportsWebAuthn) {
-			const [passkeys] = await promisePromisePool.query(
+			const passkeys: Passkey[] = await promisePool.query(
 				"SELECT * FROM passkeys WHERE user_id = ?",
 				[user.id]
-			);
+			)[0];
 			authenticationOptions.allowCredentials = passkeys.map((passkey) => ({
 				type: "public-key",
 				id: passkey.credential_id,
@@ -358,7 +359,7 @@ export async function* login(promisePromisePool, options) {
 				WebAuthnOptions: authenticationOptions,
 			};
 			let success = await loginUserWithPasskey(
-				promisePromisePool,
+				promisePool,
 				assertionResponse,
 				verifyAuthentication
 			);
@@ -367,7 +368,7 @@ export async function* login(promisePromisePool, options) {
 				setCookies: success || {},
 			};
 		} else {
-			// Password only login
+			// TODO: Password only login
 		}
 	}
 }

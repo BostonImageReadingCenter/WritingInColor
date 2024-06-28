@@ -5,18 +5,24 @@ import {
 	generateRegistrationOptions,
 	verifyRegistrationResponse,
 } from "@simplewebauthn/server";
-import { RegistrationResponseJSON } from "@simplewebauthn/typescript-types";
 import { rpID, rpName, origin } from "./constants";
 import {
 	VerifiedAuthenticationResponse,
 	VerifyAuthenticationResponseOpts,
 } from "@simplewebauthn/server/esm";
 import { base64ToUint8Array, uint8ArrayToBase64 } from "./utils";
+import {
+	AuthenticationResponseJSON,
+	RegistrationResponseJSON,
+	PublicKeyCredentialRequestOptionsJSON,
+} from "@simplewebauthn/typescript-types";
+import { Passkey } from "./types";
 
-async function beginPasskeyRegistration(userName, userID) {
+async function beginPasskeyRegistration(userName: string, userID: Buffer) {
 	const WebAuthnOptions = await generateRegistrationOptions({
 		rpName,
 		rpID,
+		// @ts-ignore
 		userID: isoUint8Array.fromUTF8String(userID),
 		userName: userName,
 		timeout: 60000,
@@ -28,7 +34,7 @@ async function beginPasskeyRegistration(userName, userID) {
 		// Support for the two most common algorithms: ES256, and RS256
 		supportedAlgorithmIDs: [-7, -257],
 	});
-	async function verify(attestationResponse) {
+	async function verify(attestationResponse: RegistrationResponseJSON) {
 		const verification = await verifyRegistrationResponse({
 			response: attestationResponse as RegistrationResponseJSON,
 			expectedChallenge: WebAuthnOptions.challenge,
@@ -49,7 +55,10 @@ async function beginPasskeyAuthentication(allowCredentials = []) {
 		rpID,
 	});
 
-	async function verify(assertionResponse, passkey) {
+	async function verify(
+		assertionResponse: AuthenticationResponseJSON,
+		passkey: Passkey
+	) {
 		if (!passkey)
 			return {
 				verified: false,
