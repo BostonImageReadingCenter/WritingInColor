@@ -222,8 +222,10 @@ async function initConditionalUI(data) {
 				});
 				let json = await verificationResponse.json();
 				if (json.value.success) {
+					alert("Login Success!");
 					// TODO: handle success
 				} else {
+					alert("Login Failure!");
 					// TODO: handle failure
 				}
 			})

@@ -3,9 +3,17 @@ import fastifyStatic from "@fastify/static";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "url";
 import { initDatabase } from "./db";
-import { login } from "./login";
+import {
+	login,
+	signCookie,
+	unsignCookie,
+	createAccessTokenIfNotRevoked,
+	isLoggedIn,
+} from "./login";
 import { v4 as uuidv4 } from "uuid";
 import { rpID, rpName, origin } from "./constants.js";
+import { sign } from "jwt-falcon";
+import { JWT_REGISTERED_CLAIMS, User } from "./types.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -24,7 +32,6 @@ function cleanSessions() {
 		if (Date.now() > auth_sessions[id].expires) delete auth_sessions[id];
 	}
 }
-
 // Define routes
 async function routes(fastify, options) {
 	console.log("\x1b[34mServing from:", client_root, "\x1b[0m");
@@ -35,11 +42,25 @@ async function routes(fastify, options) {
 	});
 	let visits = 0;
 	const { pool, promisePool } = await initDatabase();
+	let user: User = {
+		id: Buffer.alloc(16),
+		salt: "",
+		password: "",
+		created_at: new Date(),
+	};
+	// let json = JSON.stringify(user);
+	// let user_2 = JSON.parse(json);
+	// console.log(json, user_2, typeof user.id, typeof user_2.id);
+	// console.log(user.id, user_2.id);
 
 	// Home
 	fastify.get("/", async (request, reply) => {
+		let is_admin = false;
+		let jwt_payload = await isLoggedIn(request);
+		console.log(jwt_payload);
+		if (jwt_payload && jwt_payload.adm) is_admin = true;
 		visits++;
-		let user = { admin: true }; // Placeholder user.
+		let user = { admin: is_admin }; // Placeholder user.
 		reply
 			.code(200)
 			.header("Content-Type", "text/html")
@@ -79,12 +100,27 @@ async function routes(fastify, options) {
 			return reply.code(410).send({ error: "Login session has expired." });
 		}
 		session.expires += 1000 * 60 * 1;
-		let result = await session.generator.next(json);
+		let result = await session.generator.next({ request, reply, json });
 		if (result.done) delete auth_sessions[id];
+
 		return reply.code(200).send({ id, done: result.done, value: result.value });
 	});
-	// Passkeys
-	// https://github.com/corbado/passkey-tutorial/blob/main/src/controllers/registration.ts
-	// https://github.com/corbado/passkey-tutorial/blob/main/src/controllers/authentication.ts
+	fastify.get("/cookie-test-1", async (request, reply) => {
+		let signed = await signCookie("test");
+		console.log("Singed!");
+		let x = reply
+			.setCookie("test", signed, {
+				path: "/",
+				httpOnly: true,
+				secure: false,
+				expires: Date.now() + 1000 * 60 * 60 * 24 * 7, // 1 week
+			})
+			.send({ hello: "world" });
+		console.log("Set!");
+	});
+	fastify.get("/cookie-test-2", async (request, reply) => {
+		console.log(request.cookies);
+		console.log(await unsignCookie(request.cookies.test));
+	});
 }
 export default routes;

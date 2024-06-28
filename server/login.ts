@@ -1,66 +1,158 @@
 import {
-	generateAuthenticationOptions,
-	verifyAuthenticationResponse,
-	generateRegistrationOptions,
-	verifyRegistrationResponse,
-} from "@simplewebauthn/server";
-import { isoUint8Array, isoBase64URL } from "@simplewebauthn/server/helpers";
-import { RegistrationResponseJSON } from "@simplewebauthn/typescript-types";
-import {
-	rpID,
-	rpName,
 	origin,
 	SECRET_KEY_PAIR,
-	JWT_EXPIRATION_TIME,
+	ACCESS_TOKEN_EXPIRATION_TIME,
+	REFRESH_TOKEN_EXPIRATION_TIME,
+	SECRET_PRIVATE_KEY,
+	SECRET_PUBLIC_KEY,
 } from "./constants.js";
 import { v4 as uuidv4 } from "uuid";
 import { parse as uuidParse } from "uuid-parse";
-import {
-	uint8ArrayToBase64,
-	Uint8ArrayFromHexString,
-	base64ToUint8Array,
-} from "./utils";
+import { uint8ArrayToBase64, base64ToUint8Array } from "./utils";
 import {
 	beginPasskeyRegistration,
 	beginPasskeyAuthentication,
 } from "./passkeys";
-import { SignJWT, jwtVerify } from "jose";
-import Falcon from "falcon-crypto";
 import { sign, verify, decode } from "jwt-falcon";
+import { falcon } from "falcon-crypto";
+import { JWT_REGISTERED_CLAIMS, User } from "./types.js";
+import { UserService } from "./db.js";
+import { base64URLStringToBuffer } from "@simplewebauthn/browser";
 
-const JWT_REGISTERED_CLAIMS = {
-	iss: origin, // Identifies the principal that issued the JWT. It specifies the issuer of the token.
-	sub: "user", // Identifies the principal that is the subject of the JWT. It typically represents the user or entity associated with the token.
-	aud: origin, // Specifies the recipients that the JWT is intended for. It limits the usability of the token to a particular audience.
-	exp: 1624837200, // Specifies the expiration time after which the JWT should not be accepted for processing. It provides a time limit on the token’s validity.
-	nbf: 1624830000, // Specifies the time before which the JWT must not be accepted for processing. It indicates the time when the token becomes valid.
-	iat: 1624833600, // Specifies the time at which the JWT was issued. It can be used to determine the age of the token.
-	jti: uuidv4(), // Provides a unique identifier for the JWT. It can be used to prevent JWT reuse and to maintain token uniqueness.
-};
-
-//PQC: https://dev.to/johnb8005/a-practical-approach-to-quantum-resistant-jwts-9ob
-async function CreateJWT(payload, expiration_time = 1734480000000) {
-	const token = await sign(
+export async function CreateJWT(payload: JWT_REGISTERED_CLAIMS) {
+	const jwt: string = await sign(
 		{
-			iss: origin,
-			aud: origin,
-			iat: Date.now(),
-			exp: expiration_time,
-			jti: uuidv4(),
+			iss: payload.iss || origin,
+			aud: payload.aud || origin,
+			iat: payload.iat || Date.now(),
+			jti: payload.jti || uuidv4(),
 			...payload,
-		},
+		} as JWT_REGISTERED_CLAIMS,
 		SECRET_KEY_PAIR.privateKey
 	);
-	console.log(token);
-	return token;
+	return jwt;
 }
-CreateJWT({
-	a: "c",
-});
-async function loginUserWithPasskey(
+
+export async function VerifyJWT(jwt: string): Promise<boolean> {
+	return await verify(jwt, SECRET_PUBLIC_KEY);
+}
+
+export async function DecodeJWT(jwt: string): Promise<JWT_REGISTERED_CLAIMS> {
+	return await decode(jwt);
+}
+
+export function isValidJWT(jwt: JWT_REGISTERED_CLAIMS) {
+	let now = Date.now();
+	if (jwt.exp && jwt.exp <= now) return false;
+	if (jwt.nbf && jwt.nbf > now) return false;
+
+	return true;
+}
+
+export async function signCookie(value) {
+	let signed = await falcon.sign(Buffer.from(value), SECRET_PRIVATE_KEY);
+	let as_text = uint8ArrayToBase64(signed);
+	return as_text;
+}
+
+export async function unsignCookie(value) {
+	try {
+		const result = await falcon.open(
+			base64ToUint8Array(value),
+			SECRET_PUBLIC_KEY
+		);
+		const as_text = new TextDecoder().decode(result);
+		return {
+			verified: true,
+			text: as_text,
+		};
+	} catch (e) {
+		return {
+			verified: false,
+			text: null,
+		};
+	}
+}
+export async function isLoggedIn(
+	request
+): Promise<false | JWT_REGISTERED_CLAIMS> {
+	try {
+		let jwt = request.cookies.accessToken;
+		if (!jwt) return false;
+
+		let verified = await VerifyJWT(jwt);
+		if (!verified) return false;
+
+		let payload = await DecodeJWT(jwt);
+		if (!payload) return false;
+
+		let validity = isValidJWT(payload);
+		if (!validity) return false;
+
+		return payload;
+	} catch (e) {
+		return false;
+	}
+}
+export async function createRefreshToken(userID: Buffer, is_admin = false) {
+	let refreshToken: JWT_REGISTERED_CLAIMS = {
+		iss: origin,
+		aud: origin,
+		sub: userID,
+		iat: Date.now(),
+		exp: Date.now() + REFRESH_TOKEN_EXPIRATION_TIME,
+		jti: uuidv4(),
+		adm: true, //is_admin,
+	};
+	return refreshToken;
+}
+export async function createAccessToken(refreshToken: JWT_REGISTERED_CLAIMS) {
+	let accessToken: JWT_REGISTERED_CLAIMS = {
+		iss: refreshToken.iss,
+		aud: refreshToken.aud,
+		sub: refreshToken.sub,
+		adm: refreshToken.adm,
+		iat: Date.now(),
+		exp: Date.now() + ACCESS_TOKEN_EXPIRATION_TIME,
+		jti: uuidv4(),
+	};
+
+	return accessToken;
+}
+export async function createAccessTokenIfNotRevoked(
+	promisePool,
+	decoded_refresh_token: JWT_REGISTERED_CLAIMS
+): Promise<boolean | JWT_REGISTERED_CLAIMS> {
+	if (!decoded_refresh_token || !decoded_refresh_token.jti) return false;
+	const [revoked] = await promisePool.query(
+		"SELECT * FROM revoked_refresh_tokens WHERE token_id = ?",
+		[decoded_refresh_token.jti]
+	);
+	if (revoked.length > 0) return false;
+
+	return createAccessToken(decoded_refresh_token);
+}
+export async function loginUser(userID: Buffer, reply) {
+	let refreshToken = await createRefreshToken(userID);
+	let accessToken = await createAccessToken(refreshToken);
+	await reply.setCookie("refreshToken", await CreateJWT(refreshToken), {
+		signed: false, // It's a JWT, so it's already signed.
+		httpOnly: true,
+		secure: false, // TODO: Change this to true.
+	});
+	await reply.setCookie("accessToken", await CreateJWT(accessToken), {
+		signed: false, // It's a JWT, so it's already signed.
+		httpOnly: true,
+		secure: false, // TODO: Change this to true.
+	});
+	return true;
+}
+export async function loginUserWithPasskey(
 	promisePool,
 	assertionResponse,
-	verifyAuthentication
+	verifyAuthentication,
+	request,
+	reply
 ) {
 	const [[passkey]] = await promisePool.query(
 		"SELECT * FROM passkeys WHERE credential_id = ?",
@@ -68,8 +160,13 @@ async function loginUserWithPasskey(
 	);
 	const verification = await verifyAuthentication(assertionResponse, passkey);
 	if (verification.verified && verification.authenticationInfo) {
+		let userID = Buffer.from(
+			base64URLStringToBuffer(assertionResponse.response.userHandle)
+		);
+		const user = await UserService.getById(userID, promisePool);
 		console.log("\n\n\x1b[32;1mAuthentication Successful!\x1b[0m\n\n");
 		// TODO: Continue with authentication
+		loginUser(userID, reply);
 		return true;
 	} else {
 		console.log("\n\n\x1b[31;1mAuthentication Failed!\x1b[0m\n\n");
@@ -78,14 +175,14 @@ async function loginUserWithPasskey(
 	}
 }
 
-async function* login(promisePool, options) {
+export async function* login(promisePool, options) {
 	let authenticationOptions, verifyAuthentication;
 	if (options.supportsWebAuthn) {
 		let x = await beginPasskeyAuthentication();
 		authenticationOptions = x.WebAuthnOptions;
 		verifyAuthentication = x.verify;
 	}
-	let data = yield {
+	let { request, reply, json } = yield {
 		actions: [
 			{
 				action: "collect",
@@ -99,25 +196,28 @@ async function* login(promisePool, options) {
 		],
 		authenticationOptions,
 	};
-	if (options.supportsWebAuthn && data.assertionResponse) {
-		let assertionResponse = data.assertionResponse;
+	if (options.supportsWebAuthn && json.assertionResponse) {
+		let assertionResponse = json.assertionResponse;
 		let success = await loginUserWithPasskey(
 			promisePool,
 			assertionResponse,
-			verifyAuthentication
+			verifyAuthentication,
+			request,
+			reply
 		);
 		return {
 			success,
 		};
 	} else {
-		let email = data.value;
-		let [[user]] = await promisePool.query(
-			"SELECT users.* FROM users JOIN emails ON users.id = emails.user_id WHERE emails.email = ?",
-			[email]
-		);
+		let email = json.value;
+		let user = await UserService.getByEmail(email, promisePool);
 		if (!user) {
 			// User does not exist
-			let consent = yield {
+			let {
+				request,
+				reply,
+				json: consent,
+			} = yield {
 				action: "collect",
 				type: "binary",
 				header: "Create an Account?",
@@ -127,15 +227,18 @@ async function* login(promisePool, options) {
 				return {
 					action: "exit",
 				};
-			let userID = uuidv4();
-			let userIDBuffer = Buffer.from(uuidParse(userID));
+			let userID = Buffer.from(uuidParse(uuidv4()));
 			if (options.supportsWebAuthn) {
 				let passkeyRegistrationSucceeded = false;
 				const { WebAuthnOptions, verify } = await beginPasskeyRegistration(
 					email,
 					userID
 				);
-				let { attestationResponse } = yield {
+				let {
+					request,
+					reply,
+					json: { attestationResponse },
+				} = yield {
 					action: "register-passkey",
 					WebAuthnOptions,
 				};
@@ -152,13 +255,13 @@ async function* login(promisePool, options) {
 						try {
 							// Create user
 							await connection.query("INSERT INTO users (id) VALUES (?)", [
-								userIDBuffer,
+								userID,
 							]);
 
 							// Add email
 							await connection.query(
 								"INSERT INTO emails (user_id, email) VALUES (?, ?)",
-								[userIDBuffer, email]
+								[userID, email]
 							);
 
 							// Save Passkey
@@ -166,7 +269,7 @@ async function* login(promisePool, options) {
 								"INSERT INTO passkeys (id, user_id, credential_id, public_key, counter, transports) VALUES (?, ?, ?, ?, ?, ?)",
 								[
 									Buffer.from(uuidParse(uuidv4())),
-									userIDBuffer,
+									userID,
 									credentialID,
 									uint8ArrayToBase64(credentialPublicKey),
 									counter,
@@ -207,14 +310,20 @@ async function* login(promisePool, options) {
 				id: passkey.credential_id,
 				transports: JSON.parse(passkey.transports),
 			}));
-			let { assertionResponse } = yield {
+			let {
+				request,
+				reply,
+				json: { assertionResponse },
+			} = yield {
 				action: "authenticate-passkey",
 				WebAuthnOptions: authenticationOptions,
 			};
 			let success = await loginUserWithPasskey(
 				promisePool,
 				assertionResponse,
-				verifyAuthentication
+				verifyAuthentication,
+				request,
+				reply
 			);
 			return {
 				success,
@@ -224,4 +333,3 @@ async function* login(promisePool, options) {
 		}
 	}
 }
-export { login };

@@ -63,12 +63,9 @@ CREATE TABLE IF NOT EXISTS user_roles (
 	FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS tokens (
-	value BINARY(16),
-	user_id BINARY(16),
-	can_refresh BOOLEAN,
-	provides_access BOOLEAN,
-	FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+CREATE TABLE IF NOT EXISTS revoked_refresh_tokens (
+	token_id BINARY(16),
+	expires_at DATETIME
 );
 
 INSERT INTO roles (role_name) VALUES ('admin'), ('moderator'), ('instructor'), ('developer'), ('student');

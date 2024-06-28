@@ -2,7 +2,7 @@ import { config } from "dotenv";
 import { randomBytes } from "crypto";
 import { readFileSync, writeFileSync } from "fs";
 import path from "path";
-import Falcon from "falcon-crypto";
+import { falcon } from "falcon-crypto";
 import {
 	uint8ArrayToBase64,
 	Uint8ArrayFromHexString,
@@ -14,7 +14,10 @@ config();
 
 const rpID = "localhost";
 const rpName = "Writing in Color";
-const JWT_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 1; // 1 day
+const AVERAGE_MONTH_LENGTH = 30.4368645;
+const ACCESS_TOKEN_EXPIRATION_TIME = 1000 * 60 * 30; // 30 minutes
+const REFRESH_TOKEN_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 30; // 30 days
+const KEY_PAIR_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * AVERAGE_MONTH_LENGTH * 6; // 6 months
 
 const origin: string = `http://${rpID}:3000`;
 var SECRET_PRIVATE_KEY_BASE64 = process.env.SECRET_PRIVATE_KEY_BASE64;
@@ -34,14 +37,14 @@ if (
 	Date.now() > TOKEN_SECRET_EXPIRATION
 ) {
 	// @ts-ignore
-	Falcon.keyPair().then((keyPair) => {
+	falcon.keyPair().then((keyPair) => {
 		SECRET_KEY_PAIR = keyPair;
 		SECRET_PRIVATE_KEY = keyPair.privateKey;
 		SECRET_PUBLIC_KEY = keyPair.publicKey;
 		SECRET_PRIVATE_KEY_BASE64 = uint8ArrayToBase64(SECRET_PRIVATE_KEY);
 		SECRET_PUBLIC_KEY_BASE64 = uint8ArrayToBase64(SECRET_PUBLIC_KEY);
 		// Set the new expiration time (1 month from now)
-		TOKEN_SECRET_EXPIRATION = Date.now() + 1000 * 60 * 60 * 24 * 30; // 1 month
+		TOKEN_SECRET_EXPIRATION = Date.now() + KEY_PAIR_EXPIRATION_TIME;
 
 		// Define the path to the .env file
 		const envPath = path.resolve(__dirname, "../.env");
@@ -95,7 +98,8 @@ export {
 	SECRET_PRIVATE_KEY_BASE64,
 	SECRET_PUBLIC_KEY_BASE64,
 	MySQLConfig,
-	JWT_EXPIRATION_TIME,
+	ACCESS_TOKEN_EXPIRATION_TIME,
+	REFRESH_TOKEN_EXPIRATION_TIME,
 	rpID,
 	rpName,
 	origin,

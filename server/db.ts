@@ -1,5 +1,7 @@
 import mysql from "mysql2";
 import { MySQLConfig } from "./constants";
+import { parse as uuidParse } from "uuid-parse";
+import { User } from "./types";
 
 async function initDatabase() {
 	const pool = mysql.createPool(MySQLConfig);
@@ -19,4 +21,22 @@ async function test() {
 		pool.end();
 	}
 }
-export { initDatabase, test };
+const UserService = {
+	getById: async (userID: Buffer, promisePool: mysql.Pool) => {
+		// @ts-ignore
+		const user: User = await promisePool.query(
+			"SELECT * FROM users WHERE id = ?",
+			[userID]
+		);
+		return user[0][9];
+	},
+	getByEmail: async (email: string, promisePool: mysql.Pool) => {
+		// @ts-ignore
+		let user: User = await promisePool.query(
+			"SELECT users.* FROM users JOIN emails ON users.id = emails.user_id WHERE emails.email = ?",
+			[email]
+		);
+		return user[0][0];
+	},
+};
+export { initDatabase, test, UserService };

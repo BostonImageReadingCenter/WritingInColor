@@ -2,18 +2,15 @@ import Fastify from "fastify";
 import routes from "./routes.js";
 import fastify_cookie from "@fastify/cookie";
 import fp from "fastify-plugin";
-import fastifyJwt from "@fastify/jwt";
-import { rpID, rpName, origin, JWT_EXPIRATION_TIME } from "./constants.js";
-import { uint8ArrayToBase64, Uint8ArrayFromHexString } from "./utils";
+
 const fastify = Fastify({
 	logger: true,
 });
-
+// @ts-ignore
 fastify.register(fastify_cookie, {
-	secret: "secret", // for cookies signature TODO: Move to .env
 	parseOptions: {
-		secure: true,
-		signed: true,
+		secure: false, // TODO: Change this to true.
+		signed: false,
 	}, // options for parsing cookies
 });
 
