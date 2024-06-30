@@ -75,11 +75,12 @@ async function routes(fastify, options) {
 		}
 
 		visits++;
-		let user = { admin: is_admin }; // Placeholder user.
 		reply
 			.code(200)
 			.header("Content-Type", "text/html")
-			.send(nunjucks.render("index.html", { visits, user }));
+			.send(
+				nunjucks.render("index.html", { visits, user: login_status.payload })
+			);
 		return reply;
 	});
 	fastify.get(

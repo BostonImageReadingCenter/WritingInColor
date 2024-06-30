@@ -14,12 +14,15 @@
 		<!-- JavaScript -->
 		<script type="module" src="/static/javascript/bundle/core.js"></script>
 
-		{% block head %}{% endblock %} {% if user.admin %} {{ admin.admin_imports()
-		}} {% endif %}
+		{% block head %}{% endblock %} {% if user and user.admin %} {{
+		admin.admin_imports() }} {% endif %}
 	</head>
 	<body>
-		{% if user.admin %} {{ admin.admin_panel() }} {% endif %} {% block body %}{%
-		endblock %}
+		{% if user and user.admin %} {{ admin.admin_panel() }} {% endif %} {% block
+		body %}{% endblock %}
+		<header>
+			<img src="/static/media/image/logotype/logotype.svg" />
+		</header>
 		<footer>
 			<!-- TODO: put global footer content here. -->
 		</footer>
