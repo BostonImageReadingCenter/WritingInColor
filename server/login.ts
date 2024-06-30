@@ -10,14 +10,24 @@ import { Pool as PromisePool } from "mysql2/promise";
 
 import { v4 as uuidv4 } from "uuid";
 import { parse as uuidParse } from "uuid-parse";
-import { uint8ArrayToBase64, base64ToUint8Array } from "./utils";
+import {
+	uint8ArrayToBase64,
+	base64ToUint8Array,
+	Uint8ArrayFromHexString,
+} from "./utils";
 import {
 	beginPasskeyRegistration,
 	beginPasskeyAuthentication,
 } from "./passkeys";
 import { sign, verify, decode } from "jwt-falcon";
 import { falcon } from "falcon-crypto";
-import { JWT_REGISTERED_CLAIMS, User, LoginStatus, Passkey } from "./types.js";
+import {
+	JWT_REGISTERED_CLAIMS,
+	User,
+	LoginStatus,
+	Passkey,
+	RevokedRefreshToken,
+} from "./types.js";
 import { UserService } from "./db.js";
 import { base64URLStringToBuffer } from "@simplewebauthn/browser";
 import { FastifyReply, FastifyRequest } from "fastify";
@@ -91,12 +101,13 @@ export async function isLoggedIn(
 	request: FastifyRequest,
 	promisePool: PromisePool
 ): Promise<LoginStatus> {
+	let errors = [];
 	try {
 		let jwt = request.cookies.accessToken;
 		if (!jwt) throw "No access token";
 
 		let verified = await VerifyJWT(jwt);
-		if (!verified) throw "Fraudulant access token";
+		if (!verified) throw "Fraudulent access token";
 
 		let payload = await DecodeJWT(jwt);
 		if (!payload) throw "Access token malformed";
@@ -104,8 +115,10 @@ export async function isLoggedIn(
 		let validity = isValidJWT(payload);
 		if (!validity) throw "Invalid access token";
 
-		return { payload, valid: true, setCookies: {} };
-	} catch (e) {}
+		return { payload, valid: true, setCookies: {}, errors };
+	} catch (e) {
+		errors.push(e);
+	}
 
 	// If it gets here, its invalid, so we may need to refresh it.
 	try {
@@ -113,7 +126,7 @@ export async function isLoggedIn(
 		if (!refreshToken) throw "No refresh token";
 
 		let verified = await VerifyJWT(refreshToken);
-		if (!verified) throw "Fraudulant refresh token";
+		if (!verified) throw "Fraudulent refresh token";
 
 		let payload = await DecodeJWT(refreshToken);
 		if (!payload) throw "Refresh token malformed";
@@ -136,9 +149,23 @@ export async function isLoggedIn(
 					expires: newAccessToken.exp,
 				},
 			},
+			errors,
 		};
-	} catch (e) {}
-	return { payload: null, valid: false, setCookies: {} };
+	} catch (e) {
+		errors.push(e);
+	}
+	return { payload: null, valid: false, setCookies: {}, errors };
+}
+export async function revokeRefreshToken(
+	refresh_token_id: Buffer,
+	refresh_token_expiration_time: Date,
+	promisePool: PromisePool
+) {
+	// Add to revoked_refresh_tokens table
+	promisePool.query(
+		"INSERT INTO revoked_refresh_tokens (token_id, expires_at) VALUES (?, ?)",
+		[refresh_token_id, refresh_token_expiration_time]
+	);
 }
 export async function createRefreshToken(userID: Buffer, is_admin = false) {
 	let refreshToken: JWT_REGISTERED_CLAIMS = {
@@ -170,9 +197,12 @@ export async function createAccessTokenIfNotRevoked(
 	decoded_refresh_token: JWT_REGISTERED_CLAIMS
 ): Promise<false | JWT_REGISTERED_CLAIMS> {
 	if (!decoded_refresh_token || !decoded_refresh_token.jti) return false;
-	const revoked = await promisePool.query(
-		"SELECT * FROM revoked_refresh_tokens WHERE token_id = ?",
-		[decoded_refresh_token.jti]
+	// @ts-ignore
+	const revoked: RevokedRefreshToken[] = (
+		await promisePool.query(
+			"SELECT * FROM revoked_refresh_tokens WHERE token_id = ?",
+			[Buffer.from(uuidParse(decoded_refresh_token.jti))]
+		)
 	)[0];
 	if (revoked.length > 0) return false;
 

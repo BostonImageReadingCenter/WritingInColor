@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS user_roles (
 );
 
 CREATE TABLE IF NOT EXISTS revoked_refresh_tokens (
-	token_id BINARY(16),
+	token_id BINARY(16) PRIMARY KEY UNIQUE,
 	expires_at DATETIME
 );
 

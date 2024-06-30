@@ -70,6 +70,9 @@ async function routes(fastify, options) {
 		setCookies(login_status.setCookies, reply);
 
 		if (login_status.valid && login_status.payload.adm) is_admin = true;
+		else {
+			console.log(login_status.errors);
+		}
 
 		visits++;
 		let user = { admin: is_admin }; // Placeholder user.

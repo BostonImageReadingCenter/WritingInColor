@@ -4,7 +4,7 @@
   "type": "module",
   "module": "es2022",
   "description": "",
-  "main": "server.js",
+  "main": "server/server.ts",
   "scripts": {
     "start": "./build.sh && bun server/server.ts",
     "build": "./build.sh",
