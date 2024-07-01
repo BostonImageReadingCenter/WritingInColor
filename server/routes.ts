@@ -4,12 +4,17 @@ import { join, dirname } from "node:path";
 import { fileURLToPath } from "url";
 import { initDatabase } from "./db";
 import { FastifyReply, FastifyRequest } from "fastify";
+import { parse as uuidParse } from "uuid-parse";
+
 import {
 	login,
 	signCookie,
 	unsignCookie,
 	createAccessTokenIfNotRevoked,
 	isLoggedIn,
+	revokeRefreshToken,
+	VerifyJWT,
+	DecodeJWT,
 } from "./login";
 import { v4 as uuidv4 } from "uuid";
 import { rpID, rpName, origin } from "./constants.js";
@@ -34,7 +39,7 @@ function cleanSessions() {
 	}
 }
 
-function setCookies(cookies: object, reply) {
+function setCookies(cookies: object, reply: FastifyReply) {
 	if (cookies) {
 		for (let cookie_name in cookies) {
 			let cookie = cookies[cookie_name];
@@ -92,6 +97,37 @@ async function routes(fastify, options) {
 				.send(nunjucks.render("login/index.html"));
 		}
 	);
+
+	fastify.get(
+		"/logout",
+		async (request: FastifyRequest, reply: FastifyReply) => {
+			let refreshToken = request.cookies.refreshToken;
+			console.log(refreshToken);
+			if (!refreshToken) return reply.code(401).send("No refresh token");
+
+			let verified = await VerifyJWT(refreshToken);
+			if (!verified) return reply.code(401).send("Fraudulent refresh token");
+
+			let payload = await DecodeJWT(refreshToken);
+			if (!payload) return reply.code(401).send("Refresh token malformed");
+
+			revokeRefreshToken(
+				Buffer.from(uuidParse(payload.jti)),
+				new Date(payload.exp),
+				promisePool
+			);
+			let _1970 = new Date(0);
+			return reply
+				.setCookie("accessToken", "", {
+					expires: _1970,
+				})
+				.setCookie("refreshToken", "", {
+					expires: _1970,
+				})
+				.redirect(origin + "/");
+		}
+	);
+	// API
 	fastify.post(
 		"/api/login/init",
 		async (request: FastifyRequest, reply: FastifyReply) => {

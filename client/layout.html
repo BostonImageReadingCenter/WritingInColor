@@ -10,6 +10,7 @@
 
 		<!-- CSS -->
 		<link rel="stylesheet" href="/static/css/core.css" />
+		<link rel="stylesheet" href="/static/css/hover-menu.css" />
 
 		<!-- JavaScript -->
 		<script type="module" src="/static/javascript/bundle/core.js"></script>
@@ -18,11 +19,38 @@
 		admin.admin_imports() }} {% endif %}
 	</head>
 	<body>
-		{% if user and user.admin %} {{ admin.admin_panel() }} {% endif %} {% block
-		body %}{% endblock %}
+		{% if user and user.admin %} {{ admin.admin_panel() }} {% endif %}
 		<header>
 			<img src="/static/media/image/logotype/logotype.svg" />
+			<nav></nav>
+			<div class="hover-menu">
+				<div class="hover-menu__text">
+					<img src="/static/media/image/person-circle.svg" width="30" />
+				</div>
+				<div class="hover-menu__content">
+					<menu class="menu-bar vertical">
+						{% if user %}
+						<li class="hover-menu__item clickable">Profile</li>
+						<li class="hover-menu__item clickable">Settings</li>
+						<li
+							class="hover-menu__item clickable"
+							onclick="window.location.href='/logout'"
+						>
+							Log out
+						</li>
+						{% else %}
+						<li
+							class="hover-menu__item clickable"
+							onclick="window.location.href='/login'"
+						>
+							Login
+						</li>
+						{% endif %}
+					</menu>
+				</div>
+			</div>
 		</header>
+		{% block body %}{% endblock %}
 		<footer>
 			<!-- TODO: put global footer content here. -->
 		</footer>

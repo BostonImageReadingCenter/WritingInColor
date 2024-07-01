@@ -32,6 +32,10 @@ export interface JWT_REGISTERED_CLAIMS {
 	 */
 	adm?: boolean;
 	/**
+	 * Custom claim containing user roles (e.g. admin, moderator, etc...) by their role ids.
+	 */
+	rls?: number[];
+	/**
 	 * Custom claim. Recommended that the key length is 3 characters long.
 	 */
 	[key: string]: any;
@@ -67,20 +71,6 @@ export interface RevokedRefreshToken {
 	expires_at: Date;
 }
 
-export interface SelectUserOptions {
-	/**
-	 * If true, emails will be loaded, otherwise, the emails attribute will be undefined.
-	 */
-	loadEmails: boolean;
-	/**
-	 * If true, roles will be loaded, otherwise, the roles attribute will be undefined.
-	 */
-	loadRoles: boolean;
-	/**
-	 * If true, passkeys will be loaded, otherwise, the passkeys attribute will be undefined.
-	 */
-	loadPasskeys: boolean;
-}
 export interface Email {
 	email: string;
 	is_primary: boolean;

@@ -6,6 +6,7 @@ $darker-background-color: rgb(10, 10, 10);
 $accent-color: rgb(0, 122, 255);
 $dark-font-color: black;
 $light-font-color: white;
+$header-padding: 15px;
 // You can change any of these, add new ones, remove them. Just make sure to update their usage in the other SCSS files that rely on this one.
 
 * {
@@ -41,4 +42,13 @@ main {
 }
 .accent-color {
 	background-color: $accent-color;
+}
+header {
+	padding: $header-padding;
+	width: 100%;
+	display: flex;
+	justify-content: space-between;
+	.hover-menu .hover-menu__content {
+		right: $header-padding;
+	}
 }

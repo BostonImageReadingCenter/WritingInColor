@@ -41,6 +41,16 @@ main {
   background-color: rgb(0, 122, 255);
 }
 
+header {
+  padding: 15px;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+header .hover-menu .hover-menu__content {
+  right: 15px;
+}
+
 .menu-bar {
   padding: 0;
   margin: 0;
@@ -50,6 +60,7 @@ main {
   position: relative;
   font-size: 18px;
   background-color: rgb(29, 29, 29);
+  color: white;
 }
 .menu-bar > li {
   padding: 0 17px;

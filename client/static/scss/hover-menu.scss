@@ -10,6 +10,7 @@ $menu-bar-size: 50px;
 	position: relative;
 	font-size: 18px;
 	background-color: $dark-background-color;
+	color: $light-font-color;
 	& > li {
 		padding: 0 17px;
 		font-family: sans-serif;

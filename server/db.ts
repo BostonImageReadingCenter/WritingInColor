@@ -2,7 +2,7 @@ import mysql from "mysql2";
 import { Pool as PromisePool } from "mysql2/promise";
 import { MySQLConfig } from "./constants";
 import { parse as uuidParse } from "uuid-parse";
-import { SelectUserOptions, User } from "./types";
+import { User } from "./types";
 import { Uint8ArrayFromHexString } from "./utils";
 
 async function initDatabase(): Promise<{
@@ -46,7 +46,22 @@ const UserService = {
 		return user[0][0];
 	},
 };
+class DB {
+	pool: mysql.Pool;
+	promisePool: PromisePool;
+	constructor() {
+		this.pool = mysql.createPool(MySQLConfig);
+		this.promisePool = this.pool.promise();
+	}
+	multiQuery() {
+		// TODO: group multiple queries together.
+		// await promisePool.getConnection().then(async (connection) => {
+	}
+	// TODO: move all the services here.
+}
 const EmailService = {};
+const PasskeyService = {};
+const RevokedRefreshTokensService = {};
 const RoleService = {
 	getUserRoles: async (userID: Buffer, promisePool: PromisePool) => {
 		const roles = await promisePool.query(
@@ -67,8 +82,3 @@ WHERE ur.user_id = ?`,
 	},
 };
 export { initDatabase, test, UserService, EmailService, RoleService };
-// let { pool, promisePool } = await initDatabase();
-// let user = await UserService.getByEmail("a@b", promisePool);
-// console.log(user);
-// let roles = await RoleService.getUserRoles(user.id, promisePool);
-// console.log(roles);

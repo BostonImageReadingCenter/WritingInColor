@@ -196,6 +196,7 @@ async function authenticatePasskey(data = { WebAuthnOptions: null }) {
 	});
 	let json = await verificationResponse.json();
 	if (json.value.success) {
+		window.location.href = "/";
 		// TODO: handle success
 	} else {
 		// TODO: handle failure
@@ -224,8 +225,7 @@ async function initConditionalUI(data) {
 				});
 				let json = await verificationResponse.json();
 				if (json.value.success) {
-					alert("Login Success!");
-					// TODO: handle success
+					window.location.href = "/";
 				} else {
 					alert("Login Failure!");
 					// TODO: handle failure

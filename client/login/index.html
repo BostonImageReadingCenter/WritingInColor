@@ -1,22 +1,35 @@
-{% extends "layout.html" %} {% block title %}Writing in Color – Login{% endblock
-%} {% block head %}
-<script src="/static/javascript/bundle/login.js"></script>
-{%endblock %} {% block body %}
-<main
-	style="
-		width: 100vw;
-		height: 100vh;
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-	"
->
-	<h4 id="collection-message"></h4>
-	<h2 id="collection-header"></h2>
-	<form onsubmit="return false;" id="collection-form">
-		<div id="collection-inputs"></div>
-		<input type="submit" value="Next" />
-	</form>
-</main>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<!-- Meta tags -->
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Writing in Color – Login</title>
+
+		<!-- CSS -->
+		<link rel="stylesheet" href="/static/css/core.css" />
+
+		<!-- JavaScript -->
+		<script type="module" src="/static/javascript/bundle/core.js"></script>
+		<script src="/static/javascript/bundle/login.js"></script>
+	</head>
+	<body>
+		<main
+			style="
+				width: 100vw;
+				height: 100vh;
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				align-items: center;
+			"
+		>
+			<h4 id="collection-message"></h4>
+			<h2 id="collection-header"></h2>
+			<form onsubmit="return false;" id="collection-form">
+				<div id="collection-inputs"></div>
+				<input type="submit" value="Next" />
+			</form>
+		</main>
+	</body>
+</html>

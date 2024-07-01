@@ -99,7 +99,8 @@ export async function unsignCookie(value: string): Promise<{
 }
 export async function isLoggedIn(
 	request: FastifyRequest,
-	promisePool: PromisePool
+	promisePool: PromisePool,
+	createNewIfInvalid = true
 ): Promise<LoginStatus> {
 	let errors = [];
 	try {
@@ -122,6 +123,7 @@ export async function isLoggedIn(
 
 	// If it gets here, its invalid, so we may need to refresh it.
 	try {
+		let setCookies: any = {};
 		let refreshToken = request.cookies.refreshToken;
 		if (!refreshToken) throw "No refresh token";
 
@@ -133,22 +135,22 @@ export async function isLoggedIn(
 
 		let validity = isValidJWT(payload);
 		if (!validity) throw "Invalid refresh token";
-
-		let newAccessToken = await createAccessTokenIfNotRevoked(
-			promisePool,
-			payload
-		);
-		if (newAccessToken === false) throw "Refresh token revoked";
+		if (createNewIfInvalid) {
+			let newAccessToken = await createAccessTokenIfNotRevoked(
+				promisePool,
+				payload
+			);
+			if (newAccessToken === false) throw "Refresh token revoked";
+			setCookies.accessToken = {
+				value: await CreateJWT(newAccessToken),
+				expires: newAccessToken.exp,
+			};
+		}
 
 		return {
 			payload,
 			valid: true,
-			setCookies: {
-				accessToken: {
-					value: await CreateJWT(newAccessToken),
-					expires: newAccessToken.exp,
-				},
-			},
+			setCookies,
 			errors,
 		};
 	} catch (e) {
@@ -161,11 +163,15 @@ export async function revokeRefreshToken(
 	refresh_token_expiration_time: Date,
 	promisePool: PromisePool
 ) {
-	// Add to revoked_refresh_tokens table
-	promisePool.query(
-		"INSERT INTO revoked_refresh_tokens (token_id, expires_at) VALUES (?, ?)",
-		[refresh_token_id, refresh_token_expiration_time]
-	);
+	try {
+		// Add to revoked_refresh_tokens table
+		promisePool.query(
+			"INSERT IGNORE INTO revoked_refresh_tokens (token_id, expires_at) VALUES (?, ?)",
+			[refresh_token_id, refresh_token_expiration_time]
+		);
+	} catch (e) {
+		// Already revoked.
+	}
 }
 export async function createRefreshToken(userID: Buffer, is_admin = false) {
 	let refreshToken: JWT_REGISTERED_CLAIMS = {
@@ -175,7 +181,7 @@ export async function createRefreshToken(userID: Buffer, is_admin = false) {
 		iat: Date.now(),
 		exp: Date.now() + REFRESH_TOKEN_EXPIRATION_TIME,
 		jti: uuidv4(),
-		adm: true, //is_admin,
+		adm: is_admin,
 	};
 	return refreshToken;
 }
