@@ -17,7 +17,7 @@ import {
 	DecodeJWT,
 } from "./login";
 import { v4 as uuidv4 } from "uuid";
-import { rpID, rpName, origin } from "./constants.js";
+import { rpID, rpName, origin, ROLES } from "./constants.js";
 import { sign } from "jwt-falcon";
 import { JWT_REGISTERED_CLAIMS, User } from "./types.js";
 
@@ -73,18 +73,21 @@ async function routes(fastify, options) {
 
 		let login_status = await isLoggedIn(request, promisePool);
 		setCookies(login_status.setCookies, reply);
-
-		if (login_status.valid && login_status.payload.adm) is_admin = true;
-		else {
-			console.log(login_status.errors);
-		}
-
+		let user_data = login_status.payload;
 		visits++;
 		reply
 			.code(200)
 			.header("Content-Type", "text/html")
 			.send(
-				nunjucks.render("index.html", { visits, user: login_status.payload })
+				nunjucks.render("index.html", {
+					visits,
+					user: login_status.valid
+						? ({
+								roles: user_data.rls.map((r) => ROLES[r]),
+								id: user_data.sub,
+						  } as User)
+						: null,
+				})
 			);
 		return reply;
 	});

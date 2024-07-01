@@ -28,7 +28,7 @@ import {
 	Passkey,
 	RevokedRefreshToken,
 } from "./types.js";
-import { UserService } from "./db.js";
+import { RoleService, UserService } from "./db.js";
 import { base64URLStringToBuffer } from "@simplewebauthn/browser";
 import { FastifyReply, FastifyRequest } from "fastify";
 import {
@@ -173,7 +173,7 @@ export async function revokeRefreshToken(
 		// Already revoked.
 	}
 }
-export async function createRefreshToken(userID: Buffer, is_admin = false) {
+export async function createRefreshToken(userID: Buffer, roles: number[]) {
 	let refreshToken: JWT_REGISTERED_CLAIMS = {
 		iss: origin,
 		aud: origin,
@@ -181,7 +181,7 @@ export async function createRefreshToken(userID: Buffer, is_admin = false) {
 		iat: Date.now(),
 		exp: Date.now() + REFRESH_TOKEN_EXPIRATION_TIME,
 		jti: uuidv4(),
-		adm: is_admin,
+		rls: roles,
 	};
 	return refreshToken;
 }
@@ -190,7 +190,7 @@ export async function createAccessToken(refreshToken: JWT_REGISTERED_CLAIMS) {
 		iss: refreshToken.iss,
 		aud: refreshToken.aud,
 		sub: refreshToken.sub,
-		adm: refreshToken.adm,
+		rls: refreshToken.rls,
 		iat: Date.now(),
 		exp: Date.now() + ACCESS_TOKEN_EXPIRATION_TIME,
 		jti: uuidv4(),
@@ -214,8 +214,11 @@ export async function createAccessTokenIfNotRevoked(
 
 	return createAccessToken(decoded_refresh_token);
 }
-export async function loginUser(userID: Buffer) {
-	let refreshToken = await createRefreshToken(userID);
+export async function loginUser(userID: Buffer, promisePool: PromisePool) {
+	let roles: any = await RoleService.getUserRoles(userID, promisePool);
+	let role_ids = roles.map((role) => role.role_id);
+	console.log(role_ids, role_ids.includes(1));
+	let refreshToken = await createRefreshToken(userID, role_ids);
 	let accessToken = await createAccessToken(refreshToken);
 
 	return {
@@ -241,12 +244,16 @@ export async function loginUserWithPasskey(
 	);
 	const verification = await verifyAuthentication(assertionResponse, passkey);
 	if (verification.verified && verification.authenticationInfo) {
+		console.log(
+			assertionResponse.response.userHandle,
+			base64URLStringToBuffer(assertionResponse.response.userHandle)
+		);
 		let userID = Buffer.from(
 			base64URLStringToBuffer(assertionResponse.response.userHandle)
 		);
 		// const user = await UserService.getById(userID, promisePool);
 		console.log("\n\n\x1b[32;1mAuthentication Successful!\x1b[0m\n\n");
-		return loginUser(userID);
+		return loginUser(userID, promisePool);
 	} else {
 		console.log("\n\n\x1b[31;1mAuthentication Failed!\x1b[0m\n\n");
 		// TODO: Handle verification failure
@@ -358,6 +365,7 @@ export async function* login(promisePool: PromisePool, options) {
 							await connection.rollback(); // Undo the changes in case of an error.
 							throw error;
 						} finally {
+							passkeyRegistrationSucceeded = true;
 							connection.release();
 						}
 					});

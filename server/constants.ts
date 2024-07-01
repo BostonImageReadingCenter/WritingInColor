@@ -12,6 +12,7 @@ import {
 // Load environment variables from .env file
 config();
 
+const ROLES = ["admin", "moderator", "instructor", "developer"];
 const rpID = "localhost";
 const rpName = "Writing in Color";
 const AVERAGE_MONTH_LENGTH = 30.4368645;
@@ -103,4 +104,5 @@ export {
 	rpID,
 	rpName,
 	origin,
+	ROLES,
 };

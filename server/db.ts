@@ -64,13 +64,13 @@ const PasskeyService = {};
 const RevokedRefreshTokensService = {};
 const RoleService = {
 	getUserRoles: async (userID: Buffer, promisePool: PromisePool) => {
+		console.log(userID.toString("hex"));
 		const roles = await promisePool.query(
-			`SELECT ur.*, r.role_name as role_name
-FROM user_roles ur
-JOIN roles r ON ur.role_id = r.id
-WHERE ur.user_id = ?`,
+			`SELECT * FROM user_roles WHERE user_id = ?`,
 			[userID]
 		);
+		// TODO: FIX THIS.
+		console.log(roles);
 		return roles[0];
 	},
 	addUserRole: async (

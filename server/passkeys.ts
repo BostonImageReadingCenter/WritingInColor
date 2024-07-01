@@ -23,7 +23,7 @@ async function beginPasskeyRegistration(userName: string, userID: Buffer) {
 		rpName,
 		rpID,
 		// @ts-ignore
-		userID: isoUint8Array.fromUTF8String(userID),
+		userID: userID,
 		userName: userName,
 		timeout: 60000,
 		attestationType: "direct",

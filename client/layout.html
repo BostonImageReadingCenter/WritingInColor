@@ -15,11 +15,12 @@
 		<!-- JavaScript -->
 		<script type="module" src="/static/javascript/bundle/core.js"></script>
 
-		{% block head %}{% endblock %} {% if user and user.admin %} {{
-		admin.admin_imports() }} {% endif %}
+		{% block head %}{% endblock %} {% if user and user.roles.includes("admin")
+		%} {{ admin.admin_imports() }} {% endif %}
 	</head>
 	<body>
-		{% if user and user.admin %} {{ admin.admin_panel() }} {% endif %}
+		{% if user and user.roles.includes("admin") %} {{ admin.admin_panel() }} {%
+		endif %}
 		<header>
 			<img src="/static/media/image/logotype/logotype.svg" />
 			<nav></nav>

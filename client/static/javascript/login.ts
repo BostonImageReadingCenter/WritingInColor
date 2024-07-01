@@ -175,8 +175,10 @@ async function registerPasskey(data) {
 	});
 	let json = await verificationResponse.json();
 	if (json.value.success) {
+		window.location.href = "/";
 		// TODO: handle success
 	} else {
+		alert("Registration Failed.");
 		// TODO: handle failure
 	}
 }
@@ -199,6 +201,7 @@ async function authenticatePasskey(data = { WebAuthnOptions: null }) {
 		window.location.href = "/";
 		// TODO: handle success
 	} else {
+		alert("Authentication Failed.");
 		// TODO: handle failure
 	}
 }
