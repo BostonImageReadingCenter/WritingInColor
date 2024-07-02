@@ -73,22 +73,24 @@ async function routes(fastify, options) {
 
 		let login_status = await isLoggedIn(request, promisePool);
 		setCookies(login_status.setCookies, reply);
-		let user_data = login_status.payload;
+		let user: User;
+		if (login_status.valid) {
+			let user_data = login_status.payload;
+			user = {
+				roles: user_data.rls.map((r) => ROLES[r]),
+				id: user_data.sub as Buffer,
+			};
+		} else {
+			user = null;
+		}
+		console.log(user);
 		visits++;
-		reply
-			.code(200)
-			.header("Content-Type", "text/html")
-			.send(
-				nunjucks.render("index.html", {
-					visits,
-					user: login_status.valid
-						? ({
-								roles: user_data.rls.map((r) => ROLES[r]),
-								id: user_data.sub,
-						  } as User)
-						: null,
-				})
-			);
+		reply.code(200).header("Content-Type", "text/html").send(
+			nunjucks.render("index.html", {
+				visits,
+				user,
+			})
+		);
 		return reply;
 	});
 	fastify.get(

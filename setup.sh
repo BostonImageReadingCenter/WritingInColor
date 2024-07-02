@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS passkeys (
 CREATE TABLE IF NOT EXISTS user_roles (
 	user_id BINARY(16),
 	role_id INT,
-	FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+	FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
 CREATE TABLE IF NOT EXISTS revoked_refresh_tokens (
