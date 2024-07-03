@@ -174,7 +174,7 @@ async function registerPasskey(data) {
 		}),
 	});
 	let json = await verificationResponse.json();
-	if (json.value.success) {
+	if (json.value.data.success) {
 		window.location.href = "/";
 		// TODO: handle success
 	} else {
@@ -197,7 +197,7 @@ async function authenticatePasskey(data = { WebAuthnOptions: null }) {
 		}),
 	});
 	let json = await verificationResponse.json();
-	if (json.value.success) {
+	if (json.value.data.success) {
 		window.location.href = "/";
 		// TODO: handle success
 	} else {
@@ -227,7 +227,7 @@ async function initConditionalUI(data) {
 					}),
 				});
 				let json = await verificationResponse.json();
-				if (json.value.success) {
+				if (json.value.data.success) {
 					window.location.href = "/";
 				} else {
 					alert("Login Failure!");

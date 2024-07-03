@@ -129,3 +129,9 @@ export class User {
 		this.created_at = created_at;
 	}
 }
+
+export interface LoginData {
+	setCookies: object;
+	actions: object[];
+	data: object;
+}

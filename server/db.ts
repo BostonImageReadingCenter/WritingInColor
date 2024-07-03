@@ -18,7 +18,6 @@ async function test() {
 	let { pool, promisePool } = await initDatabase();
 	try {
 		const [rows] = await promisePool.query("SELECT * FROM roles");
-		console.log(rows);
 	} catch (err) {
 		console.error(err);
 	} finally {
@@ -42,7 +41,6 @@ const UserService = {
 			"SELECT users.* FROM users JOIN emails ON users.id = emails.user_id WHERE emails.email = ?",
 			[email]
 		);
-		console.log("USER:", user);
 		return user[0][0];
 	},
 };
@@ -75,13 +73,10 @@ const PasskeyService = {
 const RevokedRefreshTokensService = {};
 const RoleService = {
 	getUserRoles: async (userID: Buffer, promisePool: PromisePool) => {
-		console.log(userID.toString("hex"));
 		const roles = await promisePool.query(
 			`SELECT * FROM user_roles WHERE user_id = ?`,
 			[userID]
 		);
-		// TODO: FIX THIS.
-		console.log(roles);
 		return roles[0];
 	},
 	addUserRole: async (

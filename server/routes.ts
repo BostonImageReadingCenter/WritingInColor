@@ -19,7 +19,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { rpID, rpName, origin, ROLES } from "./constants.js";
 import { sign } from "jwt-falcon";
-import { JWT_REGISTERED_CLAIMS, User } from "./types.js";
+import { JWT_REGISTERED_CLAIMS, LoginData, User } from "./types.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -83,7 +83,6 @@ async function routes(fastify, options) {
 		} else {
 			user = null;
 		}
-		console.log(user);
 		visits++;
 		reply.code(200).header("Content-Type", "text/html").send(
 			nunjucks.render("index.html", {
@@ -107,7 +106,6 @@ async function routes(fastify, options) {
 		"/logout",
 		async (request: FastifyRequest, reply: FastifyReply) => {
 			let refreshToken = request.cookies.refreshToken;
-			console.log(refreshToken);
 			if (!refreshToken) return reply.code(401).send("No refresh token");
 
 			let verified = await VerifyJWT(refreshToken);
@@ -146,9 +144,8 @@ async function routes(fastify, options) {
 			};
 			cleanSessions();
 			let result = await generator.next();
-			setCookies(result.value.setCookies || {}, reply);
+			setCookies((result.value as LoginData).setCookies || {}, reply);
 			if (result.done) delete auth_sessions[id];
-			console.log("RESULT:", result.value);
 			return reply.send({ id, done: result.done, value: result.value });
 		}
 	);
@@ -170,7 +167,6 @@ async function routes(fastify, options) {
 			let result = await session.generator.next({ request, reply, json });
 			if (result.done) delete auth_sessions[id];
 			setCookies(result.value.setCookies || {}, reply);
-			console.log("RESULT:", result.value);
 			return reply
 				.code(200)
 				.send({ id, done: result.done, value: result.value });

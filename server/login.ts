@@ -218,7 +218,6 @@ export async function createAccessTokenIfNotRevoked(
 export async function loginUser(userID: Buffer, promisePool: PromisePool) {
 	let roles: any = await RoleService.getUserRoles(userID, promisePool);
 	let role_ids = roles.map((role) => role.role_id);
-	console.log(role_ids, role_ids.includes(1));
 	let refreshToken = await createRefreshToken(userID, role_ids);
 	let accessToken = await createAccessToken(refreshToken);
 
@@ -245,10 +244,6 @@ export async function loginUserWithPasskey(
 	);
 	const verification = await verifyAuthentication(assertionResponse, passkey);
 	if (verification.verified && verification.authenticationInfo) {
-		console.log(
-			assertionResponse.response.userHandle,
-			base64URLStringToBuffer(assertionResponse.response.userHandle)
-		);
 		let userID = Buffer.from(
 			base64URLStringToBuffer(assertionResponse.response.userHandle)
 		);
@@ -291,8 +286,9 @@ export async function* login(promisePool: PromisePool, options) {
 			verifyAuthentication
 		);
 		return {
-			success: success !== false,
+			data: { success: success !== false },
 			setCookies: success || {},
+			actions: [],
 		};
 	} else {
 		let email = json.value;
@@ -304,10 +300,15 @@ export async function* login(promisePool: PromisePool, options) {
 				reply,
 				json: consent,
 			} = yield {
-				action: "collect",
-				type: "binary",
-				header: "Create an Account?",
-				message: "You don't have an account yet. Would you like to create one?",
+				actions: [
+					{
+						action: "collect",
+						type: "binary",
+						header: "Create an Account?",
+						message:
+							"You don't have an account yet. Would you like to create one?",
+					},
+				],
 			};
 			if (!consent.value)
 				return {
@@ -321,8 +322,12 @@ export async function* login(promisePool: PromisePool, options) {
 					userID
 				);
 				let { request, reply, json } = yield {
-					action: "register-passkey",
-					WebAuthnOptions,
+					actions: [
+						{
+							action: "register-passkey",
+							WebAuthnOptions,
+						},
+					],
 				};
 				let attestationResponse: RegistrationResponseJSON =
 					json.attestationResponse;
@@ -375,15 +380,15 @@ export async function* login(promisePool: PromisePool, options) {
 					// TODO: Handle verification failure
 				}
 				yield {
-					action: "data",
-					for: "passkey-registration",
-					success: passkeyRegistrationSucceeded,
+					actions: [],
+					data: {
+						success: passkeyRegistrationSucceeded,
+					},
 				};
 			} else {
 				// Password only registration
 				// TODO
 			}
-
 			// TODO: Continue with registration, backup password, etc...
 		}
 		if (options.supportsWebAuthn) {
@@ -391,7 +396,6 @@ export async function* login(promisePool: PromisePool, options) {
 				user.id,
 				promisePool
 			);
-			console.log(passkeys, user.id, user.id.toString("hex"));
 			authenticationOptions.allowCredentials = passkeys.map((passkey) => ({
 				type: "public-key",
 				id: passkey.credential_id,
@@ -402,8 +406,12 @@ export async function* login(promisePool: PromisePool, options) {
 				reply,
 				json: { assertionResponse },
 			} = yield {
-				action: "authenticate-passkey",
-				WebAuthnOptions: authenticationOptions,
+				actions: [
+					{
+						action: "authenticate-passkey",
+						WebAuthnOptions: authenticationOptions,
+					},
+				],
 			};
 			let success = await loginUserWithPasskey(
 				promisePool,
@@ -411,8 +419,9 @@ export async function* login(promisePool: PromisePool, options) {
 				verifyAuthentication
 			);
 			return {
-				success: success !== false,
+				data: { success: success !== false },
 				setCookies: success || {},
+				actions: [],
 			};
 		} else {
 			// TODO: Password only login
