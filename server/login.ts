@@ -28,7 +28,7 @@ import {
 	Passkey,
 	RevokedRefreshToken,
 } from "./types.js";
-import { RoleService, UserService } from "./db.js";
+import { PasskeyService, RoleService, UserService } from "./db.js";
 import { base64URLStringToBuffer } from "@simplewebauthn/browser";
 import { FastifyReply, FastifyRequest } from "fastify";
 import {
@@ -71,8 +71,9 @@ export async function signCookie(value: string) {
 	let as_text = uint8ArrayToBase64(signed);
 	return as_text;
 }
+
 /**
- * unsign a cookie
+ * Unsign a cookie
  * @param value Base64 encoded
  * @returns Promise<{verified: boolean, text: string | null}>
  */
@@ -366,6 +367,7 @@ export async function* login(promisePool: PromisePool, options) {
 							throw error;
 						} finally {
 							passkeyRegistrationSucceeded = true;
+							loginUser(userID, promisePool);
 							connection.release();
 						}
 					});
@@ -385,10 +387,11 @@ export async function* login(promisePool: PromisePool, options) {
 			// TODO: Continue with registration, backup password, etc...
 		}
 		if (options.supportsWebAuthn) {
-			const passkeys: Passkey[] = await promisePool.query(
-				"SELECT * FROM passkeys WHERE user_id = ?",
-				[user.id]
-			)[0];
+			const passkeys = await PasskeyService.getPasskeysByUserID(
+				user.id,
+				promisePool
+			);
+			console.log(passkeys, user.id, user.id.toString("hex"));
 			authenticationOptions.allowCredentials = passkeys.map((passkey) => ({
 				type: "public-key",
 				id: passkey.credential_id,

@@ -146,7 +146,9 @@ async function routes(fastify, options) {
 			};
 			cleanSessions();
 			let result = await generator.next();
+			setCookies(result.value.setCookies || {}, reply);
 			if (result.done) delete auth_sessions[id];
+			console.log("RESULT:", result.value);
 			return reply.send({ id, done: result.done, value: result.value });
 		}
 	);
@@ -167,7 +169,8 @@ async function routes(fastify, options) {
 			session.expires += 1000 * 60 * 1;
 			let result = await session.generator.next({ request, reply, json });
 			if (result.done) delete auth_sessions[id];
-			setCookies(result.value.setCookies, reply);
+			setCookies(result.value.setCookies || {}, reply);
+			console.log("RESULT:", result.value);
 			return reply
 				.code(200)
 				.send({ id, done: result.done, value: result.value });

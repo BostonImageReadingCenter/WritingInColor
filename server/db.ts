@@ -2,7 +2,7 @@ import mysql from "mysql2";
 import { Pool as PromisePool } from "mysql2/promise";
 import { MySQLConfig } from "./constants";
 import { parse as uuidParse } from "uuid-parse";
-import { User } from "./types";
+import { Passkey, User } from "./types";
 import { Uint8ArrayFromHexString } from "./utils";
 
 async function initDatabase(): Promise<{
@@ -60,7 +60,18 @@ class DB {
 	// TODO: move all the services here.
 }
 const EmailService = {};
-const PasskeyService = {};
+const PasskeyService = {
+	getPasskeysByUserID: async (
+		userID: Buffer,
+		promisePool: PromisePool
+	): Promise<Passkey[]> => {
+		return (
+			await promisePool.query("SELECT * FROM passkeys WHERE user_id = ?", [
+				userID,
+			])
+		)[0] as Passkey[];
+	},
+};
 const RevokedRefreshTokensService = {};
 const RoleService = {
 	getUserRoles: async (userID: Buffer, promisePool: PromisePool) => {
@@ -81,4 +92,11 @@ const RoleService = {
 		// TODO
 	},
 };
-export { initDatabase, test, UserService, EmailService, RoleService };
+export {
+	initDatabase,
+	test,
+	UserService,
+	EmailService,
+	RoleService,
+	PasskeyService,
+};
