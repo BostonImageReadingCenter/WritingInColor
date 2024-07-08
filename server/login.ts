@@ -7,7 +7,6 @@ import {
 	SECRET_PUBLIC_KEY,
 } from "./constants.js";
 import { Pool as PromisePool } from "mysql2/promise";
-
 import { v4 as uuidv4 } from "uuid";
 import { parse as uuidParse } from "uuid-parse";
 import {
@@ -34,6 +33,7 @@ import { FastifyReply, FastifyRequest } from "fastify";
 import {
 	AuthenticationResponseJSON,
 	RegistrationResponseJSON,
+	PublicKeyCredentialRequestOptionsJSON,
 } from "@simplewebauthn/typescript-types";
 
 export async function CreateJWT(payload: JWT_REGISTERED_CLAIMS) {
@@ -258,7 +258,9 @@ export async function loginUserWithPasskey(
 }
 
 export async function* login(promisePool: PromisePool, options) {
-	let authenticationOptions, verifyAuthentication;
+	let authenticationOptions: PublicKeyCredentialRequestOptionsJSON;
+	let verifyAuthentication: Function;
+
 	if (options.supportsWebAuthn) {
 		let x = await beginPasskeyAuthentication();
 		authenticationOptions = x.WebAuthnOptions;

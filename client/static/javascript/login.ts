@@ -103,9 +103,11 @@ async function collect(data) {
 			returnData({
 				value: emailInputEl.value,
 			});
-			collectionFormEl.removeEventListener("submit", listener);
+			// collectionFormEl.removeEventListener("submit", listener);
 		};
-		collectionFormEl.addEventListener("submit", listener);
+		collectionFormEl.addEventListener("submit", listener, {
+			once: true,
+		});
 	} else if (data.type === "binary") {
 		// TODO: use yes and no buttons
 		let consentInputEl = createElement("input", {
@@ -122,9 +124,11 @@ async function collect(data) {
 			returnData({
 				value: consentInputEl.checked,
 			});
-			collectionFormEl.removeEventListener("submit", listener);
+			// collectionFormEl.removeEventListener("submit", listener);
 		};
-		collectionFormEl.addEventListener("submit", listener);
+		collectionFormEl.addEventListener("submit", listener, {
+			once: true,
+		});
 	} else if (data.type === "choice") {
 		// Using radio buttons
 		for (let i = 0; i < data.options.length; i++) {
@@ -157,9 +161,11 @@ async function collect(data) {
 			returnData({
 				value: parseInt(selectedOption.value),
 			});
-			collectionFormEl.removeEventListener("submit", listener);
+			// collectionFormEl.removeEventListener("submit", listener);
 		};
-		collectionFormEl.addEventListener("submit", listener);
+		collectionFormEl.addEventListener("submit", listener, {
+			once: true,
+		});
 	}
 }
 
@@ -215,7 +221,6 @@ async function initConditionalUI(data) {
 		) {
 			return;
 		}
-
 		startAuthentication(authenticationOptions, true)
 			.then(async (assertionResponse) => {
 				const verificationResponse = await fetch("/api/login/return", {
@@ -246,9 +251,11 @@ async function initConditionalUI(data) {
 	});
 	usePasskeyButton.innerText = "Sign in with a passkey";
 	async function eventHandler(event: PointerEvent) {
-		usePasskeyButton.removeEventListener("click", eventHandler);
+		// usePasskeyButton.removeEventListener("click", eventHandler);
 		await authenticatePasskey();
 	}
-	usePasskeyButton.addEventListener("click", eventHandler);
+	usePasskeyButton.addEventListener("click", eventHandler, {
+		once: true,
+	});
 	collectionFormEl.appendChild(usePasskeyButton);
 }
