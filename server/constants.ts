@@ -37,7 +37,6 @@ if (
 	!TOKEN_SECRET_EXPIRATION ||
 	Date.now() > TOKEN_SECRET_EXPIRATION
 ) {
-	// @ts-ignore
 	falcon.keyPair().then((keyPair) => {
 		SECRET_KEY_PAIR = keyPair;
 		SECRET_PRIVATE_KEY = keyPair.privateKey;

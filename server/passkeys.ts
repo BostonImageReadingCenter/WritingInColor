@@ -22,7 +22,6 @@ async function beginPasskeyRegistration(userName: string, userID: Buffer) {
 	const WebAuthnOptions = await generateRegistrationOptions({
 		rpName,
 		rpID,
-		// @ts-ignore
 		userID: userID,
 		userName: userName,
 		timeout: 60000,

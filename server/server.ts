@@ -7,10 +7,9 @@ const fastify = Fastify({
 	logger: true,
 });
 
-// @ts-ignore
 fastify.register(fastify_cookie, {
 	parseOptions: {
-		secure: false, // TODO: Change this to true.
+		secure: true,
 		signed: false,
 	}, // options for parsing cookies
 });

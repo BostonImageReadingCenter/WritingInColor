@@ -1,23 +1,26 @@
-import mysql from "mysql2";
-import { Pool as PromisePool } from "mysql2/promise";
+import mysql, {
+	Pool,
+	PoolConnection,
+	QueryOptions,
+	FieldPacket,
+	QueryResult,
+} from "mysql2/promise";
+
 import { MySQLConfig } from "./constants";
 import { parse as uuidParse } from "uuid-parse";
 import { Passkey, User } from "./types";
 import { Uint8ArrayFromHexString } from "./utils";
+import { v4 as uuidv4 } from "uuid";
 
-async function initDatabase(): Promise<{
-	pool: mysql.Pool;
-	promisePool: PromisePool;
-}> {
+async function initDatabase(): Promise<Pool> {
 	const pool = mysql.createPool(MySQLConfig);
-	const promisePool = pool.promise();
-	return { pool, promisePool };
+	return pool;
 }
 
 async function test() {
-	let { pool, promisePool } = await initDatabase();
+	let pool = await initDatabase();
 	try {
-		const [rows] = await promisePool.query("SELECT * FROM roles");
+		const [rows] = await pool.query("SELECT * FROM roles");
 	} catch (err) {
 		console.error(err);
 	} finally {
@@ -26,72 +29,117 @@ async function test() {
 	}
 }
 
-const UserService = {
-	getById: async (userID: Buffer, promisePool: PromisePool) => {
-		// @ts-ignore
-		const user: User = await promisePool.query(
-			"SELECT * FROM users WHERE id = ?",
-			[userID]
-		);
-		return user[0][0];
-	},
-	getByEmail: async (email: string, promisePool: PromisePool) => {
-		// @ts-ignore
-		let user: User = await promisePool.query(
-			"SELECT users.* FROM users JOIN emails ON users.id = emails.user_id WHERE emails.email = ?",
-			[email]
-		);
-		return user[0][0];
-	},
-};
-class DB {
+type Queryable = Pool | PoolConnection;
+class Database {
 	pool: mysql.Pool;
-	promisePool: PromisePool;
 	constructor() {
 		this.pool = mysql.createPool(MySQLConfig);
-		this.promisePool = this.pool.promise();
 	}
-	multiQuery() {
-		// TODO: group multiple queries together.
-		// await promisePool.getConnection().then(async (connection) => {
+	getConnection() {
+		return this.pool.getConnection();
 	}
-	// TODO: move all the services here.
-}
-const EmailService = {};
-const PasskeyService = {
-	getPasskeysByUserID: async (
-		userID: Buffer,
-		promisePool: PromisePool
-	): Promise<Passkey[]> => {
+	async query(sql: string, values: any) {
+		return await this.pool.query(sql, values);
+	}
+	async getUserById(userID: Buffer, connection: Queryable = this.pool) {
+		const user: User = (
+			await connection.query("SELECT * FROM users WHERE id = ?", [userID])
+		)[0][0];
+		return user;
+	}
+	async getUserByEmail(email: string, connection: Queryable = this.pool) {
+		let user: User = (
+			await connection.query(
+				"SELECT users.* FROM users JOIN emails ON users.id = emails.user_id WHERE emails.email = ?",
+				[email]
+			)
+		)[0][0];
+		return user;
+	}
+	async getEmailsByUserID(userID: Buffer, connection: Queryable = this.pool) {
 		return (
-			await promisePool.query("SELECT * FROM passkeys WHERE user_id = ?", [
+			await connection.query("SELECT * FROM emails WHERE user_id = ?", [userID])
+		)[0];
+	}
+	async addEmailToUser(
+		userID: Buffer,
+		email: string,
+		connection: Queryable = this.pool
+	) {
+		await connection.query(
+			"INSERT INTO emails (user_id, email) VALUES (?, ?)",
+			[userID, email]
+		);
+	}
+	async getPasskeysByUserID(
+		userID: Buffer,
+		connection: Queryable = this.pool
+	): Promise<Passkey[]> {
+		return (
+			await connection.query("SELECT * FROM passkeys WHERE user_id = ?", [
 				userID,
 			])
 		)[0] as Passkey[];
-	},
-};
-const RevokedRefreshTokensService = {};
-const RoleService = {
-	getUserRoles: async (userID: Buffer, promisePool: PromisePool) => {
-		const roles = await promisePool.query(
-			`SELECT * FROM user_roles WHERE user_id = ?`,
-			[userID]
-		);
-		return roles[0];
-	},
-	addUserRole: async (
-		userID: Buffer,
-		role_name: string,
-		promisePool: PromisePool
-	) => {
-		// TODO
-	},
-};
-export {
-	initDatabase,
-	test,
-	UserService,
-	EmailService,
-	RoleService,
-	PasskeyService,
-};
+	}
+	async getUserRoles(userID: Buffer, connection: Queryable = this.pool) {
+		return (
+			await connection.query(`SELECT * FROM user_roles WHERE user_id = ?`, [
+				userID,
+			])
+		)[0];
+	}
+	async createUser(
+		{
+			user,
+			emails,
+			passkeys,
+		}: {
+			user: User;
+			emails: string[];
+			passkeys: Passkey[];
+		},
+		connection?: PoolConnection
+	) {
+		connection ??= await this.getConnection();
+		try {
+			await connection.beginTransaction();
+			// Create user
+			await connection.query(
+				"INSERT INTO users (id, salt, password) VALUES (?, ?, ?)",
+				[user.id, user.salt ?? null, user.password ?? null]
+			);
+
+			// Add emails
+			for (const email of emails) {
+				await connection.query(
+					"INSERT INTO emails (user_id, email) VALUES (?, ?)",
+					[user.id, email]
+				);
+			}
+
+			// Add passkeys
+			for (const passkey of passkeys) {
+				await connection.query(
+					"INSERT INTO passkeys (id, user_id, credential_id, public_key, counter, transports) VALUES (?, ?, ?, ?, ?, ?)",
+					[
+						passkey.id ?? Buffer.from(uuidParse(uuidv4())),
+						user.id,
+						passkey.credential_id,
+						passkey.public_key,
+						passkey.counter,
+						passkey.transports,
+					]
+				);
+			}
+
+			await connection.commit();
+		} catch (error) {
+			await connection.rollback(); // Undo the changes in case of an error.
+			throw error;
+		} finally {
+			connection.release();
+		}
+	}
+}
+
+export { initDatabase, test, Database };

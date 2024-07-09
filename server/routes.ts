@@ -2,8 +2,8 @@ import nunjucks from "nunjucks";
 import fastifyStatic from "@fastify/static";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "url";
-import { initDatabase } from "./db";
-import { FastifyReply, FastifyRequest } from "fastify";
+import { Database, initDatabase } from "./db";
+import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { parse as uuidParse } from "uuid-parse";
 
 import {
@@ -57,7 +57,7 @@ function setCookies(cookies: object, reply: FastifyReply) {
 }
 
 // Define routes
-async function routes(fastify, options) {
+async function routes(fastify: FastifyInstance, options) {
 	console.log("\x1b[34mServing from:", client_root, "\x1b[0m");
 
 	// Serve static files
@@ -65,13 +65,13 @@ async function routes(fastify, options) {
 		root: client_root,
 	});
 	let visits = 0;
-	const { pool, promisePool } = await initDatabase();
+	const database = new Database();
 
 	// Home
 	fastify.get("/", async (request: FastifyRequest, reply: FastifyReply) => {
 		let is_admin = false;
 
-		let login_status = await isLoggedIn(request, promisePool);
+		let login_status = await isLoggedIn(request, database);
 		setCookies(login_status.setCookies, reply);
 		let user: User;
 		if (login_status.valid) {
@@ -117,7 +117,7 @@ async function routes(fastify, options) {
 			revokeRefreshToken(
 				Buffer.from(uuidParse(payload.jti)),
 				new Date(payload.exp),
-				promisePool
+				database
 			);
 			let _1970 = new Date(0);
 			return reply
@@ -136,7 +136,7 @@ async function routes(fastify, options) {
 		async (request: FastifyRequest, reply: FastifyReply) => {
 			console.log("Login session has begun.");
 			let id = uuidv4();
-			let generator = login(promisePool, request.body);
+			let generator = login(database, request.body);
 			auth_sessions[id] = {
 				id,
 				expires: Date.now() + 1000 * 60 * 1,
