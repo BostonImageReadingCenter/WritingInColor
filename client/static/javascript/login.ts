@@ -166,6 +166,42 @@ async function collect(data) {
 		collectionFormEl.addEventListener("submit", listener, {
 			once: true,
 		});
+	} else if (data.type === "password") {
+		let passwordInputEl = createElement("input", {
+			attributes: {
+				type: "password",
+				placeholder: "Password",
+				required: true,
+				autocomplete: "new-password",
+			},
+			classes: [],
+			id: "",
+		}) as HTMLInputElement;
+		let passwordConfirmInputEl = createElement("input", {
+			attributes: {
+				type: "password",
+				placeholder: "Confirm Password",
+				required: true,
+				autocomplete: "new-password",
+			},
+			classes: [],
+			id: "",
+		}) as HTMLInputElement;
+		collectionInputsEl.appendChild(passwordInputEl);
+		collectionInputsEl.appendChild(passwordConfirmInputEl);
+		let listener = async (event: SubmitEvent) => {
+			event.preventDefault();
+			if (passwordInputEl.value !== passwordConfirmInputEl.value) {
+				alert("Passwords do not match.");
+				return;
+			}
+			returnData({
+				value: passwordInputEl.value,
+			});
+		};
+		collectionFormEl.addEventListener("submit", listener, {
+			once: true,
+		});
 	}
 }
 
