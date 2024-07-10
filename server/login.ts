@@ -43,6 +43,7 @@ import {
 import { Database } from "./db.js";
 import { generateSalt, hashPassword } from "./security.js";
 
+// JWTs
 export async function CreateJWT(payload: JWT_REGISTERED_CLAIMS) {
 	const jwt: string = await sign(
 		{
@@ -73,17 +74,13 @@ export function isValidJWT(jwt: JWT_REGISTERED_CLAIMS) {
 	return true;
 }
 
+// Cookie signing
 export async function signCookie(value: string) {
 	let signed = await falcon.sign(Buffer.from(value), SECRET_PRIVATE_KEY);
 	let as_text = uint8ArrayToBase64(signed);
 	return as_text;
 }
 
-/**
- * Unsign a cookie
- * @param value Base64 encoded
- * @returns Promise<{verified: boolean, text: string | null}>
- */
 export async function unsignCookie(value: string): Promise<{
 	verified: boolean;
 	text: string | null;
@@ -105,68 +102,8 @@ export async function unsignCookie(value: string): Promise<{
 		};
 	}
 }
-export async function isLoggedIn(
-	request: FastifyRequest,
-	database: Database,
-	createNewIfInvalid = true
-): Promise<LoginStatus> {
-	let errors = [];
-	try {
-		let jwt = request.cookies.accessToken;
-		if (!jwt) throw "No access token";
 
-		let verified = await VerifyJWT(jwt);
-		if (!verified) throw "Fraudulent access token";
-
-		let payload = await DecodeJWT(jwt);
-		if (!payload) throw "Access token malformed";
-
-		let validity = isValidJWT(payload);
-		if (!validity) throw "Invalid access token";
-
-		return { payload, valid: true, setCookies: [], errors };
-	} catch (e) {
-		errors.push(e);
-	}
-
-	// If it gets here, its invalid, so we may need to refresh it.
-	try {
-		let setCookies: SetCookieOptions[] = [];
-		let refreshToken = request.cookies.refreshToken;
-		if (!refreshToken) throw "No refresh token";
-
-		let verified = await VerifyJWT(refreshToken);
-		if (!verified) throw "Fraudulent refresh token";
-
-		let payload = await DecodeJWT(refreshToken);
-		if (!payload) throw "Refresh token malformed";
-
-		let validity = isValidJWT(payload);
-		if (!validity) throw "Invalid refresh token";
-		if (createNewIfInvalid) {
-			let newAccessToken = await createAccessTokenIfNotRevoked(
-				database,
-				payload
-			);
-			if (newAccessToken === false) throw "Refresh token revoked";
-			setCookies.push({
-				name: "accessToken",
-				value: await CreateJWT(newAccessToken),
-				expires: new Date(newAccessToken.exp),
-			});
-		}
-
-		return {
-			payload,
-			valid: true,
-			setCookies,
-			errors,
-		};
-	} catch (e) {
-		errors.push(e);
-	}
-	return { payload: null, valid: false, setCookies: [], errors };
-}
+// Login
 export async function revokeRefreshToken(
 	refresh_token_id: Buffer,
 	refresh_token_expiration_time: Date,
@@ -283,6 +220,7 @@ export async function* login(
 ): AsyncGenerator<LoginData, LoginData, LoginDataReturn> {
 	let authenticationOptions: PublicKeyCredentialRequestOptionsJSON;
 	let verifyAuthentication: Function;
+	let result: LoginDataReturn;
 
 	let actions: Action[] = [
 		{
@@ -308,11 +246,12 @@ export async function* login(
 				action: "init-conditional-ui",
 			});
 	}
-	let { request, reply, json } = yield {
+	result = yield {
 		actions,
 	};
-	if (options.supportsWebAuthn && json.assertionResponse) {
-		let assertionResponse: AuthenticationResponseJSON = json.assertionResponse;
+	if (options.supportsWebAuthn && result.json.assertionResponse) {
+		let assertionResponse: AuthenticationResponseJSON =
+			result.json.assertionResponse;
 		let success = await loginUserWithPasskey(
 			database,
 			assertionResponse,
@@ -330,11 +269,11 @@ export async function* login(
 			],
 		};
 	} else {
-		let email = json.value;
+		let email = result.json.value;
 		let user = await database.getUserByEmail(email);
 		if (!user) {
 			// User does not exist
-			let { request, reply, json } = yield {
+			result = yield {
 				actions: [
 					{
 						action: "collect",
@@ -345,7 +284,8 @@ export async function* login(
 					},
 				],
 			};
-			if (!json.value)
+
+			if (!result.json.value)
 				return {
 					actions: [{ action: "exit" }],
 				};
@@ -357,7 +297,7 @@ export async function* login(
 					email,
 					userID
 				);
-				let { request, reply, json } = yield {
+				result = yield {
 					actions: [
 						{
 							action: "register-passkey",
@@ -366,7 +306,7 @@ export async function* login(
 					],
 				};
 				let attestationResponse: RegistrationResponseJSON =
-					json.attestationResponse;
+					result.json.attestationResponse;
 				const verification = await verify(attestationResponse);
 				if (verification.verified && verification.registrationInfo) {
 					passkeyRegistrationSucceeded = true;
@@ -393,7 +333,7 @@ export async function* login(
 				};
 			}
 			let salt = generateSalt();
-			let result = yield {
+			result = yield {
 				actions: [
 					{
 						action: "collect",
@@ -403,10 +343,7 @@ export async function* login(
 					},
 				],
 			};
-			request = result.request;
-			reply = result.reply;
-			json = result.json;
-			let passwordHash = hashPassword(json.value, salt);
+			let passwordHash = hashPassword(result.json.value, salt);
 			console.log(passwordHash.byteLength);
 			await database.createUser({
 				user: {
@@ -431,41 +368,43 @@ export async function* login(
 		}
 		if (options.supportsWebAuthn) {
 			const passkeys = await database.getPasskeysByUserID(user.id);
-			authenticationOptions.allowCredentials = passkeys.map((passkey) => ({
-				type: "public-key",
-				id: passkey.credential_id,
-				transports: JSON.parse(passkey.transports),
-			}));
-			let {
-				request,
-				reply,
-				json: { assertionResponse },
-			} = yield {
-				actions: [
-					{
-						action: "authenticate-passkey",
-						WebAuthnOptions: authenticationOptions,
-					},
-				],
-			};
-			let success = await loginUserWithPasskey(
-				database,
-				assertionResponse,
-				verifyAuthentication
-			);
-			console.log("Login with passkey", success);
-			return {
-				data: { success: success !== false },
-				setCookies: success || [],
-				actions: [
-					{
-						action: "redirect",
-						path: "/",
-					},
-				],
-			};
+			if (passkeys.length !== 0) {
+				// Make sure the user has a passkey
+				authenticationOptions.allowCredentials = passkeys.map((passkey) => ({
+					type: "public-key",
+					id: passkey.credential_id,
+					transports: JSON.parse(passkey.transports),
+				}));
+				result = yield {
+					actions: [
+						{
+							action: "authenticate-passkey",
+							WebAuthnOptions: authenticationOptions,
+						},
+						{
+							action: "show-use-password-button",
+						},
+					],
+				};
+				let assertionResponse = result.json.assertionResponse;
+				let success = await loginUserWithPasskey(
+					database,
+					assertionResponse,
+					verifyAuthentication
+				);
+				return {
+					data: { success: success !== false },
+					setCookies: success || [],
+					actions: [
+						{
+							action: "redirect",
+							path: "/",
+						},
+					],
+				};
+			}
 		}
-		let result = yield {
+		result = yield {
 			actions: [
 				{
 					action: "collect",
@@ -475,10 +414,7 @@ export async function* login(
 				},
 			],
 		};
-		request = result.request;
-		reply = result.reply;
-		json = result.json;
-		let passwordHash = hashPassword(json.value, user.salt);
+		let passwordHash = hashPassword(result.json.value, user.salt);
 		if (passwordHash.equals(user.password)) {
 			let setCookies = await loginUser(user.id, database);
 			return {
@@ -498,4 +434,67 @@ export async function* login(
 			actions: [{ action: "exit" }],
 		};
 	}
+}
+
+export async function isLoggedIn(
+	request: FastifyRequest,
+	database: Database,
+	createNewIfInvalid = true
+): Promise<LoginStatus> {
+	let errors = [];
+	try {
+		let jwt = request.cookies.accessToken;
+		if (!jwt) throw "No access token";
+
+		let verified = await VerifyJWT(jwt);
+		if (!verified) throw "Fraudulent access token";
+
+		let payload = await DecodeJWT(jwt);
+		if (!payload) throw "Access token malformed";
+
+		let validity = isValidJWT(payload);
+		if (!validity) throw "Invalid access token";
+
+		return { payload, valid: true, setCookies: [], errors };
+	} catch (e) {
+		errors.push(e);
+	}
+
+	// If it gets here, its invalid, so we may need to refresh it.
+	try {
+		let setCookies: SetCookieOptions[] = [];
+		let refreshToken = request.cookies.refreshToken;
+		if (!refreshToken) throw "No refresh token";
+
+		let verified = await VerifyJWT(refreshToken);
+		if (!verified) throw "Fraudulent refresh token";
+
+		let payload = await DecodeJWT(refreshToken);
+		if (!payload) throw "Refresh token malformed";
+
+		let validity = isValidJWT(payload);
+		if (!validity) throw "Invalid refresh token";
+		if (createNewIfInvalid) {
+			let newAccessToken = await createAccessTokenIfNotRevoked(
+				database,
+				payload
+			);
+			if (newAccessToken === false) throw "Refresh token revoked";
+			setCookies.push({
+				name: "accessToken",
+				value: await CreateJWT(newAccessToken),
+				expires: new Date(newAccessToken.exp),
+			});
+		}
+
+		return {
+			payload,
+			valid: true,
+			setCookies,
+			errors,
+		};
+	} catch (e) {
+		errors.push(e);
+	}
+	return { payload: null, valid: false, setCookies: [], errors };
 }

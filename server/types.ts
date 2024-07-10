@@ -173,6 +173,9 @@ export interface AuthenticatePasskeyAction {
 export interface ShowUsePasskeyButtonAction {
 	action: "show-use-passkey-button";
 }
+export interface ShowUsePasswordButtonAction {
+	action: "show-use-password-button";
+}
 export interface InitConditionalUIAction {
 	action: "init-conditional-ui";
 }
@@ -195,7 +198,8 @@ export type Action =
 	| InitConditionalUIAction
 	| ExitAction
 	| SetAuthenticationOptionsAction
-	| RedirectAction;
+	| RedirectAction
+	| ShowUsePasswordButtonAction;
 
 export interface SetCookieOptions {
 	name: string;

@@ -18,6 +18,7 @@ var collectionMessageEl: HTMLElement,
 	collectionHeaderEl: HTMLElement,
 	collectionFormEl: HTMLFormElement,
 	collectionInputsEl: HTMLDivElement,
+	hiddenData: HTMLDivElement,
 	sessionID: string,
 	supportsWebAuthn: boolean,
 	supportsConditionalUI: boolean,
@@ -40,6 +41,7 @@ window.addEventListener("load", async (event) => {
 	collectionInputsEl = document.getElementById(
 		"collection-inputs"
 	) as HTMLDivElement;
+	hiddenData = document.getElementById("hidden-data") as HTMLDivElement;
 	fetch("/api/login/init", {
 		method: "POST",
 		headers: {
@@ -109,7 +111,7 @@ async function collect(data: CollectAction) {
 				type: "email",
 				placeholder: "Email",
 				required: true,
-				autocomplete: "email webauthn",
+				autocomplete: "email",
 			},
 			classes: [],
 			id: "",
@@ -117,6 +119,19 @@ async function collect(data: CollectAction) {
 		collectionInputsEl.appendChild(emailInputEl);
 		let listener = async (event: SubmitEvent) => {
 			event.preventDefault();
+			hiddenData.appendChild(
+				createElement("input", {
+					attributes: {
+						type: "email",
+						name: "email",
+						value: emailInputEl.value,
+						autocomplete: "email",
+						style: "display: none;",
+					},
+					classes: [],
+					id: "",
+				})
+			);
 			returnData({
 				value: emailInputEl.value,
 			});
@@ -229,6 +244,19 @@ async function collect(data: CollectAction) {
 				alert("Passwords do not match.");
 				return;
 			}
+			hiddenData.appendChild(
+				createElement("input", {
+					attributes: {
+						type: "password",
+						name: "password",
+						value: passwordInputEl.value,
+						autocomplete: "current-password",
+						style: "display: none;",
+					},
+					classes: [],
+					id: "",
+				})
+			);
 			returnData({
 				value: passwordInputEl.value,
 			});
@@ -250,6 +278,19 @@ async function collect(data: CollectAction) {
 		collectionInputsEl.appendChild(passwordInputEl);
 		collectionFormEl.addEventListener("submit", async (event: SubmitEvent) => {
 			event.preventDefault();
+			hiddenData.appendChild(
+				createElement("input", {
+					attributes: {
+						type: "password",
+						name: "password",
+						style: "display: none;",
+						value: passwordInputEl.value,
+						autocomplete: "current-password",
+					},
+					classes: [],
+					id: "",
+				})
+			);
 			returnData({
 				value: passwordInputEl.value,
 			});
@@ -270,6 +311,19 @@ async function collect(data: CollectAction) {
 			"submit",
 			async (event: SubmitEvent) => {
 				event.preventDefault();
+				hiddenData.appendChild(
+					createElement("input", {
+						attributes: {
+							type: "tel",
+							name: "tel",
+							value: telephoneInputEl.value,
+							autocomplete: "tel",
+							style: "display: none;",
+						},
+						classes: [],
+						id: "",
+					})
+				);
 				returnData({
 					value: telephoneInputEl.value,
 				});
@@ -377,12 +431,14 @@ async function showUsePasskeyButton(data: ShowUsePasskeyButtonAction) {
 		id: "usePasskey",
 	});
 	usePasskeyButton.innerText = "Sign in with a passkey";
-	async function eventHandler(event: PointerEvent) {
-		// usePasskeyButton.removeEventListener("click", eventHandler);
-		await authenticatePasskey();
-	}
-	usePasskeyButton.addEventListener("click", eventHandler, {
-		once: true,
-	});
+	usePasskeyButton.addEventListener(
+		"click",
+		async (event: PointerEvent) => {
+			await authenticatePasskey();
+		},
+		{
+			once: true,
+		}
+	);
 	collectionFormEl.appendChild(usePasskeyButton);
 }
