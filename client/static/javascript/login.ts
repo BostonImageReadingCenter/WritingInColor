@@ -24,16 +24,14 @@ var collectionMessageEl: HTMLElement,
 	authenticationOptions: PublicKeyCredentialRequestOptionsJSON;
 
 window.addEventListener("load", async (event) => {
-	// supportsWebAuthn =
-	// 	window.PublicKeyCredential &&
-	// 	navigator.credentials &&
-	// 	typeof navigator.credentials.create === "function" &&
-	// 	typeof navigator.credentials.get === "function";
-	// supportsConditionalUI =
-	// 	typeof PublicKeyCredential.isConditionalMediationAvailable === "function" &&
-	// 	(await PublicKeyCredential.isConditionalMediationAvailable());
-	supportsWebAuthn = false;
-	supportsConditionalUI = false;
+	supportsWebAuthn =
+		window.PublicKeyCredential &&
+		navigator.credentials &&
+		typeof navigator.credentials.create === "function" &&
+		typeof navigator.credentials.get === "function";
+	supportsConditionalUI =
+		typeof PublicKeyCredential.isConditionalMediationAvailable === "function" &&
+		(await PublicKeyCredential.isConditionalMediationAvailable());
 	collectionMessageEl = document.getElementById("collection-message");
 	collectionHeaderEl = document.getElementById("collection-header");
 	collectionFormEl = document.getElementById(
