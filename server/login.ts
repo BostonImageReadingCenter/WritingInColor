@@ -26,6 +26,10 @@ import {
 	LoginStatus,
 	Passkey,
 	RevokedRefreshToken,
+	Action,
+	LoginInitializationOptions,
+	LoginData,
+	LoginDataReturn,
 } from "./types.js";
 import { base64URLStringToBuffer } from "@simplewebauthn/browser";
 import { FastifyReply, FastifyRequest } from "fastify";
@@ -255,28 +259,40 @@ export async function loginUserWithPasskey(
 	}
 }
 
-export async function* login(database: Database, options) {
+export async function* login(
+	database: Database,
+	options: LoginInitializationOptions
+): AsyncGenerator<LoginData, LoginData, LoginDataReturn> {
 	let authenticationOptions: PublicKeyCredentialRequestOptionsJSON;
 	let verifyAuthentication: Function;
 
+	let actions: Action[] = [
+		{
+			action: "collect",
+			type: "email",
+			header: "Please enter your email.",
+			message: "We need your email to be sure its you.",
+		},
+	];
 	if (options.supportsWebAuthn) {
 		let x = await beginPasskeyAuthentication();
 		authenticationOptions = x.WebAuthnOptions;
 		verifyAuthentication = x.verify;
+		actions.push({
+			action: "show-use-passkey-button",
+		});
+		if (options.supportsConditionalUI)
+			actions.push({
+				action: "init-conditional-ui",
+			});
 	}
 	let { request, reply, json } = yield {
 		actions: [
 			{
-				action: "collect",
-				type: "email",
-				header: "Please enter your email.",
-				message: "We need your email to be sure its you.",
-			},
-			{
-				action: "init-conditional-ui",
+				action: "set-authentication-options",
+				authenticationOptions,
 			},
 		],
-		authenticationOptions,
 	};
 	if (options.supportsWebAuthn && json.assertionResponse) {
 		let assertionResponse: AuthenticationResponseJSON = json.assertionResponse;
@@ -312,7 +328,7 @@ export async function* login(database: Database, options) {
 			};
 			if (!consent.value)
 				return {
-					action: "exit",
+					actions: [{ action: "exit" }],
 				};
 			let userID = Buffer.from(uuidParse(uuidv4()));
 			let passkeys: Passkey[] = [];

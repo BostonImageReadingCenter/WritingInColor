@@ -1,3 +1,9 @@
+import {
+	PublicKeyCredentialCreationOptionsJSON,
+	PublicKeyCredentialRequestOptionsJSON,
+} from "@simplewebauthn/server/esm/deps";
+import { FastifyReply, FastifyRequest } from "fastify";
+
 export interface JWT_REGISTERED_CLAIMS {
 	/**
 	 * Identifies the principal that issued the JWT. It specifies the issuer of the token.
@@ -130,8 +136,62 @@ export class User {
 	}
 }
 
+type collectionTypes =
+	| "email"
+	| "binary"
+	| "choice"
+	| "create-password"
+	| "get-password";
+export interface CollectAction {
+	action: "collect";
+	type: collectionTypes;
+	header: string;
+	message: string;
+	options?: string[];
+}
+export interface RegisterPasskeyAction {
+	action: "register-passkey";
+	WebAuthnOptions: PublicKeyCredentialCreationOptionsJSON;
+}
+export interface AuthenticatePasskeyAction {
+	action: "authenticate-passkey";
+	WebAuthnOptions: PublicKeyCredentialRequestOptionsJSON;
+}
+export interface ShowUsePasskeyButtonAction {
+	action: "show-use-passkey-button";
+}
+export interface InitConditionalUIAction {
+	action: "init-conditional-ui";
+}
+export interface ExitAction {
+	action: "exit";
+}
+export interface SetAuthenticationOptionsAction {
+	action: "set-authentication-options";
+	authenticationOptions: PublicKeyCredentialRequestOptionsJSON;
+}
+export type Action =
+	| CollectAction
+	| RegisterPasskeyAction
+	| AuthenticatePasskeyAction
+	| ShowUsePasskeyButtonAction
+	| InitConditionalUIAction
+	| ExitAction
+	| SetAuthenticationOptionsAction;
 export interface LoginData {
-	setCookies: object;
-	actions: object[];
-	data: object;
+	setCookies?: object;
+	actions?: Action[];
+	data?: object;
+}
+
+export interface LoginInitializationOptions {
+	supportsWebAuthn: boolean;
+	supportsConditionalUI: boolean;
+}
+export interface LoginDataReturn {
+	request: FastifyRequest;
+	reply: FastifyReply;
+	json: {
+		[key: string]: any;
+	};
 }

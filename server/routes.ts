@@ -19,7 +19,12 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { rpID, rpName, origin, ROLES } from "./constants.js";
 import { sign } from "jwt-falcon";
-import { JWT_REGISTERED_CLAIMS, LoginData, User } from "./types.js";
+import {
+	JWT_REGISTERED_CLAIMS,
+	LoginData,
+	LoginInitializationOptions,
+	User,
+} from "./types.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -136,7 +141,10 @@ async function routes(fastify: FastifyInstance, options) {
 		async (request: FastifyRequest, reply: FastifyReply) => {
 			console.log("Login session has begun.");
 			let id = uuidv4();
-			let generator = login(database, request.body);
+			let generator = login(
+				database,
+				request.body as LoginInitializationOptions
+			);
 			auth_sessions[id] = {
 				id,
 				expires: Date.now() + 1000 * 60 * 1,
