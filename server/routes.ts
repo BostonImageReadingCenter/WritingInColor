@@ -23,6 +23,7 @@ import {
 	JWT_REGISTERED_CLAIMS,
 	LoginData,
 	LoginInitializationOptions,
+	SetCookieOptions,
 	User,
 } from "./types.js";
 
@@ -44,20 +45,18 @@ function cleanSessions() {
 	}
 }
 
-function setCookies(cookies: object, reply: FastifyReply) {
-	if (cookies) {
-		for (let cookie_name in cookies) {
-			let cookie = cookies[cookie_name];
-			// SameSite strict
-			reply.setCookie(cookie_name, cookie.value, {
-				httpOnly: true,
-				signed: false,
-				path: "/",
-				sameSite: "strict",
-				secure: false, // TODO: Change this to true.
-				expires: cookie.expires,
-			});
-		}
+function setCookies(cookies: SetCookieOptions[], reply: FastifyReply) {
+	for (let cookie of cookies) {
+		// SameSite strict
+		reply.setCookie(cookie.name, cookie.value, {
+			httpOnly: cookie.httpOnly ?? true,
+			signed: cookie.signed ?? false,
+			path: cookie.path ?? "/",
+			sameSite: cookie.sameSite ?? "strict",
+			secure: cookie.secure ?? false,
+			expires:
+				cookie.expires ?? new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
+		});
 	}
 }
 
@@ -152,7 +151,7 @@ async function routes(fastify: FastifyInstance, options) {
 			};
 			cleanSessions();
 			let result = await generator.next();
-			setCookies((result.value as LoginData).setCookies || {}, reply);
+			setCookies((result.value as LoginData).setCookies || [], reply);
 			if (result.done) delete auth_sessions[id];
 			return reply.send({ id, done: result.done, value: result.value });
 		}
@@ -173,8 +172,9 @@ async function routes(fastify: FastifyInstance, options) {
 			}
 			session.expires += 1000 * 60 * 1;
 			let result = await session.generator.next({ request, reply, json });
+			console.log(result);
 			if (result.done) delete auth_sessions[id];
-			setCookies(result.value.setCookies || {}, reply);
+			setCookies(result.value.setCookies || [], reply);
 			return reply
 				.code(200)
 				.send({ id, done: result.done, value: result.value });

@@ -24,14 +24,16 @@ var collectionMessageEl: HTMLElement,
 	authenticationOptions: PublicKeyCredentialRequestOptionsJSON;
 
 window.addEventListener("load", async (event) => {
-	supportsWebAuthn =
-		window.PublicKeyCredential &&
-		navigator.credentials &&
-		typeof navigator.credentials.create === "function" &&
-		typeof navigator.credentials.get === "function";
-	supportsConditionalUI =
-		typeof PublicKeyCredential.isConditionalMediationAvailable === "function" &&
-		(await PublicKeyCredential.isConditionalMediationAvailable());
+	// supportsWebAuthn =
+	// 	window.PublicKeyCredential &&
+	// 	navigator.credentials &&
+	// 	typeof navigator.credentials.create === "function" &&
+	// 	typeof navigator.credentials.get === "function";
+	// supportsConditionalUI =
+	// 	typeof PublicKeyCredential.isConditionalMediationAvailable === "function" &&
+	// 	(await PublicKeyCredential.isConditionalMediationAvailable());
+	supportsWebAuthn = false;
+	supportsConditionalUI = false;
 	collectionMessageEl = document.getElementById("collection-message");
 	collectionHeaderEl = document.getElementById("collection-header");
 	collectionFormEl = document.getElementById(
@@ -53,14 +55,13 @@ window.addEventListener("load", async (event) => {
 		let json = await response.json();
 		sessionID = json.id;
 		authenticationOptions = json.value.authenticationOptions;
-		if (json.done) return;
-		// fetch("")
 		handleAction(json.value);
+		if (json.done) return;
 	});
 });
 async function handleAction(data: LoginData) {
+	console.log(data);
 	let actions = data.actions;
-	// if (!Array.isArray(actions)) actions = [data];
 	for (let item of actions) {
 		if (item.action === "collect") {
 			collect(item);
@@ -75,6 +76,10 @@ async function handleAction(data: LoginData) {
 		} else if (item.action === "exit") {
 			// Reload
 			window.location.reload();
+		} else if (item.action === "set-authentication-options") {
+			authenticationOptions = item.authenticationOptions;
+		} else if (item.action === "redirect") {
+			window.location.href = item.path;
 		}
 	}
 }
@@ -90,8 +95,9 @@ async function returnData(data) {
 		}),
 	}).then(async (response) => {
 		let json = await response.json();
-		if (json.done) return;
+		// console.log(json);
 		handleAction(json.value);
+		if (json.done) return;
 	});
 }
 async function collect(data: CollectAction) {
@@ -288,8 +294,9 @@ async function registerPasskey(data: RegisterPasskeyAction) {
 		}),
 	});
 	let json = await verificationResponse.json();
+	handleAction(json.value);
 	if (json.value.data.success) {
-		window.location.href = "/";
+		if (!json.done) returnData({});
 		// TODO: handle success
 	} else {
 		alert("Registration Failed.");
@@ -316,8 +323,9 @@ async function authenticatePasskey(
 		}),
 	});
 	let json = await verificationResponse.json();
+	handleAction(json.value);
 	if (json.value.data.success) {
-		window.location.href = "/";
+		if (!json.done) returnData({});
 		// TODO: handle success
 	} else {
 		alert("Authentication Failed.");
@@ -348,8 +356,10 @@ async function initConditionalUI(data: InitConditionalUIAction) {
 					}),
 				});
 				let json = await verificationResponse.json();
+				handleAction(json.value);
 				if (json.value.data.success) {
-					window.location.href = "/";
+					// TODO: handle success
+					if (!json.done) returnData({});
 				} else {
 					alert("Login Failure!");
 					// TODO: handle failure

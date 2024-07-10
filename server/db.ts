@@ -88,6 +88,16 @@ class Database {
 			])
 		)[0];
 	}
+	async addUserRole(
+		userID: Buffer,
+		roleID: number,
+		connection: Queryable = this.pool
+	) {
+		await connection.query(
+			"INSERT INTO user_roles (user_id, role_id) VALUES (?, ?)",
+			[userID, roleID]
+		);
+	}
 	async createUser(
 		{
 			user,

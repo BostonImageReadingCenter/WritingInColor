@@ -6,8 +6,9 @@
   "description": "",
   "main": "server/server.ts",
   "scripts": {
-    "start": "./build.sh && bun server/server.ts",
-    "build": "./build.sh",
+    "start": "./build.sh production && bun server/server.ts",
+    "build": "./build.sh production",
+    "dev": "./build.sh development && bun server/server.ts",
     "run": "bun server/server.ts"
   },
   "repository": {

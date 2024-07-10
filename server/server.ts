@@ -4,9 +4,19 @@ import fastify_cookie from "@fastify/cookie";
 import fp from "fastify-plugin";
 
 const fastify = Fastify({
-	logger: true,
+	logger: false,
 });
 
+fastify.addHook("onResponse", async (request, reply) => {
+	console.log(
+		"\x1b[34m" + request.method + "\x1b[0m",
+		request.url,
+		reply.statusCode
+	);
+});
+fastify.addHook("onError", async (request, reply, error) => {
+	console.log("\x1b[31m" + error.stack + "\x1b[0m");
+});
 fastify.register(fastify_cookie, {
 	parseOptions: {
 		secure: true,

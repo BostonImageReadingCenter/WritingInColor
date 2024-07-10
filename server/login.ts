@@ -30,6 +30,8 @@ import {
 	LoginInitializationOptions,
 	LoginData,
 	LoginDataReturn,
+	SetCookieOptions,
+	UserRole,
 } from "./types.js";
 import { base64URLStringToBuffer } from "@simplewebauthn/browser";
 import { FastifyReply, FastifyRequest } from "fastify";
@@ -39,6 +41,7 @@ import {
 	PublicKeyCredentialRequestOptionsJSON,
 } from "@simplewebauthn/typescript-types";
 import { Database } from "./db.js";
+import { generateSalt, hashPassword } from "./security.js";
 
 export async function CreateJWT(payload: JWT_REGISTERED_CLAIMS) {
 	const jwt: string = await sign(
@@ -121,14 +124,14 @@ export async function isLoggedIn(
 		let validity = isValidJWT(payload);
 		if (!validity) throw "Invalid access token";
 
-		return { payload, valid: true, setCookies: {}, errors };
+		return { payload, valid: true, setCookies: [], errors };
 	} catch (e) {
 		errors.push(e);
 	}
 
 	// If it gets here, its invalid, so we may need to refresh it.
 	try {
-		let setCookies: any = {};
+		let setCookies: SetCookieOptions[] = [];
 		let refreshToken = request.cookies.refreshToken;
 		if (!refreshToken) throw "No refresh token";
 
@@ -146,10 +149,11 @@ export async function isLoggedIn(
 				payload
 			);
 			if (newAccessToken === false) throw "Refresh token revoked";
-			setCookies.accessToken = {
+			setCookies.push({
+				name: "accessToken",
 				value: await CreateJWT(newAccessToken),
-				expires: newAccessToken.exp,
-			};
+				expires: new Date(newAccessToken.exp),
+			});
 		}
 
 		return {
@@ -161,7 +165,7 @@ export async function isLoggedIn(
 	} catch (e) {
 		errors.push(e);
 	}
-	return { payload: null, valid: false, setCookies: {}, errors };
+	return { payload: null, valid: false, setCookies: [], errors };
 }
 export async function revokeRefreshToken(
 	refresh_token_id: Buffer,
@@ -190,7 +194,16 @@ export async function createRefreshToken(userID: Buffer, roles: number[]) {
 	};
 	return refreshToken;
 }
-export async function createAccessToken(refreshToken: JWT_REGISTERED_CLAIMS) {
+export async function createAccessToken(
+	refreshToken: JWT_REGISTERED_CLAIMS,
+	database: Database,
+	rls?: number[]
+) {
+	if (!rls) {
+		// Get roles. Don't use cached value because roles may have been updated.
+		let roles: any = await database.getUserRoles(refreshToken.sub);
+		rls = roles.map((role: UserRole) => role.role_id);
+	}
 	let accessToken: JWT_REGISTERED_CLAIMS = {
 		iss: refreshToken.iss,
 		aud: refreshToken.aud,
@@ -216,30 +229,35 @@ export async function createAccessTokenIfNotRevoked(
 	)[0] as RevokedRefreshToken[];
 	if (revoked.length > 0) return false;
 
-	return createAccessToken(decoded_refresh_token);
+	return createAccessToken(decoded_refresh_token, database);
 }
-export async function loginUser(userID: Buffer, database: Database) {
+export async function loginUser(
+	userID: Buffer,
+	database: Database
+): Promise<SetCookieOptions[]> {
 	let roles: any = await database.getUserRoles(userID);
-	let role_ids = roles.map((role) => role.role_id);
+	let role_ids = roles.map((role: UserRole) => role.role_id);
 	let refreshToken = await createRefreshToken(userID, role_ids);
-	let accessToken = await createAccessToken(refreshToken);
+	let accessToken = await createAccessToken(refreshToken, database, role_ids);
 
-	return {
-		refreshToken: {
+	return [
+		{
+			name: "refreshToken",
 			value: await CreateJWT(refreshToken),
-			expires: refreshToken.exp,
+			expires: new Date(refreshToken.exp),
 		},
-		accessToken: {
+		{
+			name: "accessToken",
 			value: await CreateJWT(accessToken),
-			expires: accessToken.exp,
+			expires: new Date(accessToken.exp),
 		},
-	};
+	];
 }
 export async function loginUserWithPasskey(
 	database: Database,
 	assertionResponse: AuthenticationResponseJSON,
 	verifyAuthentication: Function
-) {
+): Promise<false | SetCookieOptions[]> {
 	const passkey = (
 		await database.query("SELECT * FROM passkeys WHERE credential_id = ?", [
 			assertionResponse.rawId,
@@ -281,18 +299,17 @@ export async function* login(
 		actions.push({
 			action: "show-use-passkey-button",
 		});
+		actions.push({
+			action: "set-authentication-options",
+			authenticationOptions,
+		});
 		if (options.supportsConditionalUI)
 			actions.push({
 				action: "init-conditional-ui",
 			});
 	}
 	let { request, reply, json } = yield {
-		actions: [
-			{
-				action: "set-authentication-options",
-				authenticationOptions,
-			},
-		],
+		actions,
 	};
 	if (options.supportsWebAuthn && json.assertionResponse) {
 		let assertionResponse: AuthenticationResponseJSON = json.assertionResponse;
@@ -301,21 +318,23 @@ export async function* login(
 			assertionResponse,
 			verifyAuthentication
 		);
+		console.log("Login with passkey (conditional ui)", success !== false);
 		return {
 			data: { success: success !== false },
-			setCookies: success || {},
-			actions: [],
+			setCookies: success || [],
+			actions: [
+				{
+					action: "redirect",
+					path: "/",
+				}, // TODO: redirect only if successful
+			],
 		};
 	} else {
 		let email = json.value;
 		let user = await database.getUserByEmail(email);
 		if (!user) {
 			// User does not exist
-			let {
-				request,
-				reply,
-				json: consent,
-			} = yield {
+			let { request, reply, json } = yield {
 				actions: [
 					{
 						action: "collect",
@@ -326,7 +345,7 @@ export async function* login(
 					},
 				],
 			};
-			if (!consent.value)
+			if (!json.value)
 				return {
 					actions: [{ action: "exit" }],
 				};
@@ -373,15 +392,42 @@ export async function* login(
 					},
 				};
 			}
-
+			let salt = generateSalt();
+			let result = yield {
+				actions: [
+					{
+						action: "collect",
+						type: "create-password",
+						header: "Create Password",
+						message: "Create a password for your account.",
+					},
+				],
+			};
+			request = result.request;
+			reply = result.reply;
+			json = result.json;
+			let passwordHash = hashPassword(json.value, salt);
+			console.log(passwordHash.byteLength);
 			await database.createUser({
 				user: {
 					id: userID,
+					salt: salt,
+					password: passwordHash,
 				},
 				emails: [email],
 				passkeys,
 			});
-			loginUser(userID, database);
+			let setCookies = await loginUser(userID, database);
+			return {
+				data: { success: true },
+				setCookies,
+				actions: [
+					{
+						action: "redirect",
+						path: "/",
+					},
+				],
+			};
 		}
 		if (options.supportsWebAuthn) {
 			const passkeys = await database.getPasskeysByUserID(user.id);
@@ -407,13 +453,49 @@ export async function* login(
 				assertionResponse,
 				verifyAuthentication
 			);
+			console.log("Login with passkey", success);
 			return {
 				data: { success: success !== false },
-				setCookies: success || {},
-				actions: [],
+				setCookies: success || [],
+				actions: [
+					{
+						action: "redirect",
+						path: "/",
+					},
+				],
 			};
-		} else {
-			// TODO: Password only login
 		}
+		let result = yield {
+			actions: [
+				{
+					action: "collect",
+					type: "get-password",
+					header: "Enter Password",
+					message: "Enter your password.",
+				},
+			],
+		};
+		request = result.request;
+		reply = result.reply;
+		json = result.json;
+		let passwordHash = hashPassword(json.value, user.salt);
+		if (passwordHash.equals(user.password)) {
+			let setCookies = await loginUser(user.id, database);
+			return {
+				data: { success: true },
+				setCookies,
+				actions: [
+					{
+						action: "redirect",
+						path: "/",
+					},
+				],
+			};
+		}
+		// Wrong password
+		return {
+			data: { success: false },
+			actions: [{ action: "exit" }],
+		};
 	}
 }
