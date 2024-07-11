@@ -2,6 +2,36 @@
 
 $menu-bar-size: 50px;
 
+// Any hover menu. This is just functionality, no style.
+.hover-menu {
+	& > .hover-menu__content {
+		position: absolute;
+		display: none;
+	}
+
+	& > .hover-menu__content.bottom {
+		top: 100%;
+	}
+
+	& > .hover-menu__content.top {
+		bottom: 100%;
+	}
+
+	& > .hover-menu__content.left {
+		right: 100%;
+		top: 0;
+	}
+
+	& > .hover-menu__content.right {
+		left: 100%;
+		top: 0;
+	}
+
+	&:hover > .hover-menu__content {
+		display: flex;
+	}
+}
+
 .menu-bar {
 	padding: 0;
 	margin: 0;
@@ -93,38 +123,5 @@ $menu-bar-size: 50px;
 		& > li {
 			width: 100%;
 		}
-	}
-}
-
-// Any hover menu. This is just functionality, no style.
-.hover-menu {
-	& > .hover-menu__text {
-	}
-
-	& > .hover-menu__content {
-		position: absolute;
-		display: none;
-	}
-
-	& > .hover-menu__content.bottom {
-		top: 100%;
-	}
-
-	& > .hover-menu__content.top {
-		bottom: 100%;
-	}
-
-	& > .hover-menu__content.left {
-		right: 100%;
-		top: 0;
-	}
-
-	& > .hover-menu__content.right {
-		left: 100%;
-		top: 0;
-	}
-
-	&:hover > .hover-menu__content {
-		display: flex;
 	}
 }
