@@ -33,7 +33,7 @@ const client_root = join(
 	__dirname,
 	process.argv[2] === "production" ? "../dist" : "../client/"
 ); // Use dist in production.
-let auth_sessions = {};
+let auth_sessions = new Map();
 
 // Configure Nunjucks to use the client_root directory.
 nunjucks.configure(client_root, { autoescape: true });
@@ -144,11 +144,11 @@ async function routes(fastify: FastifyInstance, options) {
 				database,
 				request.body as LoginInitializationOptions
 			);
-			auth_sessions[id] = {
+			auth_sessions.set(id, {
 				id,
 				expires: Date.now() + 1000 * 60 * 1,
 				generator,
-			};
+			});
 			cleanSessions();
 			let result = await generator.next();
 			setCookies((result.value as LoginData).setCookies || [], reply);
@@ -161,7 +161,7 @@ async function routes(fastify: FastifyInstance, options) {
 		async (request: FastifyRequest, reply: FastifyReply) => {
 			let json: any = request.body;
 			let id = json.id;
-			let session = auth_sessions[id]; // Use JWTs for login sessions???
+			let session = auth_sessions.get(id); // Use JWTs for login sessions???
 			if (!session)
 				return reply
 					.code(404)
