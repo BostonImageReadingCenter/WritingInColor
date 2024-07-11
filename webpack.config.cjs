@@ -6,6 +6,7 @@ module.exports = {
 		core: "./client/static/javascript/core.ts",
 		login: "./client/static/javascript/login.ts",
 		adminPanel: "./client/static/javascript/admin-panel.ts",
+		test: "./client/static/javascript/test.ts",
 	},
 	output: {
 		filename: "[name].js",

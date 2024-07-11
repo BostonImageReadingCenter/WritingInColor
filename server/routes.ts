@@ -70,11 +70,7 @@ async function routes(fastify: FastifyInstance, options) {
 	});
 	let visits = 0;
 	const database = new Database();
-
-	// Home
-	fastify.get("/", async (request: FastifyRequest, reply: FastifyReply) => {
-		let is_admin = false;
-
+	async function getUser(request: FastifyRequest, reply: FastifyReply) {
 		let login_status = await isLoggedIn(request, database);
 		setCookies(login_status.setCookies, reply);
 		let user: User;
@@ -87,10 +83,24 @@ async function routes(fastify: FastifyInstance, options) {
 		} else {
 			user = null;
 		}
+		return user;
+	}
+	// Home
+	fastify.get("/", async (request: FastifyRequest, reply: FastifyReply) => {
+		let user = await getUser(request, reply);
 		visits++;
 		reply.code(200).header("Content-Type", "text/html").send(
 			nunjucks.render("index.html", {
 				visits,
+				user,
+			})
+		);
+		return reply;
+	});
+	fastify.get("/test", async (request: FastifyRequest, reply: FastifyReply) => {
+		let user = await getUser(request, reply);
+		reply.code(200).header("Content-Type", "text/html").send(
+			nunjucks.render("test.html", {
 				user,
 			})
 		);

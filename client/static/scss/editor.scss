@@ -1,0 +1,94 @@
+@use "sass:math";
+
+@import "core.scss";
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap");
+
+$text-edit-element-size: 2em;
+$editor-menu-padding: 0.66em;
+$round-element-padding: 0.5em;
+
+@mixin round {
+	border-radius: 50%;
+	overflow: hidden;
+}
+@mixin text-edit-element {
+	aspect-ratio: 1 / 1;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	line-height: $text-edit-element-size;
+	vertical-align: middle;
+	cursor: default;
+}
+
+.editor-menu {
+	background-color: white;
+	border-radius: $text-edit-element-size + 2 * $editor-menu-padding;
+	width: min-content;
+	height: $text-edit-element-size + 2 * $editor-menu-padding;
+	box-sizing: border-box;
+	padding: $editor-menu-padding;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-direction: row;
+	gap: $editor-menu-padding;
+	font-family: "Inter", sans-serif;
+	position: absolute;
+	.font-selector,
+	.font-size-selector {
+		width: 1.66em;
+	}
+	.bold-toggle {
+		font-weight: bold;
+	}
+	.strikethrough-toggle {
+		text-decoration: line-through;
+	}
+	.underline-toggle {
+		text-decoration: underline;
+	}
+	.text-align-toggle,
+	.copy-button,
+	.bullet-point-toggle,
+	.link-button,
+	.delete-button,
+	.options-button {
+		// @include round;
+		// @include text-edit-element;
+	}
+	& > * {
+		@include text-edit-element;
+		&:hover {
+			background-color: $light-background-color;
+		}
+		&:first-child {
+			height: $text-edit-element-size;
+			width: $text-edit-element-size;
+		}
+	}
+	& > .menu-item-round {
+		@include round;
+
+		padding: $round-element-padding;
+	}
+}
+.color-picker-wrapper {
+	@include round;
+	@include text-edit-element;
+	position: relative;
+	padding: 0 !important;
+}
+.color-picker-wrapper input[type="color"] {
+	position: absolute;
+	height: math.div(8, 3) * $text-edit-element-size;
+	width: math.div(8, 3) * $text-edit-element-size;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	overflow: hidden;
+	border: none;
+	margin: 0;
+	padding: 0;
+}

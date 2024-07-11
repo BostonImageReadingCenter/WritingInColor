@@ -24,6 +24,7 @@ main {
 	padding: 20px;
 }
 
+// Simple Helper classes
 .clickable {
 	cursor: pointer;
 }
@@ -51,6 +52,8 @@ main {
 .accent-color {
 	background-color: $accent-color;
 }
+
+// The top header
 
 header {
 	padding: $header-padding;

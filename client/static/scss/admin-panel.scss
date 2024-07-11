@@ -1,9 +1,10 @@
 @import "core.scss";
+@import "editor.scss";
 $admin-panel-height: 50px;
 
 #admin-panel {
 	position: static;
-	// top: 0;
+	top: 0;
 	left: 0;
 	width: 100%;
 	display: flex;
