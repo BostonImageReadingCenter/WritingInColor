@@ -109,6 +109,7 @@ async function collect(data: CollectAction) {
 		let emailInputEl = createElement("input", {
 			attributes: {
 				type: "email",
+				name: "email",
 				placeholder: "Email",
 				required: true,
 				autocomplete: "email",
@@ -219,6 +220,7 @@ async function collect(data: CollectAction) {
 		let passwordInputEl = createElement("input", {
 			attributes: {
 				type: "password",
+				name: "password",
 				placeholder: "Password",
 				required: true,
 				autocomplete: "new-password",
