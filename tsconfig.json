@@ -1,13 +1,13 @@
 {
-  "compilerOptions": {
-    "outDir": "./client/static/javascript/bundle",
-    "module": "es2022",
-    "target": "es5",
-    "allowJs": true,
-    "noImplicitAny": false,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "moduleResolution": "node",
-    "allowImportingTsExtensions": true,
-  }
+	"compilerOptions": {
+		"outDir": "./client/static/javascript/bundle",
+		"module": "es2022",
+		"target": "es5",
+		"allowJs": true,
+		"noImplicitAny": false,
+		"skipLibCheck": true,
+		"esModuleInterop": true,
+		"moduleResolution": "node",
+		"allowImportingTsExtensions": true
+	}
 }

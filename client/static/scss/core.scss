@@ -19,30 +19,39 @@ body {
 	margin: 0;
 	padding: 0;
 }
+
 main {
 	padding: 20px;
 }
+
 .clickable {
 	cursor: pointer;
 }
+
 .dark-background-color {
 	background-color: $dark-background-color;
 }
+
 .light-background-color {
 	background-color: $light-background-color;
 }
+
 .lighter-background-color {
 	background-color: $lighter-background-color;
 }
+
 .dark-font-color {
 	color: $dark-font-color;
 }
+
 .light-font-color {
 	color: $light-font-color;
 }
+
 .accent-color {
 	background-color: $accent-color;
 }
+
 header {
 	padding: $header-padding;
 	width: 100%;

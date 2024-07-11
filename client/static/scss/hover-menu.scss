@@ -1,6 +1,7 @@
 @import "core.scss";
 
 $menu-bar-size: 50px;
+
 .menu-bar {
 	padding: 0;
 	margin: 0;
@@ -11,6 +12,7 @@ $menu-bar-size: 50px;
 	font-size: 18px;
 	background-color: $dark-background-color;
 	color: $light-font-color;
+
 	& > li {
 		padding: 0 17px;
 		font-family: sans-serif;
@@ -20,16 +22,20 @@ $menu-bar-size: 50px;
 		user-select: none;
 		line-height: $menu-bar-size;
 		cursor: default;
+
 		&:hover {
 			background-color: $accent-color;
 		}
+
 		&.clickable {
 			cursor: pointer;
 		}
 	}
+
 	& > .hover-menu {
 		position: relative;
 		font-family: sans-serif;
+
 		& > .hover-menu__text {
 			user-select: none;
 			padding: 0 17px;
@@ -40,6 +46,7 @@ $menu-bar-size: 50px;
 				cursor: pointer;
 			}
 		}
+
 		& > .hover-menu__content {
 			// background-color: $darker-background-color;
 			color: $light-font-color;
@@ -47,6 +54,7 @@ $menu-bar-size: 50px;
 			padding: 0;
 			margin: 0;
 		}
+
 		&:hover > .hover-menu__text {
 			background-color: $accent-color;
 		}
@@ -55,6 +63,7 @@ $menu-bar-size: 50px;
 		flex-direction: row;
 		justify-content: left;
 		height: $menu-bar-size;
+
 		& > .hover-menu {
 			height: 100%;
 			& > .hover-menu__text {
@@ -62,21 +71,25 @@ $menu-bar-size: 50px;
 				height: 100%;
 			}
 		}
+
 		& > li {
 			height: 100%;
 			line-height: $menu-bar-size;
 		}
 	}
+
 	&.vertical {
 		flex-direction: column;
 		justify-content: start;
 		width: max-content;
+
 		& > .hover-menu {
 			width: 100%;
 			& > .hover-menu__text {
 				width: 100%;
 			}
 		}
+
 		& > li {
 			width: 100%;
 		}
@@ -87,20 +100,25 @@ $menu-bar-size: 50px;
 .hover-menu {
 	& > .hover-menu__text {
 	}
+
 	& > .hover-menu__content {
 		position: absolute;
 		display: none;
 	}
+
 	& > .hover-menu__content.bottom {
 		top: 100%;
 	}
+
 	& > .hover-menu__content.top {
 		bottom: 100%;
 	}
+
 	& > .hover-menu__content.left {
 		right: 100%;
 		top: 0;
 	}
+
 	& > .hover-menu__content.right {
 		left: 100%;
 		top: 0;
