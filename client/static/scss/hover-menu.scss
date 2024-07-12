@@ -45,7 +45,7 @@ $menu-bar-size: 50px;
 
 	& > li {
 		padding: 0 17px;
-		font-family: sans-serif;
+		font-family: "Inter", sans-serif;
 		text-align: center;
 		vertical-align: middle;
 		text-wrap: nowrap;
@@ -64,7 +64,7 @@ $menu-bar-size: 50px;
 
 	& > .hover-menu {
 		position: relative;
-		font-family: sans-serif;
+		font-family: "Inter", sans-serif;
 
 		& > .hover-menu__text {
 			user-select: none;

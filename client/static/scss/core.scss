@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Inter:wght@100..900&display=swap");
+
 // Color Scheme Definitions
 $light-background-color: #ffe8ce;
 $lighter-background-color: #fff7ee;
@@ -19,6 +21,7 @@ body {
 	color: $dark-font-color;
 	margin: 0;
 	padding: 0;
+	font-family: "Fraunces", sans-serif;
 }
 
 main {
