@@ -7,6 +7,7 @@ $text-edit-element-size: 1.75em;
 $editor-menu-padding: 0.75em;
 $editor-menu-gap: 0em;
 $round-element-padding: 0.33em;
+$color-picker-input-size-ratio: math.div(8, 3);
 
 @mixin round {
 	border-radius: 50%;
@@ -78,8 +79,8 @@ $round-element-padding: 0.33em;
 		text-decoration: underline;
 	}
 	& > * {
-		user-select: none;
 		@include text-edit-element;
+		user-select: none; // Disable text selection
 		height: $text-edit-element-size + 2 * $editor-menu-padding;
 		width: $text-edit-element-size + 2 * $editor-menu-padding;
 		&:hover {
@@ -109,8 +110,8 @@ $round-element-padding: 0.33em;
 }
 .color-picker-wrapper input[type="color"] {
 	position: absolute;
-	height: math.div(8, 3) * $text-edit-element-size;
-	width: math.div(8, 3) * $text-edit-element-size;
+	height: $color-picker-input-size-ratio * $text-edit-element-size;
+	width: $color-picker-input-size-ratio * $text-edit-element-size;
 	top: 50%;
 	left: 50%;
 	transform: translate(-50%, -50%);
