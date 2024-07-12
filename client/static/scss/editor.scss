@@ -51,7 +51,7 @@ $round-element-padding: 0.33em;
 	.font-size-selector-wrapper {
 		.font-size-selector {
 			border: none;
-			-moz-appearance: textfield;
+			appearance: textfield;
 			font-size: 1em;
 			text-align: center;
 			outline: none;
