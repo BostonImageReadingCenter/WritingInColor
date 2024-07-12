@@ -80,6 +80,8 @@ $round-element-padding: 0.33em;
 		// @include round;
 		// @include text-edit-element;
 	}
+	.ellipsis-button {
+	}
 	& > * {
 		user-select: none;
 		@include text-edit-element;

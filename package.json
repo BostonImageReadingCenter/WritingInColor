@@ -30,6 +30,7 @@
     "@simplewebauthn/server": "^10.0.0",
     "@simplewebauthn/typescript-types": "^8.3.4",
     "body-parser": "^1.20.2",
+    "core-js": "^3.37.1",
     "dotenv": "^16.4.5",
     "falcon-crypto": "^1.0.6",
     "fast-jwt": "^4.0.1",

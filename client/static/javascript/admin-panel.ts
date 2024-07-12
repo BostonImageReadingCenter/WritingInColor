@@ -13,6 +13,15 @@ const EDITABLE = {
 };
 let textEditMenu: HTMLElement;
 let currentlyEditing: HTMLElement;
+interface Command {
+	command_type: string;
+	command_target: HTMLElement;
+	value?: any;
+	previousState?: any;
+	input?: HTMLElement;
+}
+let commandStack: Command[] = [];
+let undid: Command[] = [];
 const HANDLERS = {
 	text: (element: HTMLElement) => {
 		element.setAttribute("contenteditable", "true");
@@ -20,21 +29,41 @@ const HANDLERS = {
 		element.style.outline = "1px solid blue";
 		currentlyEditing = element;
 		textEditMenu.style.display = "flex";
-		let menuBoundingRect = textEditMenu.getBoundingClientRect();
-		let elementBoundingRect = element.getBoundingClientRect();
-		console.log(menuBoundingRect, elementBoundingRect);
-		textEditMenu.style.left =
-			String(
-				elementBoundingRect.left +
-					elementBoundingRect.width / 2 -
-					menuBoundingRect.width / 2
-			) + "px";
-		textEditMenu.style.top = String(elementBoundingRect.bottom + 10) + "px";
 		element.focus();
+		let resizeHandler = () => {
+			let menuBoundingRect = textEditMenu.getBoundingClientRect();
+			let elementBoundingRect = element.getBoundingClientRect();
+			textEditMenu.style.left =
+				String(
+					elementBoundingRect.left +
+						elementBoundingRect.width / 2 -
+						menuBoundingRect.width / 2
+				) + "px";
+			textEditMenu.style.top = String(elementBoundingRect.bottom + 10) + "px";
+		};
+		let previousText = element.innerText;
+		let inputHandler = (event: InputEvent) => {
+			commandStack.push({
+				command_type: "change-text",
+				command_target: element,
+				value: element.innerText,
+				previousState: previousText,
+				input: element,
+			});
+			previousText = element.innerText;
+		};
+		resizeHandler();
+		const resizeObserver = new ResizeObserver((entries) => {
+			requestAnimationFrame(resizeHandler);
+		});
+		resizeObserver.observe(element);
+		element.addEventListener("input", inputHandler);
 		element.addEventListener(
 			"inactive",
 			() => {
-				console.log("inactive");
+				resizeObserver.unobserve(element);
+				resizeObserver.disconnect();
+				element.removeEventListener("input", inputHandler);
 				element.style.outline = "none";
 				textEditMenu.style.display = "none";
 				element.setAttribute("contenteditable", "false");
@@ -81,7 +110,63 @@ window.addEventListener("load", () => {
 			}
 		}
 	});
+	window.addEventListener("keydown", (event) => {
+		if (
+			event.key === "z" &&
+			(event.ctrlKey || event.metaKey) &&
+			commandStack.length > 0
+		) {
+			event.preventDefault();
+			let command: Command;
+			if (event.shiftKey) {
+				if (undid.length <= 0) return;
+				command = undid.pop();
+				redo(command);
+			} else {
+				command = commandStack.pop();
+				undo(command);
+				undid.push(command);
+			}
+			let targetBoundingBox = command.command_target.getBoundingClientRect();
+			command.command_target.click();
+			command.command_target.focus();
+			window.scrollTo({
+				left: targetBoundingBox.left,
+				top: targetBoundingBox.top,
+			});
+		}
+	});
 });
+function undo(command: Command) {
+	if (command.command_type === "change-text-color") {
+		command.command_target.style.color = command.previousState;
+	} else if (command.command_type === "change-text-size") {
+		command.command_target.style.fontSize = command.previousState;
+	} else if (command.command_type === "change-text-decoration") {
+		command.command_target.style.textDecoration = command.previousState;
+	} else if (command.command_type === "change-font-weight") {
+		command.command_target.style.fontWeight = command.previousState;
+	} else if (command.command_type === "change-text-align") {
+		command.command_target.style.textAlign = command.previousState;
+	} else if (command.command_type === "change-text") {
+		command.command_target.innerText = command.previousState;
+	}
+}
+function redo(command: Command) {
+	if (command.command_type === "change-text-color") {
+		command.command_target.style.color = command.value;
+	} else if (command.command_type === "change-text-size") {
+		command.command_target.style.fontSize = command.value;
+	} else if (command.command_type === "change-text-decoration") {
+		command.command_target.style.textDecoration = command.value;
+	} else if (command.command_type === "change-font-weight") {
+		command.command_target.style.fontWeight = command.value;
+	} else if (command.command_type === "change-text-align") {
+		command.command_target.style.textAlign = command.value;
+	} else if (command.command_type === "change-text") {
+		command.command_target.innerText = command.value;
+	}
+}
 function isPointInRect(point: { x: number; y: number }, rect: DOMRect) {
 	return (
 		point.x >= rect.left &&
@@ -89,6 +174,33 @@ function isPointInRect(point: { x: number; y: number }, rect: DOMRect) {
 		point.y >= rect.top &&
 		point.y <= rect.bottom
 	);
+}
+function convertToHex(color: string) {
+	const rgbMatch = color.match(/^rgb\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})\)$/);
+	if (rgbMatch) {
+		const [, r, g, b] = rgbMatch.map(Number);
+		return rgbToHex(r, g, b);
+	}
+
+	// Check for HEX format
+	const hexMatch = color.match(/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i);
+	if (hexMatch) {
+		return `#${hexMatch[1]}${hexMatch[2]}${hexMatch[3]}`.toLowerCase();
+	}
+
+	// Check for 3-digit HEX format
+	const hexShortMatch = color.match(/^#?([a-f\d])([a-f\d])([a-f\d])$/i);
+	if (hexShortMatch) {
+		return `#${hexShortMatch[1]}${hexShortMatch[1]}${hexShortMatch[2]}${hexShortMatch[2]}${hexShortMatch[3]}${hexShortMatch[3]}`.toLowerCase();
+	}
+}
+function componentToHex(c) {
+	const hex = c.toString(16);
+	return hex.length == 1 ? "0" + hex : hex;
+}
+
+function rgbToHex(r, g, b) {
+	return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
 }
 
 function createTextEditMenu() {
@@ -109,8 +221,19 @@ function createTextEditMenu() {
 						classes: ["color-picker"],
 						eventHandlers: {
 							input(event) {
-								console.log("color changed", event.target.value);
-								currentlyEditing.style.color = event.target.value;
+								let previousState = convertToHex(
+									window.getComputedStyle(currentlyEditing).color
+								);
+								let newValue = event.target.value;
+								currentlyEditing.style.color = newValue;
+								let command_target = currentlyEditing;
+								commandStack.push({
+									command_type: "change-text-color",
+									command_target,
+									value: newValue,
+									previousState,
+									input: event.target,
+								});
 							},
 						},
 					},
@@ -141,7 +264,7 @@ function createTextEditMenu() {
 							type: "number",
 							min: "1",
 							max: "1000",
-							value: "20",
+							value: "32",
 							step: "0.5",
 							inputmode: "numeric",
 						},
@@ -151,7 +274,16 @@ function createTextEditMenu() {
 				],
 				eventHandlers: {
 					input(event) {
+						let previousState =
+							window.getComputedStyle(currentlyEditing).fontSize;
 						currentlyEditing.style.fontSize = event.target.value + "px";
+						commandStack.push({
+							command_type: "change-font-size",
+							command_target: currentlyEditing,
+							value: event.target.value,
+							previousState,
+							input: event.target,
+						});
 					},
 				},
 			},
@@ -167,10 +299,17 @@ function createTextEditMenu() {
 				],
 				eventHandlers: {
 					click(event) {
-						let currentFontWeight =
+						let previousFontWeight =
 							window.getComputedStyle(currentlyEditing).fontWeight;
 						currentlyEditing.style.fontWeight =
-							currentFontWeight == "700" ? "400" : "700";
+							previousFontWeight == "700" ? "400" : "700";
+						commandStack.push({
+							command_type: "change-font-weight",
+							command_target: currentlyEditing,
+							value: currentlyEditing.style.fontWeight,
+							previousState: previousFontWeight,
+							input: event.target,
+						});
 					},
 				},
 			},
@@ -186,10 +325,21 @@ function createTextEditMenu() {
 				],
 				eventHandlers: {
 					click(event) {
-						let currentTextDecoration =
+						let previousTextDecoration =
 							window.getComputedStyle(currentlyEditing).textDecoration;
-						currentlyEditing.style.textDecoration =
-							currentTextDecoration == "line-through" ? "none" : "line-through";
+						let newValue = "";
+						if (previousTextDecoration.includes("underline"))
+							newValue += "underline";
+						if (!previousTextDecoration.includes("line-through"))
+							newValue += " line-through";
+						currentlyEditing.style.textDecoration = newValue;
+						commandStack.push({
+							command_type: "change-text-decoration",
+							command_target: currentlyEditing,
+							value: currentlyEditing.style.textDecoration,
+							previousState: previousTextDecoration,
+							input: event.target,
+						});
 					},
 				},
 			},
@@ -205,10 +355,21 @@ function createTextEditMenu() {
 				],
 				eventHandlers: {
 					click(event) {
-						let currentTextDecoration =
+						let previousTextDecoration =
 							window.getComputedStyle(currentlyEditing).textDecoration;
-						currentlyEditing.style.textDecoration =
-							currentTextDecoration == "underline" ? "none" : "underline";
+						let newValue = "";
+						if (!previousTextDecoration.includes("underline"))
+							newValue += "underline";
+						if (previousTextDecoration.includes("line-through"))
+							newValue += " line-through";
+						currentlyEditing.style.textDecoration = newValue;
+						commandStack.push({
+							command_type: "change-text-decoration",
+							command_target: currentlyEditing,
+							value: currentlyEditing.style.textDecoration,
+							previousState: previousTextDecoration,
+							input: event.target,
+						});
 					},
 				},
 			},
@@ -225,10 +386,21 @@ function createTextEditMenu() {
 				eventHandlers: {
 					click(event) {
 						//TODO: SHOW OPTIONS
-						let currentTextAlign =
+						let previousTextAlign =
 							window.getComputedStyle(currentlyEditing).textAlign;
-						currentlyEditing.style.textAlign =
-							currentTextAlign == "left" ? "center" : "left";
+						if (previousTextAlign == "center") {
+							currentlyEditing.style.textAlign = "right";
+						} else if (previousTextAlign == "right") {
+							currentlyEditing.style.textAlign = "left";
+						} else currentlyEditing.style.textAlign = "center";
+
+						commandStack.push({
+							command_type: "change-text-align",
+							command_target: currentlyEditing,
+							value: currentlyEditing.style.textAlign,
+							previousState: previousTextAlign,
+							input: event.target,
+						});
 					},
 				},
 			},
@@ -281,6 +453,11 @@ function createTextEditMenu() {
 					click(event) {
 						currentlyEditing.dispatchEvent(new Event("inactive"));
 						currentlyEditing.remove();
+						commandStack.push({
+							command_type: "delete-element",
+							command_target: currentlyEditing,
+							input: event.target,
+						});
 					},
 				},
 			},
