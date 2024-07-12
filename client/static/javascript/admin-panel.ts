@@ -129,14 +129,31 @@ function createTextEditMenu() {
 			},
 			{
 				tag: "div",
-				classes: ["menu-item-wrapper", "menu-item-box"],
+				classes: [
+					"menu-item-wrapper",
+					"menu-item-box",
+					"font-size-selector-wrapper",
+				],
 				children: [
 					{
-						tag: "span",
+						tag: "input",
+						attributes: {
+							type: "number",
+							min: "1",
+							max: "1000",
+							value: "20",
+							step: "0.5",
+							inputmode: "numeric",
+						},
 						classes: ["font-size-selector", "menu-item"],
 						text: "20",
 					},
 				],
+				eventHandlers: {
+					input(event) {
+						currentlyEditing.style.fontSize = event.target.value + "px";
+					},
+				},
 			},
 			{
 				tag: "div",
@@ -260,6 +277,12 @@ function createTextEditMenu() {
 						classes: ["delete-button", "menu-item"],
 					},
 				],
+				eventHandlers: {
+					click(event) {
+						currentlyEditing.dispatchEvent(new Event("inactive"));
+						currentlyEditing.remove();
+					},
+				},
 			},
 			{
 				tag: "div",

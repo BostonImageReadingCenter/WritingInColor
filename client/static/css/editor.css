@@ -66,10 +66,27 @@ header .hover-menu .hover-menu__content {
   gap: 0.66em;
   font-family: "Inter", sans-serif;
   position: absolute;
+  font-size: 1em;
 }
 .editor-menu .font-selector,
 .editor-menu .font-size-selector {
   width: 1.66em;
+}
+.editor-menu .font-size-selector-wrapper .font-size-selector {
+  border: none;
+  -moz-appearance: textfield;
+  font-size: 1em;
+  outline: none;
+}
+.editor-menu .font-size-selector-wrapper .font-size-selector::-webkit-outer-spin-button, .editor-menu .font-size-selector-wrapper .font-size-selector::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.editor-menu .font-size-selector-wrapper:hover {
+  background-color: rgb(227, 227, 227);
+}
+.editor-menu .font-size-selector-wrapper:hover .font-size-selector {
+  background-color: rgb(227, 227, 227);
 }
 .editor-menu .bold-toggle {
   font-weight: bold;

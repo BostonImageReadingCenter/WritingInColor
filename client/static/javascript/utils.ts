@@ -20,17 +20,29 @@ const newProperties = {
 		return this;
 	},
 };
+
+interface CreateElementOptions {
+	tag?: string;
+	attributes?: { [key: string]: string };
+	classes?: string[];
+	id?: string;
+	text?: string;
+	html?: string;
+	children?: HTMLElement[] | CreateElementOptions[];
+	eventHandlers?: { [key: string]: (event) => void };
+	is?: string;
+}
 // Define function overloads
-function createElement(options: { [key: string]: any }): HTMLElement;
+function createElement(options: CreateElementOptions): HTMLElement;
 function createElement(
 	elementType: string,
-	options: { [key: string]: any }
+	options: CreateElementOptions
 ): HTMLElement;
 
 // Implementation
 function createElement(
-	elementTypeOrOptions: string | { [key: string]: any },
-	options?: { [key: string]: any }
+	elementTypeOrOptions: string | CreateElementOptions,
+	options?: CreateElementOptions
 ): HTMLElement {
 	let elementType =
 		typeof elementTypeOrOptions === "string"
@@ -38,7 +50,10 @@ function createElement(
 			: elementTypeOrOptions.tag;
 	options =
 		typeof elementTypeOrOptions === "string" ? options : elementTypeOrOptions;
-	let element = document.createElement(elementType, options);
+
+	let element = document.createElement(elementType, {
+		is: options.is,
+	});
 	for (let attribute in options.attributes ?? {}) {
 		element.setAttribute(attribute, options.attributes[attribute]);
 	}
