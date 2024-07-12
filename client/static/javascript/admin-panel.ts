@@ -100,7 +100,7 @@ function createTextEditMenu() {
 				classes: [
 					"color-picker-wrapper",
 					"menu-item-wrapper",
-					"menu-item-round",
+					// "menu-item-round",
 				],
 				children: [
 					{
@@ -295,7 +295,7 @@ function createTextEditMenu() {
 					},
 					{
 						tag: "menu",
-						classes: ["hover-menu__content", "menu-bar", "vertical"],
+						classes: ["hover-menu__content", "right", "menu-bar", "vertical"],
 						children: [
 							{ tag: "li", classes: ["hover-menu__item"], text: "Item 0" },
 							{ tag: "li", classes: ["hover-menu__item"], text: "Item 1" },

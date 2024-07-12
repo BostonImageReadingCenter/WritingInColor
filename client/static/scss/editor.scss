@@ -3,8 +3,9 @@
 @import "core.scss";
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap");
 
-$text-edit-element-size: 2em;
-$editor-menu-padding: 0.66em;
+$text-edit-element-size: 1.75em;
+$editor-menu-padding: 0.75em;
+$editor-menu-gap: 0em;
 $round-element-padding: 0.33em;
 
 @mixin round {
@@ -33,7 +34,7 @@ $round-element-padding: 0.33em;
 	align-items: center;
 	justify-content: center;
 	flex-direction: row;
-	gap: $editor-menu-padding;
+	gap: $editor-menu-gap;
 	font-family: "Inter", sans-serif;
 	position: absolute;
 	font-size: 1em;
@@ -46,6 +47,7 @@ $round-element-padding: 0.33em;
 			border: none;
 			-moz-appearance: textfield;
 			font-size: 1em;
+			text-align: center;
 			outline: none;
 			&::-webkit-outer-spin-button,
 			&::-webkit-inner-spin-button {
@@ -102,6 +104,8 @@ $round-element-padding: 0.33em;
 	@include round;
 	@include text-edit-element;
 	position: relative;
+	height: $text-edit-element-size;
+	width: $text-edit-element-size;
 	padding: 0 !important;
 }
 .color-picker-wrapper input[type="color"] {
