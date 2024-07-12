@@ -2,25 +2,20 @@ import nunjucks from "nunjucks";
 import fastifyStatic from "@fastify/static";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "url";
-import { Database, initDatabase } from "./db";
+import { Database } from "./db";
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { parse as uuidParse } from "uuid-parse";
 
 import {
 	login,
-	signCookie,
-	unsignCookie,
-	createAccessTokenIfNotRevoked,
 	isLoggedIn,
 	revokeRefreshToken,
 	VerifyJWT,
 	DecodeJWT,
 } from "./login";
 import { v4 as uuidv4 } from "uuid";
-import { rpID, rpName, origin, ROLES } from "./constants.js";
-import { sign } from "jwt-falcon";
+import { origin, ROLES } from "./constants.js";
 import {
-	JWT_REGISTERED_CLAIMS,
 	LoginData,
 	LoginInitializationOptions,
 	SetCookieOptions,
@@ -29,10 +24,7 @@ import {
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const client_root = join(
-	__dirname,
-	process.argv[2] === "production" ? "../dist" : "../client/"
-); // Use dist in production.
+const client_root = join(__dirname, "../client/");
 let auth_sessions = new Map();
 
 // Configure Nunjucks to use the client_root directory.
@@ -68,8 +60,10 @@ async function routes(fastify: FastifyInstance, options) {
 	fastify.register(fastifyStatic, {
 		root: client_root,
 	});
-	let visits = 0;
 	const database = new Database();
+	/**
+	 * Get the user from the request
+	 */
 	async function getUser(request: FastifyRequest, reply: FastifyReply) {
 		let login_status = await isLoggedIn(request, database);
 		setCookies(login_status.setCookies, reply);
@@ -88,15 +82,14 @@ async function routes(fastify: FastifyInstance, options) {
 	// Home
 	fastify.get("/", async (request: FastifyRequest, reply: FastifyReply) => {
 		let user = await getUser(request, reply);
-		visits++;
 		reply.code(200).header("Content-Type", "text/html").send(
 			nunjucks.render("index.html", {
-				visits,
 				user,
 			})
 		);
 		return reply;
 	});
+	// Test page. Just used for random stuff.
 	fastify.get("/test", async (request: FastifyRequest, reply: FastifyReply) => {
 		let user = await getUser(request, reply);
 		reply.code(200).header("Content-Type", "text/html").send(
@@ -106,16 +99,18 @@ async function routes(fastify: FastifyInstance, options) {
 		);
 		return reply;
 	});
+
+	// The login page
 	fastify.get(
 		"/login",
 		async (request: FastifyRequest, reply: FastifyReply) => {
 			reply
 				.code(200)
 				.header("Content-Type", "text/html")
-				.send(nunjucks.render("login/index.html"));
+				.send(nunjucks.render("login.html"));
 		}
 	);
-
+	// Loading this page will automatically logout the user
 	fastify.get(
 		"/logout",
 		async (request: FastifyRequest, reply: FastifyReply) => {
@@ -144,7 +139,11 @@ async function routes(fastify: FastifyInstance, options) {
 				.redirect(origin + "/");
 		}
 	);
-	// API
+	/*
+		API ENDPOINTS
+	*/
+
+	// Login initialization
 	fastify.post(
 		"/api/login/init",
 		async (request: FastifyRequest, reply: FastifyReply) => {
@@ -166,6 +165,8 @@ async function routes(fastify: FastifyInstance, options) {
 			return reply.send({ id, done: result.done, value: result.value });
 		}
 	);
+
+	// This one is for when the client returns data back to the server.
 	fastify.post(
 		"/api/login/return",
 		async (request: FastifyRequest, reply: FastifyReply) => {

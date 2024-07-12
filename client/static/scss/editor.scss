@@ -24,22 +24,28 @@ $round-element-padding: 0.33em;
 }
 
 .editor-menu {
-	background-color: white;
-	border-radius: $text-edit-element-size + 2 * $editor-menu-padding;
+	background-color: white; // TODO; set this to one of the predefined colors in core.scss
 	width: min-content;
 	height: $text-edit-element-size + 2 * $editor-menu-padding;
+	border-radius: $text-edit-element-size + 2 * $editor-menu-padding; // Having the border radius set to the height gives it that nice rounding look.
 	box-sizing: border-box;
-	padding: $editor-menu-padding;
+
+	// Display options
+	position: absolute;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	flex-direction: row;
 	gap: $editor-menu-gap;
+	padding: $editor-menu-padding;
+
+	// Font options
 	font-family: "Inter", sans-serif;
-	position: absolute;
 	font-size: 1em;
+
 	.font-selector,
 	.font-size-selector {
+		// These are longer and rectangular.
 		width: 1.66em;
 	}
 	.font-size-selector-wrapper {
@@ -71,17 +77,6 @@ $round-element-padding: 0.33em;
 	.underline-toggle {
 		text-decoration: underline;
 	}
-	.text-align-toggle,
-	.copy-button,
-	.bullet-point-toggle,
-	.link-button,
-	.delete-button,
-	.options-button {
-		// @include round;
-		// @include text-edit-element;
-	}
-	.ellipsis-button {
-	}
 	& > * {
 		user-select: none;
 		@include text-edit-element;
@@ -102,13 +97,15 @@ $round-element-padding: 0.33em;
 		padding: $round-element-padding;
 	}
 }
+
+// To make the color picker round
 .color-picker-wrapper {
 	@include round;
 	@include text-edit-element;
 	position: relative;
 	height: $text-edit-element-size;
 	width: $text-edit-element-size;
-	padding: 0 !important;
+	padding: 0;
 }
 .color-picker-wrapper input[type="color"] {
 	position: absolute;

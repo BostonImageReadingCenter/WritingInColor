@@ -25,14 +25,18 @@ var collectionMessageEl: HTMLElement,
 	authenticationOptions: PublicKeyCredentialRequestOptionsJSON;
 
 window.addEventListener("load", async (event) => {
+	// Check if browser supports WebAuthn
 	supportsWebAuthn =
 		window.PublicKeyCredential &&
 		navigator.credentials &&
 		typeof navigator.credentials.create === "function" &&
 		typeof navigator.credentials.get === "function";
+	// Check if browser supports Conditional UI
 	supportsConditionalUI =
 		typeof PublicKeyCredential.isConditionalMediationAvailable === "function" &&
 		(await PublicKeyCredential.isConditionalMediationAvailable());
+
+	// Get HTML elements
 	collectionMessageEl = document.getElementById("collection-message");
 	collectionHeaderEl = document.getElementById("collection-header");
 	collectionFormEl = document.getElementById(
@@ -42,6 +46,8 @@ window.addEventListener("load", async (event) => {
 		"collection-inputs"
 	) as HTMLDivElement;
 	hiddenData = document.getElementById("hidden-data") as HTMLDivElement;
+
+	// Initiate login
 	fetch("/api/login/init", {
 		method: "POST",
 		headers: {
@@ -59,6 +65,10 @@ window.addEventListener("load", async (event) => {
 		if (json.done) return;
 	});
 });
+
+/**
+ * Handles actions from LoginData returned from the server
+ */
 async function handleAction(data: LoginData) {
 	console.log(data);
 	let actions = data.actions;
@@ -83,6 +93,10 @@ async function handleAction(data: LoginData) {
 		}
 	}
 }
+
+/**
+ * Returns data to the server
+ */
 async function returnData(data) {
 	fetch("/api/login/return", {
 		method: "POST",
@@ -95,11 +109,14 @@ async function returnData(data) {
 		}),
 	}).then(async (response) => {
 		let json = await response.json();
-		// console.log(json);
 		handleAction(json.value);
 		if (json.done) return;
 	});
 }
+
+/**
+ * For collecting values from the user.
+ */
 async function collect(data: CollectAction) {
 	collectionMessageEl.innerText = data.message;
 	collectionHeaderEl.innerText = data.header;
@@ -112,7 +129,7 @@ async function collect(data: CollectAction) {
 				name: "email",
 				placeholder: "Email",
 				required: true,
-				autocomplete: "email",
+				autocomplete: "email webauthn",
 				imputmode: "email",
 			},
 			classes: [],

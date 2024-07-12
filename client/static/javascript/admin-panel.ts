@@ -3,6 +3,18 @@ import { createElement } from "./utils.ts";
 let edit_mode_toggle = document.getElementById(
 	"edit-mode-toggle"
 ) as HTMLInputElement;
+let textEditMenu: HTMLElement;
+let currentlyEditing: HTMLElement;
+
+interface Command {
+	command_type: string;
+	command_target: HTMLElement;
+	value?: any;
+	previousState?: any;
+	input?: HTMLElement;
+}
+let commandStack: Command[] = []; // Commands performed. This list is used for undo and redo operations.
+let undid: Command[] = []; // Commands that were undone with ctrl+z
 const EDITABLE = {
 	text: ["p", "h1", "h2", "h3", "h4", "h5", "h6"],
 	image: ["img"],
@@ -11,18 +23,10 @@ const EDITABLE = {
 	audio: ["audio"],
 	link: ["a"],
 };
-let textEditMenu: HTMLElement;
-let currentlyEditing: HTMLElement;
-interface Command {
-	command_type: string;
-	command_target: HTMLElement;
-	value?: any;
-	previousState?: any;
-	input?: HTMLElement;
-}
-let commandStack: Command[] = [];
-let undid: Command[] = [];
 const HANDLERS = {
+	/**
+	 * Handles editing text elements
+	 */
 	text: (element: HTMLElement) => {
 		element.setAttribute("contenteditable", "true");
 		element.focus();
@@ -80,17 +84,21 @@ const HANDLERS = {
 window.addEventListener("load", () => {
 	textEditMenu = createTextEditMenu();
 	textEditMenu.style.display = "none";
+
+	// Add event listeners to elements
 	for (let type in EDITABLE) {
 		for (let tag of EDITABLE[type]) {
 			let elements = Array.from(document.getElementsByTagName(tag));
 			for (let element of elements) {
 				element.addEventListener("click", () => {
+					// Run the handlers if edit mode is on
 					if (edit_mode_toggle.checked) HANDLERS[type](element);
 				});
 			}
 		}
 	}
 	window.addEventListener("click", (event: PointerEvent) => {
+		// Disable editing for an element if the user clicks off of it.
 		if (currentlyEditing) {
 			let currentlyEditingBoundingRect =
 				currentlyEditing.getBoundingClientRect();
@@ -111,6 +119,7 @@ window.addEventListener("load", () => {
 		}
 	});
 	window.addEventListener("keydown", (event) => {
+		// Undo and redo
 		if (
 			event.key === "z" &&
 			(event.ctrlKey || event.metaKey) &&
@@ -194,12 +203,12 @@ function convertToHex(color: string) {
 		return `#${hexShortMatch[1]}${hexShortMatch[1]}${hexShortMatch[2]}${hexShortMatch[2]}${hexShortMatch[3]}${hexShortMatch[3]}`.toLowerCase();
 	}
 }
-function componentToHex(c) {
-	const hex = c.toString(16);
+function componentToHex(c: number) {
+	const hex = c.toString(16); // Convert the number to a base 16 (hex) string
 	return hex.length == 1 ? "0" + hex : hex;
 }
 
-function rgbToHex(r, g, b) {
+function rgbToHex(r: number, g: number, b: number) {
 	return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
 }
 
