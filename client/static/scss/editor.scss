@@ -5,7 +5,7 @@
 
 $text-edit-element-size: 2em;
 $editor-menu-padding: 0.66em;
-$round-element-padding: 0.5em;
+$round-element-padding: 0.33em;
 
 @mixin round {
 	border-radius: 50%;
@@ -59,7 +59,10 @@ $round-element-padding: 0.5em;
 		// @include text-edit-element;
 	}
 	& > * {
+		user-select: none;
 		@include text-edit-element;
+		height: $text-edit-element-size + 2 * $editor-menu-padding;
+		width: $text-edit-element-size + 2 * $editor-menu-padding;
 		&:hover {
 			background-color: $light-background-color;
 		}
@@ -70,7 +73,8 @@ $round-element-padding: 0.5em;
 	}
 	& > .menu-item-round {
 		@include round;
-
+		height: $text-edit-element-size + 2 * $round-element-padding;
+		width: $text-edit-element-size + 2 * $round-element-padding;
 		padding: $round-element-padding;
 	}
 }

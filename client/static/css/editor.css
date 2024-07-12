@@ -81,6 +81,7 @@ header .hover-menu .hover-menu__content {
   text-decoration: underline;
 }
 .editor-menu > * {
+  user-select: none;
   aspect-ratio: 1/1;
   display: inline-flex;
   align-items: center;
@@ -89,6 +90,8 @@ header .hover-menu .hover-menu__content {
   line-height: 2em;
   vertical-align: middle;
   cursor: default;
+  height: 3.32em;
+  width: 3.32em;
 }
 .editor-menu > *:hover {
   background-color: rgb(227, 227, 227);
@@ -100,7 +103,9 @@ header .hover-menu .hover-menu__content {
 .editor-menu > .menu-item-round {
   border-radius: 50%;
   overflow: hidden;
-  padding: 0.5em;
+  height: 2.66em;
+  width: 2.66em;
+  padding: 0.33em;
 }
 
 .color-picker-wrapper {

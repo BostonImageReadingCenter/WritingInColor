@@ -11,25 +11,33 @@ const EDITABLE = {
 	audio: ["audio"],
 	link: ["a"],
 };
+let textEditMenu: HTMLElement;
+let currentlyEditing: HTMLElement;
 const HANDLERS = {
-	text: (element: HTMLElement, menu, menuWidth: number) => {
+	text: (element: HTMLElement) => {
 		element.setAttribute("contenteditable", "true");
-		let position = element.getBoundingClientRect();
-		menu.style.left =
-			String(position.left + position.width / 2 - menuWidth / 2) + "px";
-		menu.style.top = String(position.bottom + 10) + "px";
-		menu.style.display = "flex";
-		document.body.appendChild(menu);
 		element.focus();
-		let blur = () => {
-			element.style.border = "none";
-			menu.style.display = "none";
-			element.setAttribute("contenteditable", "false");
-		};
+		element.style.outline = "1px solid blue";
+		currentlyEditing = element;
+		textEditMenu.style.display = "flex";
+		let menuBoundingRect = textEditMenu.getBoundingClientRect();
+		let elementBoundingRect = element.getBoundingClientRect();
+		console.log(menuBoundingRect, elementBoundingRect);
+		textEditMenu.style.left =
+			String(
+				elementBoundingRect.left +
+					elementBoundingRect.width / 2 -
+					menuBoundingRect.width / 2
+			) + "px";
+		textEditMenu.style.top = String(elementBoundingRect.bottom + 10) + "px";
+		element.focus();
 		element.addEventListener(
-			"blur",
+			"inactive",
 			() => {
-				blur();
+				console.log("inactive");
+				element.style.outline = "none";
+				textEditMenu.style.display = "none";
+				element.setAttribute("contenteditable", "false");
 			},
 			{ once: true }
 		);
@@ -41,21 +49,47 @@ const HANDLERS = {
 	link: (element) => {},
 };
 window.addEventListener("load", () => {
+	textEditMenu = createTextEditMenu();
+	textEditMenu.style.display = "none";
 	for (let type in EDITABLE) {
 		for (let tag of EDITABLE[type]) {
 			let elements = Array.from(document.getElementsByTagName(tag));
 			for (let element of elements) {
-				let menu = createTextEditMenu();
-				menu.style.display = "none";
-				let menuWidth = menu.getBoundingClientRect().width;
 				element.addEventListener("click", () => {
-					if (edit_mode_toggle.checked)
-						HANDLERS[type](element, menu, menuWidth);
+					if (edit_mode_toggle.checked) HANDLERS[type](element);
 				});
 			}
 		}
 	}
+	window.addEventListener("click", (event: PointerEvent) => {
+		if (currentlyEditing) {
+			let currentlyEditingBoundingRect =
+				currentlyEditing.getBoundingClientRect();
+			let textEditMenuBoundingRect = textEditMenu.getBoundingClientRect();
+			if (
+				!isPointInRect(
+					{ x: event.clientX, y: event.clientY },
+					currentlyEditingBoundingRect
+				) &&
+				!isPointInRect(
+					{ x: event.clientX, y: event.clientY },
+					textEditMenuBoundingRect
+				)
+			) {
+				currentlyEditing.dispatchEvent(new CustomEvent("inactive"));
+				currentlyEditing = null;
+			}
+		}
+	});
 });
+function isPointInRect(point: { x: number; y: number }, rect: DOMRect) {
+	return (
+		point.x >= rect.left &&
+		point.x <= rect.right &&
+		point.y >= rect.top &&
+		point.y <= rect.bottom
+	);
+}
 
 function createTextEditMenu() {
 	let menu = createElement("menu", {
@@ -73,6 +107,12 @@ function createTextEditMenu() {
 						tag: "input",
 						attributes: { type: "color" },
 						classes: ["color-picker"],
+						eventHandlers: {
+							input(event) {
+								console.log("color changed", event.target.value);
+								currentlyEditing.style.color = event.target.value;
+							},
+						},
 					},
 				],
 			},
@@ -108,6 +148,14 @@ function createTextEditMenu() {
 						text: "B",
 					},
 				],
+				eventHandlers: {
+					click(event) {
+						let currentFontWeight =
+							window.getComputedStyle(currentlyEditing).fontWeight;
+						currentlyEditing.style.fontWeight =
+							currentFontWeight == "700" ? "400" : "700";
+					},
+				},
 			},
 			{
 				tag: "div",
@@ -119,6 +167,14 @@ function createTextEditMenu() {
 						text: "S",
 					},
 				],
+				eventHandlers: {
+					click(event) {
+						let currentTextDecoration =
+							window.getComputedStyle(currentlyEditing).textDecoration;
+						currentlyEditing.style.textDecoration =
+							currentTextDecoration == "line-through" ? "none" : "line-through";
+					},
+				},
 			},
 			{
 				tag: "div",
@@ -130,6 +186,14 @@ function createTextEditMenu() {
 						text: "U",
 					},
 				],
+				eventHandlers: {
+					click(event) {
+						let currentTextDecoration =
+							window.getComputedStyle(currentlyEditing).textDecoration;
+						currentlyEditing.style.textDecoration =
+							currentTextDecoration == "underline" ? "none" : "underline";
+					},
+				},
 			},
 			{
 				tag: "div",
@@ -141,6 +205,15 @@ function createTextEditMenu() {
 						classes: ["text-align-toggle", "menu-item"],
 					},
 				],
+				eventHandlers: {
+					click(event) {
+						//TODO: SHOW OPTIONS
+						let currentTextAlign =
+							window.getComputedStyle(currentlyEditing).textAlign;
+						currentlyEditing.style.textAlign =
+							currentTextAlign == "left" ? "center" : "left";
+					},
+				},
 			},
 			{
 				tag: "div",
@@ -210,7 +283,6 @@ function createTextEditMenu() {
 			},
 		],
 	});
-
 	document.body.appendChild(menu);
 	return menu;
 }

@@ -61,8 +61,8 @@ function createElement(
 			element.appendChild(createElement(child));
 		}
 	}
-	for (let handler in options.handlers ?? {}) {
-		element.addEventListener(handler, options.handlers[handler]);
+	for (let handler in options.eventHandlers ?? {}) {
+		element.addEventListener(handler, options.eventHandlers[handler]);
 	}
 	return element;
 }
