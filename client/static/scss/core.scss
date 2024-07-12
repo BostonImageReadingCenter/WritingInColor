@@ -63,9 +63,7 @@ header {
 	justify-content: space-between;
 	background-color: $lighter-background-color;
 	height: $header-height;
-	.hover-menu .hover-menu__content {
-		right: $header-padding;
-	}
+	// The buttons on the right
 	nav {
 		display: flex;
 		gap: 20px;
@@ -75,6 +73,9 @@ header {
 			display: flex;
 			flex-direction: column;
 			gap: -2px;
+		}
+		.hover-menu .hover-menu__content {
+			transform: translateX(calc(30px - 100%));
 		}
 	}
 }
