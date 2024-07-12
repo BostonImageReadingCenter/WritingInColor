@@ -19,12 +19,18 @@ Finally, run `./setup.sh` to setup the database for this project.
 
 ## Usage
 To start the server, run `bun run start` or `npm run start` to start.
+To start in development mode (easier client-side debugging), run `bun run dev` or `npm run dev`.
 
 ## Navigating the code.
+My code is messy sometimes. It can get hard to navigate once things get bigger. The key is to continually refactor the design and re-organize things.
+
 - The server code can be found in the `server` directory.
+- The `server/types.ts` file is used on both the client side and the server side. Maybe I should move it to a different directory.
 - `client` is the frontend.
 - `client/static/javascript` contains the frontend JavaScript.
 - `client/static/javascript/bundle` contains the compiled JavaScript code. When you link JavaScript files to the HTML files, always link to the bundled versions.
+- `client/static/scss` contains the frontend SCSS code.
+- `client/static/css` contains the compiled CSS code. Do NOT edit this, YOUR CHANGES WILL NOT BE SAVED.
 
 ## During Development
 Edits require a server restart.
