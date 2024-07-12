@@ -23,7 +23,7 @@ const newProperties = {
 
 interface CreateElementOptions {
 	tag?: string;
-	attributes?: { [key: string]: string };
+	attributes?: { [key: string]: any };
 	classes?: string[];
 	id?: string;
 	text?: string;

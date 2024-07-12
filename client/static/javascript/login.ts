@@ -113,6 +113,7 @@ async function collect(data: CollectAction) {
 				placeholder: "Email",
 				required: true,
 				autocomplete: "email",
+				imputmode: "email",
 			},
 			classes: [],
 			id: "",
@@ -304,6 +305,7 @@ async function collect(data: CollectAction) {
 				placeholder: "Telephone",
 				required: true,
 				autocomplete: "tel webauthn",
+				inputmode: "tel",
 			},
 			classes: [],
 			id: "",
@@ -334,6 +336,57 @@ async function collect(data: CollectAction) {
 				once: true,
 			}
 		);
+	} else if (data.type === "text") {
+		let textInputEl = createElement("input", {
+			attributes: {
+				type: "text",
+				placeholder: "Text",
+				required: true,
+			},
+			classes: [],
+			id: "",
+		}) as HTMLInputElement;
+		collectionInputsEl.appendChild(textInputEl);
+		collectionFormEl.addEventListener("submit", async (event: SubmitEvent) => {
+			event.preventDefault();
+			hiddenData.appendChild(
+				createElement("input", {
+					attributes: {
+						type: "text",
+						name: "text",
+						value: textInputEl.value,
+						style: "display: none;",
+					},
+					classes: [],
+					id: "",
+				})
+			);
+		});
+	} else if (data.type === "url") {
+		let urlInputEl = createElement("input", {
+			attributes: {
+				type: "url",
+				placeholder: "URL",
+				required: true,
+				inputmode: "url",
+			},
+			classes: [],
+			id: "",
+		}) as HTMLInputElement;
+		collectionInputsEl.appendChild(urlInputEl);
+		collectionFormEl.addEventListener("submit", async (event: SubmitEvent) => {
+			event.preventDefault();
+			hiddenData.appendChild(
+				createElement("input", {
+					attributes: {
+						type: "url",
+						name: "url",
+						value: urlInputEl.value,
+						style: "display: none;",
+					},
+				})
+			);
+		});
 	}
 }
 
