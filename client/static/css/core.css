@@ -3,7 +3,7 @@
 }
 
 body {
-  background-color: rgb(227, 227, 227);
+  background-color: #ffe8ce;
   color: black;
   margin: 0;
   padding: 0;
@@ -22,11 +22,11 @@ main {
 }
 
 .light-background-color {
-  background-color: rgb(227, 227, 227);
+  background-color: #ffe8ce;
 }
 
 .lighter-background-color {
-  background-color: rgb(252, 252, 252);
+  background-color: #fff7ee;
 }
 
 .dark-font-color {
@@ -46,9 +46,22 @@ header {
   width: 100%;
   display: flex;
   justify-content: space-between;
+  background-color: #fff7ee;
+  height: 75px;
 }
 header .hover-menu .hover-menu__content {
   right: 15px;
+}
+header nav {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+}
+header nav #menu-button {
+  display: flex;
+  flex-direction: column;
+  gap: -2px;
 }
 
 /*# sourceMappingURL=core.css.map */

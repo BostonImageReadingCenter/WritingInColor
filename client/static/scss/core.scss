@@ -1,12 +1,13 @@
 // Color Scheme Definitions
-$light-background-color: rgb(227, 227, 227);
-$lighter-background-color: rgb(252, 252, 252);
+$light-background-color: #ffe8ce;
+$lighter-background-color: #fff7ee;
 $dark-background-color: rgb(29, 29, 29);
 $darker-background-color: rgb(10, 10, 10);
 $accent-color: rgb(0, 122, 255);
 $dark-font-color: black;
 $light-font-color: white;
 $header-padding: 15px;
+$header-height: 75px;
 // You can change any of these, add new ones, remove them. Just make sure to update their usage in the other SCSS files that rely on this one.
 
 * {
@@ -60,7 +61,20 @@ header {
 	width: 100%;
 	display: flex;
 	justify-content: space-between;
+	background-color: $lighter-background-color;
+	height: $header-height;
 	.hover-menu .hover-menu__content {
 		right: $header-padding;
+	}
+	nav {
+		display: flex;
+		gap: 10px;
+		align-items: center;
+		justify-content: center;
+		#menu-button {
+			display: flex;
+			flex-direction: column;
+			gap: -2px;
+		}
 	}
 }
