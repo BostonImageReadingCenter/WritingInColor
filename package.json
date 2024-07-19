@@ -34,6 +34,7 @@
     "dotenv": "^16.4.5",
     "falcon-crypto": "^1.0.6",
     "fast-jwt": "^4.0.1",
+    "fastify": "^4.28.1",
     "fastify-plugin": "^4.5.1",
     "jwt-falcon": "^0.0.12",
     "mysql2": "^3.10.0",
@@ -42,10 +43,10 @@
     "uuid-parse": "^1.1.0"
   },
   "devDependencies": {
-    "@babel/preset-typescript": "^7.24.7",
     "@babel/cli": "^7.24.7",
     "@babel/core": "^7.24.7",
     "@babel/preset-env": "^7.24.7",
+    "@babel/preset-typescript": "^7.24.7",
     "babel-loader": "^9.1.3",
     "copy-webpack-plugin": "^12.0.2",
     "css-loader": "^7.1.2",
