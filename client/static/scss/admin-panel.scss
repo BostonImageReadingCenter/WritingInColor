@@ -13,6 +13,10 @@ $admin-panel-height: 50px;
 	align-items: center;
 	background-color: $dark-background-color;
 	color: $light-font-color;
+	z-index: 9;
+	* {
+		z-index: 9;
+	}
 }
 
 #edit-mode-toggle-container {
