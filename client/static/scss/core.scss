@@ -333,6 +333,93 @@ p {
     max-width: 100%;
   }
 }
+
+//Footer CSS
+footer {
+  background-color:#fff7ee;
+  padding: 20px;
+  text-align: center;
+  font-family: Fraunces, serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.icons {
+  flex-direction: column;
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.footer-logo {
+  width: 100px;
+  height: auto;
+}
+
+.footer-phrase {
+  font-size: 20px;
+  color: #5e4b43;
+}
+.social-icons-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 10px; 
+}
+#social-fb{
+  cursor: pointer;
+  width: 35px;
+  height: 35px;
+}
+#social-X{
+  cursor: pointer;
+  width: 35px;
+  height: 35px;
+}
+#social-insta{
+  cursor: pointer;
+  width: 35px;
+  height: 35px;
+}
+
+.button-email {
+  cursor: pointer;
+  width: 80px;
+  height: auto;
+  margin-top: 15px;
+}
+
+.seperate {
+  width: 70%;
+  height: auto;
+  margin-top: 20px;
+}
+
+.guidelines {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 40%;
+  padding-top: 10px;
+  font-size: 12px;
+}
+
+.privacy {
+  font-size: medium;
+  margin: 5px 0;
+}
+
+.nonprofit {
+  margin: 5px 0;
+  line-height: 1.5;
+  text-align: center;
+}
+
+
+
+
+
 //Hudson's old code
 // The top header
 

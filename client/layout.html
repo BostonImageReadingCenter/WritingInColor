@@ -250,6 +250,32 @@
     {% block body %}{% endblock %}
     <footer>
       <!-- TODO: put global footer content here. -->
+      <section class="icons">
+        <img src="/static/media/image/logotype/WIC_Logo.svg" class="footer-logo"/>
+        <p class="footer-phrase">Get in Touch</p>
+        <div class="social-icons-container">
+          <img src="/static/media/image/icon/instagram.png" id="social-insta"/>
+          <img src="/static/media/image/icon/X.png" id="social-X"/>
+          <img src="/static/media/image/icon/facebook.png" id="social-fb"/>
+          <script>
+            document.getElementById('social-fb').onclick = function() {
+              window.location.href = 'https://www.facebook.com/squarespace';
+            }
+            document.getElementById('social-X').onclick = function() {
+              window.location.href = 'https://x.com/squarespace';
+            }
+            document.getElementById('social-insta').onclick = function() {
+              window.location.href = 'https://www.instagram.com/squarespace/';
+            }
+          </script>
+        </div>
+        <img src="/static/media/image/icon/Button.png" class="button-email"/>
+        <img src="/static/media/image/icon/Line 1.png" class="seperate"/>
+      </section>
+      <section class="guidelines">
+        <p class="privacy">Privacy Notice | Terms of Use | Student Guidelines</p>
+        <p class="nonprofit">Writing in Color is fiscally sponsored by NOPI - Nonprofit Incubator, a program of NOPI INC, a Massachusetts nonprofit corporation and 501(c)(3) organization, EIN 81-5089505. Learn more at https://thenopi.org.</p>
+      </section>
     </footer>
   </body>
 </html>
