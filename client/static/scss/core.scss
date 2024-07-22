@@ -1,10 +1,11 @@
 //@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Montserrat+Subrayada&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz@9..144&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Montserrat+Subrayada&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz@9..144&display=swap");
 
 // Color Scheme Definitions
 $light-background-color: #ffe8ce;
-$lighter-background-color: #fff7ee;
+$light-background-color-2: #fff7ee;
+$light-background-color-3: #fff;
 $dark-background-color: rgb(29, 29, 29);
 $darker-background-color: rgb(10, 10, 10);
 $accent-color: #af3750; //rgb(0, 122, 255);
@@ -15,410 +16,405 @@ $header-height: 75px;
 // You can change any of these, add new ones, remove them. Just make sure to update their usage in the other SCSS files that rely on this one.
 
 * {
-  box-sizing: border-box;
+	box-sizing: border-box;
 }
 
 body {
-  background-color: $light-background-color;
-  color: $dark-font-color;
-  margin: 0;
-  padding: 0;
-  font-family: "Fraunces", serif;
-  font-style: normal;
-  font-weight: 400;
+	background-color: $light-background-color;
+	color: $dark-font-color;
+	margin: 0;
+	padding: 0;
+	font-family: "Fraunces", serif;
+	font-style: normal;
+	font-weight: 400;
 }
 
-
 main {
-  padding: 20px;
+	padding: 20px;
 }
 
 // Simple Helper classes
 .clickable {
-  cursor: pointer;
+	cursor: pointer;
 }
 
 .dark-background-color {
-  background-color: $dark-background-color;
+	background-color: $dark-background-color;
 }
 
 .light-background-color {
-  background-color: $light-background-color;
+	background-color: $light-background-color;
 }
 
-.lighter-background-color {
-  background-color: $lighter-background-color;
+.light-background-color-2 {
+	background-color: $light-background-color-2;
+}
+.light-background-color-3 {
+	background-color: $light-background-color-3;
 }
 
 .dark-font-color {
-  color: $dark-font-color;
+	color: $dark-font-color;
 }
 
 .light-font-color {
-  color: $light-font-color;
+	color: $light-font-color;
 }
 
 .accent-color {
-  background-color: $accent-color;
+	background-color: $accent-color;
 }
 //top header
 header {
-  position:sticky; 
-  padding: 1 rem var(--header-padding);
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: var(--lighter-background-color);
-  height: 80px;
+	position: sticky;
+	padding: 1 rem $header-padding;
+	width: 100%;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	background-color: $light-background-color-2;
+	height: 80px;
 }
 
 .header-container {
-  display: flex;
-  align-items: center;
-  background-color: #fff7ee;
-  height: 100%;
-  padding: 0 2rem;
-  flex: 1;
+	display: flex;
+	align-items: center;
+	background-color: $light-background-color-2;
+	height: 100%;
+	padding: 0 2rem;
+	flex: 1;
 }
 
 .header-container .logo {
-  width: 100px; 
-  height: auto; 
-  cursor: pointer;
+	width: 100px;
+	height: auto;
+	cursor: pointer;
 }
 
 .header-container h1 {
-  margin: 0 auto;
-  color: #333;
-  text-align: center;
-  flex: none;
-  cursor: pointer;
+	margin: 0 auto;
+	color: #333;
+	text-align: center;
+	flex: none;
+	cursor: pointer;
 }
 
-.donate-container, .login-container, .menu-container {
-  display: flex;
-  align-items: center;
-  padding-right: 1rem;
-  background-color: #fff7ee;
+.donate-container,
+.login-container,
+.menu-container {
+	display: flex;
+	align-items: center;
+	padding-right: 1rem;
+	background-color: $light-background-color-2;
 }
 
 .donate-button {
-  background-color: #a33a3a;
-  color: #fff;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  cursor: pointer;
+	background-color: #a33a3a;
+	color: $light-font-color;
+	border: none;
+	padding: 0.5rem 1rem;
+	border-radius: 4px;
+	cursor: pointer;
 }
 
 #login-icon {
-  cursor: pointer;
+	cursor: pointer;
 }
 
 #menu-button {
-  display: flex;
-  flex-direction: column;
-  gap: -1px;
-  cursor: pointer;
+	display: flex;
+	flex-direction: column;
+	gap: -1px;
+	cursor: pointer;
 }
-
 
 // Main Page
 
 main {
-  display: grid;
-  gap: 2rem;
-  padding: 2rem;
+	display: grid;
+	gap: 2rem;
+	padding: 2rem;
 }
 
 //create 1x2 grid
 .hero .container,
 .mission .container {
-  display: grid;
-  grid-template-columns: 1fr 1fr; 
-  align-items: center;
-  gap: 2rem;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	align-items: center;
+	gap: 2rem;
 }
 .hero .text-section,
 .mission .text-section {
-  font-size: x-large;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: left; 
-  flex-direction: column;
-  padding: 2rem; 
-  height: 100%;
+	font-size: x-large;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	text-align: left;
+	flex-direction: column;
+	padding: 2rem;
+	height: 100%;
 }
 .hero .image-section,
 .mission .image-section {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
 .hero .text-section {
-  grid-column: 1 / 2;;
+	grid-column: 1 / 2;
 }
 .hero .image-section {
-  grid-column: 2 / 3;
+	grid-column: 2 / 3;
 }
 .mission .image-section {
-  grid-column: 1 / 2;
-  grid-row: 1 /2;
-  height: 80%;
+	grid-column: 1 / 2;
+	grid-row: 1 /2;
+	height: 80%;
 }
 .mission .text-section {
-  grid-column: 2 / 3;
-  grid-row: 1;
+	grid-column: 2 / 3;
+	grid-row: 1;
 }
 .hero .image-section img,
 .mission .image-section img {
-  max-width: 100%; 
-  height: auto;
+	max-width: 100%;
+	height: auto;
 }
 
 //background image for the courses section
 .background-image1 {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover; 
-  z-index: -1;
-  opacity: 0.5;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	z-index: -1;
+	opacity: 0.5;
 }
 //courses layout and grid
 .courses,
 .mission,
 .testimonials,
 .founders {
-  margin-top: 2rem;
-  position: relative;
-
+	margin-top: 2rem;
+	position: relative;
 }
 .course-grid,
 .testimonial-grid,
 .founder-grid {
-  display: grid;
-  gap: 2rem;
-  position: relative;
-  z-index: 1;
+	display: grid;
+	gap: 2rem;
+	position: relative;
+	z-index: 1;
 }
 .course-grid {
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 }
 .testimonial-grid,
 .founder-grid {
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+	grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
 }
 .course,
 .testimonial,
 .founder {
-  position: relative;
-  z-index: 2;
-  padding: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background-color: #fff;
+	position: relative;
+	z-index: 2;
+	padding: 1rem;
+	border: 1px solid #ccc;
+	border-radius: 8px;
+	background-color: $light-background-color-3;
 }
 
 h2 {
-  margin-bottom: 1rem;
-  color: #333;
+	margin-bottom: 1rem;
+	color: #333;
 }
 //Check it out phrase
-.phrase{
-  font-family: "Montserrat Subrayada", sans-serif;
-  font-weight: 400;
-  font-style: normal;
+.phrase {
+	font-family: "Montserrat Subrayada", sans-serif;
+	font-weight: 400;
+	font-style: normal;
 }
 
 p {
-  margin-bottom: 1rem;
-  color: #555;
+	margin-bottom: 1rem;
+	color: #555;
 }
-
 
 //Courses Setup and Grid
 .course-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  justify-content: space-between;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 20px;
+	justify-content: space-between;
 }
 .course {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  padding: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  border-radius: 8px;
-  background-color: #fff;
-  max-width: 300px;
-  text-align: flex-start;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	padding: 20px;
+	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+	border-radius: 8px;
+	background-color: $light-background-color-3;
+	max-width: 300px;
+	text-align: flex-start;
 }
 
 .image_course1,
-.image_course2
-.image_course3
-.image_course4 img {
-  max-width: 100%;
-  height: auto;
-  border-radius: 8px;
-  display: flex;
+.image_course2 .image_course3 .image_course4 img {
+	max-width: 100%;
+	height: auto;
+	border-radius: 8px;
+	display: flex;
 }
 .course-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  justify-content: center;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	justify-content: center;
 }
 
 .course h3 {
-  flex: 1;
-  margin: 10px 0;
-  font-size: 1.4em;
+	flex: 1;
+	margin: 10px 0;
+	font-size: 1.4em;
 }
 
 .course p {
-  margin: 10px 0;
-  font-size: 1em;
-  color: #555;
+	margin: 10px 0;
+	font-size: 1em;
+	color: #555;
 }
 
 .education_icon img,
 .time_icon img,
 .cursor_icon img {
-  margin: 5px 0;
-  width: 24px;
-  height: auto;
+	margin: 5px 0;
+	width: 24px;
+	height: auto;
 }
-.star_icon img{
-  width: 100px;
-  margin: 10px 0;
-  height: auto;
-  align-items: center;
-}
-
-.time_course {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  font-size: 0.9em;
+.star_icon img {
+	width: 100px;
+	margin: 10px 0;
+	height: auto;
+	align-items: center;
 }
 
 .time_course {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  font-size: 0.9em;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	font-size: 0.9em;
+}
+
+.time_course {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	font-size: 0.9em;
 }
 
 .time_course-item {
-  display: flex;
-  align-items: center;
-  margin-top: 5px;
+	display: flex;
+	align-items: center;
+	margin-top: 5px;
 }
 
 .time_course-item img {
-  margin-right: 8px;
-  width: 24px;
-  height: auto;
+	margin-right: 8px;
+	width: 24px;
+	height: auto;
 }
 
 @media (max-width: 768px) {
-  .course {
-    max-width: 100%;
-  }
+	.course {
+		max-width: 100%;
+	}
 }
 
 //Footer CSS
 footer {
-  background-color:#fff7ee;
-  padding: 20px;
-  text-align: center;
-  font-family: Fraunces, serif;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+	background-color: #fff7ee;
+	padding: 20px;
+	text-align: center;
+	font-family: Fraunces, serif;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 }
 
 .icons {
-  flex-direction: column;
-  display: flex;
-  align-items: center;
-  margin-bottom: 20px;
+	flex-direction: column;
+	display: flex;
+	align-items: center;
+	margin-bottom: 20px;
 }
 
 .footer-logo {
-  width: 100px;
-  height: auto;
+	width: 100px;
+	height: auto;
 }
 
 .footer-phrase {
-  font-size: 20px;
-  color: #5e4b43;
+	font-size: 20px;
+	color: #5e4b43;
 }
 .social-icons-container {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  gap: 10px; 
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	gap: 10px;
 }
-#social-fb{
-  cursor: pointer;
-  width: 35px;
-  height: 35px;
+#social-fb {
+	cursor: pointer;
+	width: 35px;
+	height: 35px;
 }
-#social-X{
-  cursor: pointer;
-  width: 35px;
-  height: 35px;
+#social-X {
+	cursor: pointer;
+	width: 35px;
+	height: 35px;
 }
-#social-insta{
-  cursor: pointer;
-  width: 35px;
-  height: 35px;
+#social-insta {
+	cursor: pointer;
+	width: 35px;
+	height: 35px;
 }
 
 .button-email {
-  cursor: pointer;
-  width: 80px;
-  height: auto;
-  margin-top: 15px;
+	cursor: pointer;
+	width: 80px;
+	height: auto;
+	margin-top: 15px;
 }
 
 .seperate {
-  width: 70%;
-  height: auto;
-  margin-top: 20px;
+	width: 70%;
+	height: auto;
+	margin-top: 20px;
 }
 
 .guidelines {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 40%;
-  padding-top: 10px;
-  font-size: 12px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	width: 40%;
+	padding-top: 10px;
+	font-size: 12px;
 }
 
 .privacy {
-  font-size: medium;
-  margin: 5px 0;
+	font-size: medium;
+	margin: 5px 0;
 }
 
 .nonprofit {
-  margin: 5px 0;
-  line-height: 1.5;
-  text-align: center;
+	margin: 5px 0;
+	line-height: 1.5;
+	text-align: center;
 }
-
-
-
-
 
 //Hudson's old code
 // The top header
@@ -429,7 +425,7 @@ footer {
 //   display: grid;
 //   grid-template-columns: 1fr 1fr;
 //   justify-content: space-between;
-//   background-color: $lighter-background-color;
+//   background-color: $light-background-color-2;
 //   height: $header-height;
 //   // The buttons on the right
 //   nav {
@@ -447,4 +443,3 @@ footer {
 //     }
 //   }
 // }
-
