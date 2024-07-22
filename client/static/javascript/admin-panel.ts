@@ -23,6 +23,25 @@ const EDITABLE = {
 	audio: ["audio"],
 	link: ["a"],
 };
+function getBoundingPageRect(element: HTMLElement) {
+	// Get the bounding client rect of the element
+	const rect = element.getBoundingClientRect();
+
+	// Calculate the scroll position
+	const scrollX = window.scrollX || document.documentElement.scrollLeft;
+	const scrollY = window.scrollY || document.documentElement.scrollTop;
+
+	// Adjust the rect values based on the scroll position
+	return {
+		top: rect.top + scrollY,
+		left: rect.left + scrollX,
+		width: rect.width,
+		height: rect.height,
+		bottom: rect.top + rect.height + scrollY,
+		right: rect.left + rect.width + scrollX,
+	};
+}
+
 const HANDLERS = {
 	/**
 	 * Handles editing text elements
@@ -35,8 +54,8 @@ const HANDLERS = {
 		textEditMenu.style.display = "flex";
 		element.focus();
 		let resizeHandler = () => {
-			let menuBoundingRect = textEditMenu.getBoundingClientRect();
-			let elementBoundingRect = element.getBoundingClientRect();
+			let menuBoundingRect = getBoundingPageRect(textEditMenu);
+			let elementBoundingRect = getBoundingPageRect(element);
 			textEditMenu.style.left =
 				String(
 					elementBoundingRect.left +
@@ -140,7 +159,7 @@ window.addEventListener("load", () => {
 				undo(command);
 				undid.push(command);
 			}
-			let targetBoundingBox = command.command_target.getBoundingClientRect();
+			let targetBoundingBox = getBoundingPageRect(command.command_target);
 			command.command_target.click();
 			command.command_target.focus();
 			window.scrollTo({

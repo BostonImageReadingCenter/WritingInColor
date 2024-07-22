@@ -29,6 +29,7 @@ $color-picker-input-size-ratio: math.div(8, 3);
 	height: $text-edit-element-size + 2 * $editor-menu-padding;
 	border-radius: $text-edit-element-size + 2 * $editor-menu-padding; // Having the border radius set to the height gives it that nice rounding look.
 	box-sizing: border-box;
+	z-index: 99999;
 
 	// Display options
 	position: absolute;
