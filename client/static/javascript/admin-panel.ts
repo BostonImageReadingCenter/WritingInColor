@@ -93,7 +93,8 @@ window.addEventListener("load", () => {
 				element.addEventListener("click", () => {
 					// Run the handlers if edit mode is on
 					if (edit_mode_toggle.checked) {
-						currentlyEditing.dispatchEvent(new CustomEvent("inactive"));
+						if (currentlyEditing)
+							currentlyEditing.dispatchEvent(new CustomEvent("inactive"));
 						HANDLERS[type](element);
 					}
 				});
