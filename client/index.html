@@ -1,8 +1,298 @@
 {% extends "layout.html" %} {% block title %}Writing in Color – Home{% endblock
 %} {% block head %}{% endblock %} {% block body %}
-<main>
-	{% if user %}
-	<h1>You are logged in.</h1>
-	{% else %} {% endif %}
-</main>
+<header id="header">
+			<div class="header-container">
+				<div class="logo">
+					<img
+						src="/static/media/image/logotype/WIC_Logo.svg"
+						alt="WIC Logo"
+						class="logo"
+					/>
+				</div>
+				<h1 id="site-title">Writing in Color</h1>
+
+				<div class="donate-container">
+					<button id="donate-button" class="donate-button">Donate</button>
+					<script>
+						document.getElementById("donate-button").onclick = function () {
+							window.location.href = "https://givebutter.com/l6Qr7d";
+						};
+					</script>
+				</div>
+				<div class="login-container">
+					<div class="hover-menu">
+						<img
+							src="/static/media/image/icon/person-circle.svg"
+							id="login-icon"
+							width="30"
+						/>
+						<!-- Login icon click handler -->
+						<script>
+							document.getElementById("login-icon").onclick = function () {
+								window.location.href = "/login";
+							};
+						</script>
+					</div>
+				</div>
+
+				<div id="menu-button">
+					<!-- Menu button content -->
+					<img src="/static/media/image/icon/Menu.svg" width="30" />
+					<img src="/static/media/image/icon/Menu-1.svg" width="30" />
+				</div>
+			</div>
+		</header>
+		<main>
+			<section class="hero">
+				<div class="container">
+					<div class="text-section">
+						<h1>
+							Teaching People of Color How to Write via Free Educational Writing
+							Courses
+						</h1>
+					</div>
+					<div class="image-section">
+						<img
+							src="static/media/image/logotype/main_image.svg"
+							alt="Main Image"
+						/>
+					</div>
+				</div>
+			</section>
+
+			<section class="courses">
+				<img
+					src="static/media/image/icon/Vector 12.png"
+					class="background-image1"
+				/>
+				<div class="phrase">
+					<h2>Check it Out!</h2>
+				</div>
+				<h2>Currently Offered Courses</h2>
+				<div class="course-grid">
+					<div class="course">
+						<!-- Course details here -->
+						<div class="image_course1">
+							<img src="static/media/image/icon/course1.svg" />
+						</div>
+						<div class="course-header">
+							<div class="education_icon">
+								<img src="static/media/image/icon/svg_education_icon.svg" />
+							</div>
+							<h3>Narrative Medicine</h3>
+						</div>
+						<p>Storytelling to enhance empathy and improve patient care.</p>
+						<div class="star_icon">
+							<img src="static/media/image/icon/star_icon.svg" />
+						</div>
+						<div class="time_course">
+							<div class="time_course-item">
+								<div class="cursor_icon">
+									<img src="static/media/image/icon/svg_cursor.svg" />
+								</div>
+								<p>2 days per week (90 minutes)</p>
+							</div>
+							<div class="time_course-item">
+								<div class="time_icon">
+									<img src="static/media/image/icon/time_icon.svg" />
+								</div>
+								<p>5 Weeks Total</p>
+							</div>
+						</div>
+					</div>
+
+					<div class="course">
+						<!-- Course details here -->
+						<div class="image_course2">
+							<img src="static/media/image/icon/image 2.svg" />
+						</div>
+						<div class="course-header">
+							<div class="education_icon">
+								<img src="static/media/image/icon/svg_education_icon.svg" />
+							</div>
+							<h3>Poetry for Beginners</h3>
+						</div>
+						<p>
+							Beginner class discovering various poetic styles and techniques.
+						</p>
+						<div class="star_icon">
+							<img src="static/media/image/icon/star_icon.svg" />
+						</div>
+						<div class="time_course">
+							<div class="time_course-item">
+								<div class="cursor_icon">
+									<img src="static/media/image/icon/svg_cursor.svg" />
+								</div>
+								<p>2 days per week (90 minutes)</p>
+							</div>
+							<div class="time_course-item">
+								<div class="time_icon">
+									<img src="static/media/image/icon/time_icon.svg" />
+								</div>
+								<p>5 Weeks Total</p>
+							</div>
+						</div>
+					</div>
+
+					<div class="course">
+						<!-- Course details here -->
+						<div class="image_course3">
+							<img src="static/media/image/icon/image 3.svg" />
+						</div>
+						<div class="course-header">
+							<div class="education_icon">
+								<img src="static/media/image/icon/svg_education_icon.svg" />
+							</div>
+							<h3>Poetry for Intermediates</h3>
+						</div>
+						<p>
+							Intermediate poetry: refining techniques and exploring diverse
+							forms.
+						</p>
+						<div class="star_icon">
+							<img src="static/media/image/icon/star_icon.svg" />
+						</div>
+						<div class="time_course">
+							<div class="time_course-item">
+								<div class="cursor_icon">
+									<img src="static/media/image/icon/svg_cursor.svg" />
+								</div>
+								<p>2 days per week (90 minutes)</p>
+							</div>
+							<div class="time_course-item">
+								<div class="time_icon">
+									<img src="static/media/image/icon/time_icon.svg" />
+								</div>
+								<p>5 Weeks Total</p>
+							</div>
+						</div>
+					</div>
+					<div class="course">
+						<!-- Course details here -->
+						<div class="image_course4">
+							<img src="static/media/image/icon/image 4.svg" />
+						</div>
+						<div class="course-header">
+							<div class="education_icon">
+								<img src="static/media/image/icon/svg_education_icon.svg" />
+							</div>
+							<h3>Personal Statements</h3>
+						</div>
+						<p>
+							Express individuality through impactful personal college
+							statements.
+						</p>
+						<div class="star_icon">
+							<img src="static/media/image/icon/star_icon.svg" />
+						</div>
+						<div class="time_course">
+							<div class="time_course-item">
+								<div class="cursor_icon">
+									<img src="static/media/image/icon/svg_cursor.svg" />
+								</div>
+								<p>2 days per week (90 minutes)</p>
+							</div>
+							<div class="time_course-item">
+								<div class="time_icon">
+									<img src="static/media/image/icon/time_icon.svg" />
+								</div>
+								<p>5 Weeks Total</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			<section class="mission">
+				<div class="container">
+					<div class="text-section">
+						<h2>What We Stand For</h2>
+						<p>
+							Writing in Color offers free writing courses for people of color.
+							Our organization was developed to create a space for people of
+							color to learn the value of reading articles by writers of color
+							as well as sharing their reflections as a class. We specifically
+							have chosen teachers who identify as people of color to create a
+							clear foundation of safety. Additionally, all sources and
+							references included in the curriculum are from writers of color.
+							Lastly, participants are invited to enroll in the writing courses
+							as a means to both share and heal collectively. While we do
+							lightly encourage publication of written pieces, the primary goal
+							is to create a culture of safety and teach concrete writing
+							skills.
+						</p>
+					</div>
+					<div class="image-section">
+						<img src="static/media/image/icon/mission.png" />
+					</div>
+				</div>
+			</section>
+
+			<section class="testimonials">
+				<h2>Testimonials From Our Students</h2>
+				<div class="testimonial-grid">
+					<div class="testimonial">
+						<!-- Testimonial details here -->
+					</div>
+					<div class="testimonial">
+						<!-- Testimonial details here -->
+					</div>
+					<div class="testimonial">
+						<!-- Testimonial details here -->
+					</div>
+				</div>
+			</section>
+
+			<section class="founders">
+				<h2>Meet The Ones Making This Possible</h2>
+				<div class="founder-grid">
+					<div class="founder">
+						<!-- Founder details here -->
+					</div>
+					<div class="founder">
+						<!-- Founder details here -->
+					</div>
+				</div>
+			</section>
+		</main>
+		<footer>
+			<!-- TODO: put global footer content here. -->
+			<section class="icons">
+				<img
+					src="/static/media/image/logotype/WIC_Logo.svg"
+					class="footer-logo"
+				/>
+				<p class="footer-phrase">Get in Touch</p>
+				<div class="social-icons-container">
+					<img src="/static/media/image/icon/instagram.png" id="social-insta" />
+					<img src="/static/media/image/icon/X.png" id="social-X" />
+					<img src="/static/media/image/icon/facebook.png" id="social-fb" />
+					<script>
+						document.getElementById("social-fb").onclick = function () {
+							window.location.href = "https://www.facebook.com/squarespace";
+						};
+						document.getElementById("social-X").onclick = function () {
+							window.location.href = "https://x.com/squarespace";
+						};
+						document.getElementById("social-insta").onclick = function () {
+							window.location.href = "https://www.instagram.com/squarespace/";
+						};
+					</script>
+				</div>
+				<img src="/static/media/image/icon/Button.png" class="button-email" />
+				<img src="/static/media/image/icon/Line 1.png" class="seperate" />
+			</section>
+			<section class="guidelines">
+				<p class="privacy">
+					Privacy Notice | Terms of Use | Student Guidelines
+				</p>
+				<p class="nonprofit">
+					Writing in Color is fiscally sponsored by NOPI - Nonprofit Incubator,
+					a program of NOPI INC, a Massachusetts nonprofit corporation and
+					501(c)(3) organization, EIN 81-5089505. Learn more at
+					https://thenopi.org.
+				</p>
+			</section>
+		</footer>
+	</body>
 {% endblock %}
