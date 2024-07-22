@@ -58,11 +58,23 @@ const HANDLERS = {
 			let elementBoundingRect = getBoundingPageRect(element);
 			textEditMenu.style.left =
 				String(
-					elementBoundingRect.left +
-						elementBoundingRect.width / 2 -
-						menuBoundingRect.width / 2
+					Math.min(
+						Math.max(
+							elementBoundingRect.left +
+								elementBoundingRect.width / 2 -
+								menuBoundingRect.width / 2,
+							0
+						),
+						document.documentElement.scrollWidth - menuBoundingRect.width
+					)
 				) + "px";
-			textEditMenu.style.top = String(elementBoundingRect.bottom + 10) + "px";
+			textEditMenu.style.top =
+				String(
+					Math.min(
+						document.documentElement.scrollHeight - menuBoundingRect.height,
+						Math.max(0, elementBoundingRect.bottom + 10)
+					)
+				) + "px";
 		};
 		let previousText = element.innerText;
 		let inputHandler = (event: InputEvent) => {
