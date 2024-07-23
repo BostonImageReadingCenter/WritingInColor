@@ -223,6 +223,7 @@ export interface LoginData {
 export interface LoginInitializationOptions {
 	supportsWebAuthn: boolean;
 	supportsConditionalUI: boolean;
+	conditionalUIOnly?: boolean;
 }
 export interface LoginDataReturn {
 	request: FastifyRequest;

@@ -6,14 +6,9 @@ import {
 	SECRET_PRIVATE_KEY,
 	SECRET_PUBLIC_KEY,
 } from "./constants.js";
-import { Pool } from "mysql2/promise";
 import { v4 as uuidv4 } from "uuid";
 import { parse as uuidParse } from "uuid-parse";
-import {
-	uint8ArrayToBase64,
-	base64ToUint8Array,
-	Uint8ArrayFromHexString,
-} from "./utils";
+import { uint8ArrayToBase64, base64ToUint8Array } from "./utils";
 import {
 	beginPasskeyRegistration,
 	beginPasskeyAuthentication,
@@ -221,26 +216,29 @@ export async function* login(
 	let authenticationOptions: PublicKeyCredentialRequestOptionsJSON;
 	let verifyAuthentication: Function;
 	let result: LoginDataReturn;
-
-	let actions: Action[] = [
-		{
+	let actions: Action[] = [];
+	if (!options.conditionalUIOnly) {
+		actions.push({
 			action: "collect",
 			type: "email",
 			header: "Please enter your email.",
 			message: "We need your email to be sure its you.",
-		},
-	];
+		});
+	}
+
 	if (options.supportsWebAuthn) {
 		let x = await beginPasskeyAuthentication();
 		authenticationOptions = x.WebAuthnOptions;
 		verifyAuthentication = x.verify;
 		actions.push({
-			action: "show-use-passkey-button",
-		});
-		actions.push({
 			action: "set-authentication-options",
 			authenticationOptions,
 		});
+		if (!options.conditionalUIOnly) {
+			actions.push({
+				action: "show-use-passkey-button",
+			});
+		}
 		if (options.supportsConditionalUI)
 			actions.push({
 				action: "init-conditional-ui",
@@ -268,7 +266,7 @@ export async function* login(
 				}, // TODO: redirect only if successful
 			],
 		};
-	} else {
+	} else if (!options.conditionalUIOnly) {
 		let email = result.json.value;
 		let user = await database.getUserByEmail(email);
 		if (!user) {
