@@ -1,7 +1,7 @@
 //@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Montserrat+Subrayada&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz@9..144&display=swap');
-
+//@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz@9..144&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,100..900,0..100,0..1;1,9..144,100..900,0..100,0..1&display=swap');
 // Color Scheme Definitions
 $light-background-color: #ffe8ce;
 $lighter-background-color: #fff7ee;
@@ -23,9 +23,11 @@ body {
   color: $dark-font-color;
   margin: 0;
   padding: 0;
+}
+html * {
   font-family: "Fraunces", serif;
-  font-style: normal;
   font-weight: 400;
+  font-style: normal;
 }
 
 
@@ -158,7 +160,7 @@ main {
   align-items: center;
 }
 .hero .text-section {
-  grid-column: 1 / 2;;
+  grid-column: 1 / 2;
 }
 .hero .image-section {
   grid-column: 2 / 3;
@@ -182,12 +184,11 @@ main {
 .background-image1 {
   position: absolute;
   top: 0;
-  left: 0;
-  width: 100%;
+  left: -20px;
+  width: 103%;
   height: 100%;
-  object-fit: cover; 
+  object-fit: fill; 
   z-index: -1;
-  opacity: 0.5;
 }
 //courses layout and grid
 .courses,
@@ -237,7 +238,7 @@ h2 {
 
 p {
   margin-bottom: 1rem;
-  color: #555;
+  color: $dark-font-color;
 }
 
 
@@ -337,9 +338,9 @@ p {
 //Footer CSS
 footer {
   background-color:#fff7ee;
-  padding: 20px;
+  padding: 50px;
+  margin-top: 100px;
   text-align: center;
-  font-family: Fraunces, serif;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -417,34 +418,59 @@ footer {
 }
 
 
-
-
-
-//Hudson's old code
-// The top header
-
-// header {
-//   padding: $header-padding;
-//   width: 100%;
-//   display: grid;
-//   grid-template-columns: 1fr 1fr;
-//   justify-content: space-between;
-//   background-color: $lighter-background-color;
-//   height: $header-height;
-//   // The buttons on the right
-//   nav {
-//     display: flex;
-//     gap: 20px;
-//     align-items: center;
-//     justify-content: center;
-//     #menu-button {
-//       display: flex;
-//       flex-direction: column;
-//       gap: -2px;
-//     }
-//     .hover-menu .hover-menu__content {
-//       transform: translateX(calc(30px - 100%));
-//     }
-//   }
-// }
-
+//FOUNDERS 
+.founder{
+  background-color: transparent;
+  border-color: transparent;
+  align-items: center;
+  gap: 2rem;
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  padding-top: 50px;
+  
+}
+.founders-background{
+  position: absolute;
+  top:0;
+  left: -40px;
+  width: 105%;
+  height: 105%;
+  object-fit:fill; 
+  z-index: -1;
+}
+.sub-grid{
+  display: grid;
+  grid-template-rows: repeat(3, 1fr);
+  gap: 5px;
+}
+.row1{
+  text-align: flex-start;
+  padding: 2px;
+  font-size: 28px;
+  margin: 0;
+  height:40px;
+}
+.row {
+  text-align: flex-start;
+  padding: 2px;
+  font-size: 24px;
+  margin: 0;
+  height:40px;
+}
+#other-font{
+  font-family: "Montserrat Subrayada", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  margin-top: 50px;
+  margin-left: 20px;
+}
+#founder-phrase {
+  margin-top: 20px;
+  margin-left: 20px;
+}
+.farah,
+.adaira{
+  margin:auto;
+  align-content: flex-end;
+  align-items: flex-end;
+}
