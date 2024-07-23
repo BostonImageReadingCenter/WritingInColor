@@ -1,6 +1,8 @@
 import {
+	AuthenticationResponseJSON,
 	PublicKeyCredentialCreationOptionsJSON,
 	PublicKeyCredentialRequestOptionsJSON,
+	RegistrationResponseJSON,
 } from "@simplewebauthn/server/esm/deps";
 import { FastifyReply, FastifyRequest } from "fastify";
 
@@ -139,16 +141,51 @@ export interface UserRole {
 	role_id: number;
 	user_id: Buffer;
 }
-
-type collectionTypes =
+export type CollectionTypeString =
 	| "email"
 	| "binary"
-	| "choice"
 	| "create-password"
-	| "get-password";
-export interface CollectAction {
+	| "get-password"
+	| "choice"
+	| "telephone"
+	| "text"
+	| "url";
+export interface CollectionTypeBase {
+	type: CollectionTypeString;
+}
+export interface ChoiceCollectionType extends CollectionTypeBase {
+	type: "choice";
+	options: string;
+}
+export interface OtherCollectionType extends CollectionTypeBase {
+	type:
+		| "email"
+		| "binary"
+		| "create-password"
+		| "get-password"
+		| "telephone"
+		| "text"
+		| "url";
+}
+export type CollectionType = OtherCollectionType | ChoiceCollectionType;
+
+export interface ActionBase {
+	action:
+		| "collect"
+		| "register-passkey"
+		| "authenticate-passkey"
+		| "show-use-passkey-button"
+		| "show-use-password-button"
+		| "init-conditional-ui"
+		| "exit"
+		| "set-authentication-options"
+		| "redirect"
+		| "success"
+		| "show-document"
+		| "reset-form";
+}
+export interface CollectAction extends ActionBase {
 	action: "collect";
-	type: collectionTypes;
 	/**
 	 * A header to display during collection.
 	 */
@@ -158,49 +195,52 @@ export interface CollectAction {
 	 */
 	message: string;
 	/**
+	 * Items to collect.
+	 */
+	types: CollectionType[];
+	/**
 	 * An array of options for collection type "choice".
 	 */
 	options?: string[];
 }
-export interface RegisterPasskeyAction {
+export interface RegisterPasskeyAction extends ActionBase {
 	action: "register-passkey";
 	WebAuthnOptions: PublicKeyCredentialCreationOptionsJSON;
 }
-export interface AuthenticatePasskeyAction {
+export interface AuthenticatePasskeyAction extends ActionBase {
 	action: "authenticate-passkey";
 	WebAuthnOptions: PublicKeyCredentialRequestOptionsJSON;
 }
-export interface ShowUsePasskeyButtonAction {
-	action: "show-use-passkey-button";
-}
-export interface ShowUsePasswordButtonAction {
-	action: "show-use-password-button";
-}
-export interface InitConditionalUIAction {
-	action: "init-conditional-ui";
-}
-export interface ExitAction {
-	action: "exit";
-}
-export interface SetAuthenticationOptionsAction {
+export interface SetAuthenticationOptionsAction extends ActionBase {
 	action: "set-authentication-options";
 	authenticationOptions: PublicKeyCredentialRequestOptionsJSON;
 }
-export interface RedirectAction {
+export interface RedirectAction extends ActionBase {
 	action: "redirect";
 	path: string;
 }
+export interface ShowDocumentAction extends ActionBase {
+	action: "show-document";
+	html: string;
+	required: boolean;
+}
+export interface OtherAction extends ActionBase {
+	action:
+		| "show-use-passkey-button"
+		| "show-use-password-button"
+		| "init-conditional-ui"
+		| "exit"
+		| "success"
+		| "reset-form";
+}
 export type Action =
+	| OtherAction
 	| CollectAction
 	| RegisterPasskeyAction
 	| AuthenticatePasskeyAction
-	| ShowUsePasskeyButtonAction
-	| InitConditionalUIAction
-	| ExitAction
 	| SetAuthenticationOptionsAction
 	| RedirectAction
-	| ShowUsePasswordButtonAction;
-
+	| ShowDocumentAction;
 export interface SetCookieOptions {
 	name: string;
 	value: string;
@@ -225,10 +265,49 @@ export interface LoginInitializationOptions {
 	supportsConditionalUI: boolean;
 	conditionalUIOnly?: boolean;
 }
-export interface LoginDataReturn {
+export interface LoginDataReturnBase {
+	/**
+	 * The login session id.
+	 */
+	type:
+		| "attestation-response"
+		| "success"
+		| "assertion-response"
+		| "none"
+		| "assertion-response"
+		| "input";
+}
+export interface AttestationResponseLoginDataReturn
+	extends LoginDataReturnBase {
+	type: "attestation-response";
+	/**
+	 * The attestation response.
+	 */
+	attestationResponse: RegistrationResponseJSON;
+}
+export interface AssertionResponseLoginDataReturn extends LoginDataReturnBase {
+	type: "assertion-response";
+	/**
+	 * The attestation response.
+	 */
+	assertionResponse: AuthenticationResponseJSON;
+}
+export interface InputLoginDataReturn extends LoginDataReturnBase {
+	type: "input";
+	values: {
+		[key in CollectionTypeString]?: any;
+	};
+}
+export interface OtherLoginDataReturn extends LoginDataReturnBase {
+	type: "success" | "none";
+}
+export type LoginDataReturn =
+	| OtherLoginDataReturn
+	| AttestationResponseLoginDataReturn
+	| AssertionResponseLoginDataReturn
+	| InputLoginDataReturn;
+export interface LoginDataReturnPacket {
 	request: FastifyRequest;
 	reply: FastifyReply;
-	json: {
-		[key: string]: any;
-	};
+	return: LoginDataReturn[];
 }

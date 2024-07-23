@@ -12,6 +12,19 @@
 		<!-- JavaScript -->
 		<script type="module" src="/static/javascript/bundle/core.js"></script>
 		<script src="/static/javascript/bundle/login.js"></script>
+		<style>
+			#document-display-box {
+				width: 500px;
+				height: 500px;
+				max-width: 100%;
+				max-height: calc(100% - 200px);
+				overflow-y: scroll;
+				text-wrap: wrap;
+				word-wrap: break-word;
+				border: 2px solid black;
+				padding: 10px;
+			}
+		</style>
 	</head>
 	<body>
 		<main
@@ -26,10 +39,11 @@
 		>
 			<h4 id="collection-message"></h4>
 			<h2 id="collection-header"></h2>
+			<div id="document-display-box" style="display: none"></div>
 			<form onsubmit="return false;" id="collection-form">
 				<div id="hidden-data"></div>
 				<div id="collection-inputs"></div>
-				<input type="submit" value="Next" />
+				<input type="submit" value="Next" id="collection-form-next-button" />
 			</form>
 		</main>
 	</body>

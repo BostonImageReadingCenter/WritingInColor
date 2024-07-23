@@ -207,8 +207,12 @@ async function routes(fastify: FastifyInstance, options) {
 			}
 
 			session.expires += 1000 * 60 * 1; // Since the user has interacted with the page, give them another minute
-
-			let result = await session.generator.next({ request, reply, json });
+			console.log(json);
+			let result = await session.generator.next({
+				request,
+				reply,
+				return: json.return,
+			});
 			if (result.done) delete auth_sessions[id];
 			setCookies(result.value.setCookies || [], reply);
 			return reply

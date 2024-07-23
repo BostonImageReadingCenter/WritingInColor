@@ -1,13 +1,18 @@
 import { createElement } from "./utils.ts";
 import {
 	Action,
+	AssertionResponseLoginDataReturn,
+	AttestationResponseLoginDataReturn,
 	AuthenticatePasskeyAction,
 	CollectAction,
-	InitConditionalUIAction,
+	CollectionType,
+	CollectionTypeString,
+	InputLoginDataReturn,
 	LoginData,
+	LoginDataReturn,
 	LoginInitializationOptions,
+	OtherAction,
 	RegisterPasskeyAction,
-	ShowUsePasskeyButtonAction,
 } from "../../../server/types.ts";
 import {
 	startAuthentication,
@@ -18,13 +23,23 @@ var collectionMessageEl: HTMLElement,
 	collectionHeaderEl: HTMLElement,
 	collectionFormEl: HTMLFormElement,
 	collectionInputsEl: HTMLDivElement,
+	collectionFormNextButton: HTMLButtonElement,
 	hiddenData: HTMLDivElement,
 	sessionID: string,
 	supportsWebAuthn: boolean,
 	supportsConditionalUI: boolean,
-	authenticationOptions: PublicKeyCredentialRequestOptionsJSON;
+	authenticationOptions: PublicKeyCredentialRequestOptionsJSON,
+	documentDisplayBoxEl: HTMLElement;
 
 export var onload: Function[] = [];
+let collectionHandlers: ((event: SubmitEvent) => Promise<
+	| {
+			value: any;
+			collectionType: CollectionTypeString;
+	  }
+	| false
+>)[] = [];
+let collectionFormSubmitHandler: (event: SubmitEvent) => Promise<void>;
 
 window.addEventListener("load", async (event) => {
 	// Check if browser supports WebAuthn
@@ -50,6 +65,10 @@ export async function initLoginPage() {
 	collectionInputsEl = document.getElementById(
 		"collection-inputs"
 	) as HTMLDivElement;
+	collectionFormNextButton = document.getElementById(
+		"collection-form-next-button"
+	) as HTMLButtonElement;
+	documentDisplayBoxEl = document.getElementById("document-display-box");
 	hiddenData = document.getElementById("hidden-data") as HTMLDivElement;
 
 	// Initiate login
@@ -78,8 +97,34 @@ export async function initLoginPage() {
 async function handleAction(data: LoginData) {
 	let actions = data.actions;
 	for (let item of actions) {
+		if (item.action === "reset-form") {
+			collectionInputsEl.innerHTML = "";
+		}
 		if (item.action === "collect") {
-			collect(item);
+			collectionInputsEl.innerHTML = "";
+			collectionMessageEl.innerText = item.message;
+			collectionHeaderEl.innerText = item.header;
+			collectionHandlers = [];
+			for (let type of item.types) collect(type);
+			collectionFormSubmitHandler = async (event: SubmitEvent) => {
+				event.preventDefault();
+				let values = {};
+				for (let handler of collectionHandlers) {
+					let value = await handler(event);
+					if (!value) return; // The data was rejected
+					if (value === null) continue; // No data
+					values[value.collectionType] = value.value;
+				}
+				returnData([
+					{
+						type: "input",
+						values,
+					},
+				]);
+			};
+			collectionFormEl.addEventListener("submit", collectionFormSubmitHandler, {
+				once: true,
+			});
 		} else if (item.action === "register-passkey") {
 			registerPasskey(item);
 		} else if (item.action === "authenticate-passkey") {
@@ -90,11 +135,35 @@ async function handleAction(data: LoginData) {
 			showUsePasskeyButton(item);
 		} else if (item.action === "exit") {
 			// Reload
-			window.location.reload();
+			alert("EXITING");
+			window.location.href = "/";
+			// window.location.reload();
 		} else if (item.action === "set-authentication-options") {
 			authenticationOptions = item.authenticationOptions;
 		} else if (item.action === "redirect") {
 			window.location.href = item.path;
+		} else if (item.action === "show-document") {
+			documentDisplayBoxEl.innerHTML = item.html;
+			if (item.required) {
+				collectionFormNextButton.disabled = true;
+			}
+			documentDisplayBoxEl.style.display = "block";
+			let handler = () => {
+				// If the user scrolls to the end, enable the next button
+				if (
+					documentDisplayBoxEl.scrollTop + documentDisplayBoxEl.clientHeight >=
+					documentDisplayBoxEl.scrollHeight - 25
+				) {
+					collectionFormNextButton.disabled = false;
+				}
+			};
+			handler();
+			documentDisplayBoxEl.addEventListener("scroll", handler);
+			collectionHandlers.push(async (event: SubmitEvent) => {
+				documentDisplayBoxEl.removeEventListener("scroll", handler);
+				documentDisplayBoxEl.style.display = "none";
+				return null;
+			});
 		}
 	}
 }
@@ -102,7 +171,7 @@ async function handleAction(data: LoginData) {
 /**
  * Returns data to the server
  */
-async function returnData(data) {
+async function returnData(data: LoginDataReturn[] = []) {
 	fetch("/api/login/return", {
 		method: "POST",
 		headers: {
@@ -110,7 +179,7 @@ async function returnData(data) {
 		},
 		body: JSON.stringify({
 			id: sessionID,
-			...data,
+			return: data,
 		}),
 	}).then(async (response) => {
 		let json = await response.json();
@@ -122,11 +191,7 @@ async function returnData(data) {
 /**
  * For collecting values from the user.
  */
-async function collect(data: CollectAction) {
-	collectionMessageEl.innerText = data.message;
-	collectionHeaderEl.innerText = data.header;
-	collectionInputsEl.innerHTML = "";
-
+async function collect(data: CollectionType) {
 	if (data.type === "email") {
 		let emailInputEl = createElement("input", {
 			attributes: {
@@ -141,27 +206,25 @@ async function collect(data: CollectAction) {
 			id: "",
 		}) as HTMLInputElement;
 		collectionInputsEl.appendChild(emailInputEl);
-		let listener = async (event: SubmitEvent) => {
-			event.preventDefault();
+
+		collectionHandlers.push(async (event: SubmitEvent) => {
 			hiddenData.appendChild(
 				createElement("input", {
 					attributes: {
 						type: "email",
 						name: "email",
 						value: emailInputEl.value,
-						autocomplete: "email",
+						autocomplete: "email webauthn",
 						style: "display: none;",
 					},
 					classes: [],
 					id: "",
 				})
 			);
-			returnData({
+			return {
 				value: emailInputEl.value,
-			});
-		};
-		collectionFormEl.addEventListener("submit", listener, {
-			once: true,
+				collectionType: data.type,
+			};
 		});
 	} else if (data.type === "binary") {
 		let yesButtonEl = createElement("button", {
@@ -178,12 +241,11 @@ async function collect(data: CollectAction) {
 		});
 		collectionInputsEl.appendChild(yesButtonEl);
 		collectionInputsEl.appendChild(noButtonEl);
+		let value: boolean;
 		yesButtonEl.addEventListener(
 			"click",
 			async (event) => {
-				returnData({
-					value: true,
-				});
+				value = true;
 			},
 			{
 				once: true,
@@ -192,14 +254,18 @@ async function collect(data: CollectAction) {
 		noButtonEl.addEventListener(
 			"click",
 			async (event) => {
-				returnData({
-					value: false,
-				});
+				value = false;
 			},
 			{
 				once: true,
 			}
 		);
+		collectionHandlers.push(async (event: SubmitEvent) => {
+			return {
+				value: value,
+				collectionType: data.type,
+			};
+		});
 	} else if (data.type === "choice") {
 		// Using radio buttons
 		for (let i = 0; i < data.options.length; i++) {
@@ -224,21 +290,15 @@ async function collect(data: CollectAction) {
 			choiceLabelEl.innerText = data.options[i];
 			collectionInputsEl.appendChild(choiceLabelEl);
 		}
-		collectionFormEl.addEventListener(
-			"submit",
-			async (event: SubmitEvent) => {
-				event.preventDefault();
-				const selectedOption = document.querySelector(
-					'input[name="choice"]:checked'
-				) as HTMLInputElement;
-				returnData({
-					value: parseInt(selectedOption.value),
-				});
-			},
-			{
-				once: true,
-			}
-		);
+		collectionHandlers.push(async (event: SubmitEvent) => {
+			const selectedOption = document.querySelector(
+				'input[name="choice"]:checked'
+			) as HTMLInputElement;
+			return {
+				value: parseInt(selectedOption.value),
+				collectionType: data.type,
+			};
+		});
 	} else if (data.type === "create-password") {
 		let passwordInputEl = createElement("input", {
 			attributes: {
@@ -263,11 +323,10 @@ async function collect(data: CollectAction) {
 		}) as HTMLInputElement;
 		collectionInputsEl.appendChild(passwordInputEl);
 		collectionInputsEl.appendChild(passwordConfirmInputEl);
-		let listener = async (event: SubmitEvent) => {
-			event.preventDefault();
+		collectionHandlers.push(async (event: SubmitEvent) => {
 			if (passwordInputEl.value !== passwordConfirmInputEl.value) {
 				alert("Passwords do not match.");
-				return;
+				return false;
 			}
 			hiddenData.appendChild(
 				createElement("input", {
@@ -282,12 +341,10 @@ async function collect(data: CollectAction) {
 					id: "",
 				})
 			);
-			returnData({
+			return {
 				value: passwordInputEl.value,
-			});
-		};
-		collectionFormEl.addEventListener("submit", listener, {
-			once: true,
+				collectionType: data.type,
+			};
 		});
 	} else if (data.type === "get-password") {
 		let passwordInputEl = createElement("input", {
@@ -301,24 +358,24 @@ async function collect(data: CollectAction) {
 			id: "",
 		}) as HTMLInputElement;
 		collectionInputsEl.appendChild(passwordInputEl);
-		collectionFormEl.addEventListener("submit", async (event: SubmitEvent) => {
-			event.preventDefault();
+		collectionHandlers.push(async (event: SubmitEvent) => {
 			hiddenData.appendChild(
 				createElement("input", {
 					attributes: {
 						type: "password",
 						name: "password",
-						style: "display: none;",
 						value: passwordInputEl.value,
 						autocomplete: "current-password",
+						style: "display: none;",
 					},
 					classes: [],
 					id: "",
 				})
 			);
-			returnData({
+			return {
 				value: passwordInputEl.value,
-			});
+				collectionType: data.type,
+			};
 		});
 	} else if (data.type === "telephone") {
 		let telephoneInputEl = createElement("input", {
@@ -333,31 +390,25 @@ async function collect(data: CollectAction) {
 			id: "",
 		}) as HTMLInputElement;
 		collectionInputsEl.appendChild(telephoneInputEl);
-		collectionFormEl.addEventListener(
-			"submit",
-			async (event: SubmitEvent) => {
-				event.preventDefault();
-				hiddenData.appendChild(
-					createElement("input", {
-						attributes: {
-							type: "tel",
-							name: "tel",
-							value: telephoneInputEl.value,
-							autocomplete: "tel",
-							style: "display: none;",
-						},
-						classes: [],
-						id: "",
-					})
-				);
-				returnData({
-					value: telephoneInputEl.value,
-				});
-			},
-			{
-				once: true,
-			}
-		);
+		collectionHandlers.push(async (event: SubmitEvent) => {
+			hiddenData.appendChild(
+				createElement("input", {
+					attributes: {
+						type: "tel",
+						name: "tel",
+						value: telephoneInputEl.value,
+						autocomplete: "tel",
+						style: "display: none;",
+					},
+					classes: [],
+					id: "",
+				})
+			);
+			return {
+				value: telephoneInputEl.value,
+				collectionType: data.type,
+			};
+		});
 	} else if (data.type === "text") {
 		let textInputEl = createElement("input", {
 			attributes: {
@@ -369,20 +420,11 @@ async function collect(data: CollectAction) {
 			id: "",
 		}) as HTMLInputElement;
 		collectionInputsEl.appendChild(textInputEl);
-		collectionFormEl.addEventListener("submit", async (event: SubmitEvent) => {
-			event.preventDefault();
-			hiddenData.appendChild(
-				createElement("input", {
-					attributes: {
-						type: "text",
-						name: "text",
-						value: textInputEl.value,
-						style: "display: none;",
-					},
-					classes: [],
-					id: "",
-				})
-			);
+		collectionHandlers.push(async (event: SubmitEvent) => {
+			return {
+				value: textInputEl.value,
+				collectionType: data.type,
+			};
 		});
 	} else if (data.type === "url") {
 		let urlInputEl = createElement("input", {
@@ -396,18 +438,11 @@ async function collect(data: CollectAction) {
 			id: "",
 		}) as HTMLInputElement;
 		collectionInputsEl.appendChild(urlInputEl);
-		collectionFormEl.addEventListener("submit", async (event: SubmitEvent) => {
-			event.preventDefault();
-			hiddenData.appendChild(
-				createElement("input", {
-					attributes: {
-						type: "url",
-						name: "url",
-						value: urlInputEl.value,
-						style: "display: none;",
-					},
-				})
-			);
+		collectionHandlers.push(async (event: SubmitEvent) => {
+			return {
+				value: urlInputEl.value,
+				collectionType: data.type,
+			};
 		});
 	}
 }
@@ -419,13 +454,18 @@ async function registerPasskey(data: RegisterPasskeyAction) {
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({
 			id: sessionID,
-			attestationResponse,
+			return: [
+				{
+					type: "attestation-response",
+					attestationResponse,
+				} as AttestationResponseLoginDataReturn,
+			],
 		}),
 	});
 	let json = await verificationResponse.json();
 	handleAction(json.value);
 	if (json.value.data.success) {
-		if (!json.done) returnData({});
+		if (!json.done) returnData();
 		// TODO: handle success
 	} else {
 		alert("Registration Failed.");
@@ -448,20 +488,25 @@ async function authenticatePasskey(
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({
 			id: sessionID,
-			assertionResponse,
+			return: [
+				{
+					type: "assertion-response",
+					assertionResponse,
+				} as AssertionResponseLoginDataReturn,
+			],
 		}),
 	});
 	let json = await verificationResponse.json();
 	handleAction(json.value);
 	if (json.value.data.success) {
-		if (!json.done) returnData({});
+		if (!json.done) returnData([]);
 		// TODO: handle success
 	} else {
 		alert("Authentication Failed.");
 		// TODO: handle failure
 	}
 }
-async function initConditionalUI(data: InitConditionalUIAction) {
+async function initConditionalUI(data: OtherAction) {
 	if (!supportsWebAuthn) {
 		return;
 	}
@@ -481,14 +526,19 @@ async function initConditionalUI(data: InitConditionalUIAction) {
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify({
 						id: sessionID,
-						assertionResponse,
+						return: [
+							{
+								type: "assertion-response",
+								assertionResponse,
+							} as AssertionResponseLoginDataReturn,
+						],
 					}),
 				});
 				let json = await verificationResponse.json();
 				handleAction(json.value);
 				if (json.value.data.success) {
 					// TODO: handle success
-					if (!json.done) returnData({});
+					if (!json.done) returnData();
 				} else {
 					alert("Login Failure!");
 					// TODO: handle failure
@@ -501,7 +551,7 @@ async function initConditionalUI(data: InitConditionalUIAction) {
 	}
 }
 
-async function showUsePasskeyButton(data: ShowUsePasskeyButtonAction) {
+async function showUsePasskeyButton(data: OtherAction) {
 	let usePasskeyButton = createElement("button", {
 		attributes: {},
 		classes: [],

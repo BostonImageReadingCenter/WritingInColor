@@ -27,6 +27,8 @@ import {
 	LoginDataReturn,
 	SetCookieOptions,
 	UserRole,
+	LoginDataReturnPacket,
+	InputLoginDataReturn,
 } from "./types.js";
 import { base64URLStringToBuffer } from "@simplewebauthn/browser";
 import { FastifyReply, FastifyRequest } from "fastify";
@@ -208,19 +210,24 @@ export async function loginUserWithPasskey(
 		return false;
 	}
 }
-
+function getReturn(ret: LoginDataReturn[], type: string) {
+	return ret.filter((x) => x.type === type)?.[0];
+}
+function getInputValue(ret: LoginDataReturn[], input: string) {
+	return (getReturn(ret, "input") as InputLoginDataReturn)?.values?.[input];
+}
 export async function* login(
 	database: Database,
 	options: LoginInitializationOptions
-): AsyncGenerator<LoginData, LoginData, LoginDataReturn> {
+): AsyncGenerator<LoginData, LoginData, LoginDataReturnPacket> {
 	let authenticationOptions: PublicKeyCredentialRequestOptionsJSON;
 	let verifyAuthentication: Function;
-	let result: LoginDataReturn;
+	let result: LoginDataReturnPacket;
 	let actions: Action[] = [];
 	if (!options.conditionalUIOnly) {
 		actions.push({
 			action: "collect",
-			type: "email",
+			types: [{ type: "email" }],
 			header: "Please enter your email.",
 			message: "We need your email to be sure its you.",
 		});
@@ -247,9 +254,10 @@ export async function* login(
 	result = yield {
 		actions,
 	};
-	if (options.supportsWebAuthn && result.json.assertionResponse) {
-		let assertionResponse: AuthenticationResponseJSON =
-			result.json.assertionResponse;
+	let assertionResponse: AuthenticationResponseJSON | undefined =
+		result.return.filter((x) => x.type === "assertion-response")?.[0]
+			?.assertionResponse;
+	if (options.supportsWebAuthn && assertionResponse) {
 		let success = await loginUserWithPasskey(
 			database,
 			assertionResponse,
@@ -267,7 +275,8 @@ export async function* login(
 			],
 		};
 	} else if (!options.conditionalUIOnly) {
-		let email = result.json.value;
+		let email = result.return.filter((x) => x.type === "input")?.[0]?.values
+			.email;
 		let user = await database.getUserByEmail(email);
 		if (!user) {
 			// User does not exist
@@ -275,7 +284,7 @@ export async function* login(
 				actions: [
 					{
 						action: "collect",
-						type: "binary",
+						types: [{ type: "binary" }],
 						header: "Create an Account?",
 						message:
 							"You don't have an account yet. Would you like to create one?",
@@ -283,7 +292,7 @@ export async function* login(
 				],
 			};
 
-			if (!result.json.value)
+			if (!result.return.filter((x) => x.type === "input")?.[0].values.binary)
 				return {
 					actions: [{ action: "exit" }],
 				};
@@ -291,14 +300,22 @@ export async function* login(
 			result = yield {
 				actions: [
 					{
+						action: "show-document",
+						html: `We can use your data however we see fit. You give your data out of your own
+	free will. You have the right and ability to delete your account at any time.
+	This privacy policy will be updated in the future to be more private, but we
+	needed to make it all-encompassing for now so that we don't get sued.`,
+						required: true,
+					},
+					{
 						action: "collect",
-						type: "binary",
-						header: "Do you agree to the terms of service and privacy policy?",
+						types: [{ type: "binary" }],
+						header: "Do you agree to the Terms of Service?",
 						message: "",
-					}, // TODO!!!!
+					},
 				],
 			};
-			if (!result.json.value)
+			if (!result.return.filter((x) => x.type === "input")?.[0]?.values.binary)
 				return {
 					actions: [{ action: "exit" }],
 				};
@@ -320,7 +337,8 @@ export async function* login(
 					],
 				};
 				let attestationResponse: RegistrationResponseJSON =
-					result.json.attestationResponse;
+					result.return.filter((x) => x.type === "attestation-response")?.[0]
+						.attestationResponse;
 				const verification = await verify(attestationResponse);
 				if (verification.verified && verification.registrationInfo) {
 					passkeyRegistrationSucceeded = true;
@@ -351,13 +369,18 @@ export async function* login(
 				actions: [
 					{
 						action: "collect",
-						type: "create-password",
+						types: [{ type: "create-password" }],
 						header: "Create Password",
 						message: "Create a password for your account.",
 					},
 				],
 			};
-			let passwordHash = hashPassword(result.json.value, salt);
+			let passwordHash = hashPassword(
+				result.return.filter((x) => x.type === "input")?.[0].values[
+					"create-password"
+				],
+				salt
+			);
 			await database.createUser({
 				user: {
 					id: userID,
@@ -400,7 +423,9 @@ export async function* login(
 						},
 					],
 				};
-				let assertionResponse = result.json.assertionResponse;
+				let assertionResponse = result.return.filter(
+					(x) => x.type === "assertion-response"
+				)?.[0].assertionResponse;
 				let success = await loginUserWithPasskey(
 					database,
 					assertionResponse,
@@ -422,13 +447,18 @@ export async function* login(
 			actions: [
 				{
 					action: "collect",
-					type: "get-password",
+					types: [{ type: "get-password" }],
 					header: "Enter Password",
 					message: "Enter your password.",
 				},
 			],
 		};
-		let passwordHash = hashPassword(result.json.value, user.salt);
+		let passwordHash = hashPassword(
+			result.return.filter((x) => x.type === "input")?.[0].values[
+				"get-password"
+			],
+			user.salt
+		);
 		if (passwordHash.equals(user.password)) {
 			let setCookies = await loginUser(user.id, database);
 			return {
