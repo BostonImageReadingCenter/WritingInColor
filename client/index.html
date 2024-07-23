@@ -244,57 +244,67 @@
 			</section>
 
 			<section class="founders">
-				<h2>Meet The Ones Making This Possible</h2>
-				<div class="founder-grid">
-					<div class="founder">
-						<!-- Founder details here -->
-					</div>
-					<div class="founder">
-						<!-- Founder details here -->
-					</div>
+				<img src="static/media/image/icon/founders_background.png" class="founders-background" alt="Background Image"/>
+				<h1 id="other-font">Our Founders</h1>
+				<h2 id="founder-phrase">Meet The Ones Making This Possible</h2>
+				<div class="founder">
+				<img src="static/media/image/icon/farah_pfp.png" class="farah" alt="Farah Dadabhoy"/>
+				<div class="sub-grid">
+					<h3 class="row1">Farah Dadabhoy, MD, MS</h3>
+					<h4 class="row">Co-Founder, Executive Director</h4>
+					<h4 class="row">Farah Dadabhoy is a Clinical Instructor at Harvard Medical School and a Pain Medicine Fellow at Brigham and Women’s Hospital.</h4>
+				</div>
+				</div>
+				<div class="founder">
+				<img src="static/media/image/icon/adaira_pfp.png" class="adaira" alt="Adaira Landry"/>
+				<div class="sub-grid">
+					<h3 class="row1">Adaira Landry, MD MEd</h3>
+					<h4 class="row">Co-Founder, Executive Director</h4>
+					<h4 class="row">Adaira Landry is an Assistant Professor at Harvard Medical School and an Emergency Medicine Physician at Brigham and Women’s Hospital.</h4>
+				</div>
 				</div>
 			</section>
 		</main>
-		<footer>
-			<!-- TODO: put global footer content here. -->
-			<section class="icons">
-				<img
-					src="/static/media/image/logotype/WIC_Logo.svg"
-					class="footer-logo"
-				/>
-				<p class="footer-phrase">Get in Touch</p>
-				<div class="social-icons-container">
-					<img src="/static/media/image/icon/instagram.png" id="social-insta" />
-					<img src="/static/media/image/icon/X.png" id="social-X" />
-					<img src="/static/media/image/icon/facebook.png" id="social-fb" />
-					<script>
-						document.getElementById("social-fb").onclick = function () {
-							window.location.href = "https://www.facebook.com/squarespace";
-						};
-						document.getElementById("social-X").onclick = function () {
-							window.location.href = "https://x.com/squarespace";
-						};
-						document.getElementById("social-insta").onclick = function () {
-							window.location.href = "https://www.instagram.com/squarespace/";
-						};
-					</script>
-				</div>
-				<img src="/static/media/image/icon/Button.png" class="button-email" /> 
-				<!-- Personally, I would use a button here instead of an image -->
-				<img src="/static/media/image/icon/Line 1.png" class="seperate" />
-				<!-- You could just style up a hr for this as well. -->
-			</section>
-			<section class="guidelines">
-				<p class="privacy">
-					Privacy Notice | Terms of Use | Student Guidelines
-				</p>
-				<p class="nonprofit">
-					Writing in Color is fiscally sponsored by NOPI - Nonprofit Incubator,
-					a program of NOPI INC, a Massachusetts nonprofit corporation and
-					501(c)(3) organization, EIN 81-5089505. Learn more at
-					https://thenopi.org.
-				</p>
-			</section>
-		</footer>
 	</body>
+	<footer>
+		<!-- TODO: put global footer content here. -->
+		<section class="icons">
+			<img
+				src="/static/media/image/logotype/WIC_Logo.svg"
+				class="footer-logo"
+			/>
+			<p class="footer-phrase">Get in Touch</p>
+			<div class="social-icons-container">
+				<img src="/static/media/image/icon/instagram.png" id="social-insta" />
+				<img src="/static/media/image/icon/X.png" id="social-X" />
+				<img src="/static/media/image/icon/facebook.png" id="social-fb" />
+				<script>
+					document.getElementById("social-fb").onclick = function () {
+						window.location.href = "https://www.facebook.com/squarespace";
+					};
+					document.getElementById("social-X").onclick = function () {
+						window.location.href = "https://x.com/squarespace";
+					};
+					document.getElementById("social-insta").onclick = function () {
+						window.location.href = "https://www.instagram.com/squarespace/";
+					};
+				</script>
+			</div>
+			<img src="/static/media/image/icon/Button.png" class="button-email" /> 
+			<!-- Personally, I would use a button here instead of an image -->
+			<img src="/static/media/image/icon/Line 1.png" class="seperate" />
+			<!-- You could just style up a hr for this as well. -->
+		</section>
+		<section class="guidelines">
+			<p class="privacy">
+				Privacy Notice | Terms of Use | Student Guidelines
+			</p>
+			<p class="nonprofit">
+				Writing in Color is fiscally sponsored by NOPI - Nonprofit Incubator,
+				a program of NOPI INC, a Massachusetts nonprofit corporation and
+				501(c)(3) organization, EIN 81-5089505. Learn more at
+				https://thenopi.org.
+			</p>
+		</section>
+	</footer>
 {% endblock %}

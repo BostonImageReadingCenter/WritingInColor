@@ -1,11 +1,10 @@
 //@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&display=swap');
 @import url("https://fonts.googleapis.com/css2?family=Montserrat+Subrayada&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz@9..144&display=swap");
-
+//@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz@9..144&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,100..900,0..100,0..1;1,9..144,100..900,0..100,0..1&display=swap");
 // Color Scheme Definitions
 $light-background-color: #ffe8ce;
-$light-background-color-2: #fff7ee;
-$light-background-color-3: #fff;
+$lighter-background-color: #fff7ee;
 $dark-background-color: rgb(29, 29, 29);
 $darker-background-color: rgb(10, 10, 10);
 $accent-color: #af3750; //rgb(0, 122, 255);
@@ -24,9 +23,11 @@ body {
 	color: $dark-font-color;
 	margin: 0;
 	padding: 0;
+}
+html * {
 	font-family: "Fraunces", serif;
-	font-style: normal;
 	font-weight: 400;
+	font-style: normal;
 }
 
 main {
@@ -46,11 +47,8 @@ main {
 	background-color: $light-background-color;
 }
 
-.light-background-color-2 {
-	background-color: $light-background-color-2;
-}
-.light-background-color-3 {
-	background-color: $light-background-color-3;
+.lighter-background-color {
+	background-color: $lighter-background-color;
 }
 
 .dark-font-color {
@@ -67,19 +65,19 @@ main {
 //top header
 header {
 	position: sticky;
-	padding: 1 rem $header-padding;
+	padding: 1 rem var(--header-padding);
 	width: 100%;
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	background-color: $light-background-color-2;
+	background-color: var(--lighter-background-color);
 	height: 80px;
 }
 
 .header-container {
 	display: flex;
 	align-items: center;
-	background-color: $light-background-color-2;
+	background-color: #fff7ee;
 	height: 100%;
 	padding: 0 2rem;
 	flex: 1;
@@ -105,12 +103,12 @@ header {
 	display: flex;
 	align-items: center;
 	padding-right: 1rem;
-	background-color: $light-background-color-2;
+	background-color: #fff7ee;
 }
 
 .donate-button {
 	background-color: #a33a3a;
-	color: $light-font-color;
+	color: #fff;
 	border: none;
 	padding: 0.5rem 1rem;
 	border-radius: 4px;
@@ -186,12 +184,11 @@ main {
 .background-image1 {
 	position: absolute;
 	top: 0;
-	left: 0;
-	width: 100%;
+	left: -20px;
+	width: 103%;
 	height: 100%;
-	object-fit: cover;
+	object-fit: fill;
 	z-index: -1;
-	opacity: 0.5;
 }
 //courses layout and grid
 .courses,
@@ -224,7 +221,7 @@ main {
 	padding: 1rem;
 	border: 1px solid #ccc;
 	border-radius: 8px;
-	background-color: $light-background-color-3;
+	background-color: #fff;
 }
 
 h2 {
@@ -240,7 +237,7 @@ h2 {
 
 p {
 	margin-bottom: 1rem;
-	color: #555;
+	color: $dark-font-color;
 }
 
 //Courses Setup and Grid
@@ -257,7 +254,7 @@ p {
 	padding: 20px;
 	box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 	border-radius: 8px;
-	background-color: $light-background-color-3;
+	background-color: #fff;
 	max-width: 300px;
 	text-align: flex-start;
 }
@@ -337,9 +334,9 @@ p {
 //Footer CSS
 footer {
 	background-color: #fff7ee;
-	padding: 20px;
+	padding: 50px;
+	margin-top: 100px;
 	text-align: center;
-	font-family: Fraunces, serif;
 	display: flex;
 	flex-direction: column;
 	align-items: center;
@@ -416,30 +413,58 @@ footer {
 	text-align: center;
 }
 
-//Hudson's old code
-// The top header
-
-// header {
-//   padding: $header-padding;
-//   width: 100%;
-//   display: grid;
-//   grid-template-columns: 1fr 1fr;
-//   justify-content: space-between;
-//   background-color: $light-background-color-2;
-//   height: $header-height;
-//   // The buttons on the right
-//   nav {
-//     display: flex;
-//     gap: 20px;
-//     align-items: center;
-//     justify-content: center;
-//     #menu-button {
-//       display: flex;
-//       flex-direction: column;
-//       gap: -2px;
-//     }
-//     .hover-menu .hover-menu__content {
-//       transform: translateX(calc(30px - 100%));
-//     }
-//   }
-// }
+//FOUNDERS
+.founder {
+	background-color: transparent;
+	border-color: transparent;
+	align-items: center;
+	gap: 2rem;
+	display: grid;
+	grid-template-columns: 1fr 3fr;
+	padding-top: 50px;
+}
+.founders-background {
+	position: absolute;
+	top: 0;
+	left: -40px;
+	width: 105%;
+	height: 105%;
+	object-fit: fill;
+	z-index: -1;
+}
+.sub-grid {
+	display: grid;
+	grid-template-rows: repeat(3, 1fr);
+	gap: 5px;
+}
+.row1 {
+	text-align: flex-start;
+	padding: 2px;
+	font-size: 28px;
+	margin: 0;
+	height: 40px;
+}
+.row {
+	text-align: flex-start;
+	padding: 2px;
+	font-size: 24px;
+	margin: 0;
+	height: 40px;
+}
+#other-font {
+	font-family: "Montserrat Subrayada", sans-serif;
+	font-weight: 400;
+	font-style: normal;
+	margin-top: 50px;
+	margin-left: 20px;
+}
+#founder-phrase {
+	margin-top: 20px;
+	margin-left: 20px;
+}
+.farah,
+.adaira {
+	margin: auto;
+	align-content: flex-end;
+	align-items: flex-end;
+}

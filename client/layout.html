@@ -21,7 +21,10 @@
 		{% block head %}{% endblock %} {% if user and user.roles.includes("admin")
 		%} {{ admin.admin_imports() }} {% endif %}
 	</head>
+	
 	<body>
 		{% if user and user.roles.includes("admin") %} {{ admin.admin_panel() }} {%
 		endif %} {% block body %}{% endblock %}
+	</body>
+	
 </html>
