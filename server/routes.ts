@@ -104,12 +104,28 @@ async function routes(fastify: FastifyInstance, options) {
 	fastify.get(
 		"/login",
 		async (request: FastifyRequest, reply: FastifyReply) => {
+			let user = await getUser(request, reply);
+			if (user) return reply.redirect("/my-profile");
 			reply
 				.code(200)
 				.header("Content-Type", "text/html")
 				.send(nunjucks.render("login.html"));
 		}
 	);
+
+	// User profile page
+	fastify.get(
+		"/my-profile",
+		async (request: FastifyRequest, reply: FastifyReply) => {
+			let user = await getUser(request, reply);
+			if (!user) return reply.redirect("/login");
+			reply
+				.code(200)
+				.header("Content-Type", "text/html")
+				.send(nunjucks.render("my-profile.html", { user }));
+		}
+	);
+
 	// Loading this page will automatically logout the user
 	fastify.get(
 		"/logout",
