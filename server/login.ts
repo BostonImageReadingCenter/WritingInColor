@@ -264,7 +264,7 @@ export async function* login(
 			actions: [
 				{
 					action: "redirect",
-					path: "/",
+					path: "/my-profile",
 				}, // TODO: redirect only if successful
 			],
 		};
@@ -361,7 +361,7 @@ export async function* login(
 				actions: [
 					{
 						action: "redirect",
-						path: "/",
+						path: "/my-profile",
 					},
 				],
 			};
@@ -398,7 +398,7 @@ export async function* login(
 					actions: [
 						{
 							action: "redirect",
-							path: "/",
+							path: "/my-profile",
 						},
 					],
 				};
@@ -423,7 +423,7 @@ export async function* login(
 				actions: [
 					{
 						action: "redirect",
-						path: "/",
+						path: "/my-profile",
 					},
 				],
 			};
