@@ -287,6 +287,22 @@ export async function* login(
 				return {
 					actions: [{ action: "exit" }],
 				};
+
+			result = yield {
+				actions: [
+					{
+						action: "collect",
+						type: "binary",
+						header: "Do you agree to the terms of service and privacy policy?",
+						message: "",
+					}, // TODO!!!!
+				],
+			};
+			if (!result.json.value)
+				return {
+					actions: [{ action: "exit" }],
+				};
+
 			let userID = Buffer.from(uuidParse(uuidv4()));
 			let passkeys: Passkey[] = [];
 			if (options.supportsWebAuthn) {
@@ -342,7 +358,6 @@ export async function* login(
 				],
 			};
 			let passwordHash = hashPassword(result.json.value, salt);
-			console.log(passwordHash.byteLength);
 			await database.createUser({
 				user: {
 					id: userID,
@@ -364,6 +379,7 @@ export async function* login(
 				],
 			};
 		}
+		// User exists
 		if (options.supportsWebAuthn) {
 			const passkeys = await database.getPasskeysByUserID(user.id);
 			if (passkeys.length !== 0) {

@@ -27,7 +27,6 @@ var collectionMessageEl: HTMLElement,
 export var onload: Function[] = [];
 
 window.addEventListener("load", async (event) => {
-	console.log("initial load");
 	// Check if browser supports WebAuthn
 	supportsWebAuthn =
 		window.PublicKeyCredential &&
@@ -77,7 +76,6 @@ export async function initLoginPage() {
  * Handles actions from LoginData returned from the server
  */
 async function handleAction(data: LoginData) {
-	console.log(data);
 	let actions = data.actions;
 	for (let item of actions) {
 		if (item.action === "collect") {
@@ -523,7 +521,6 @@ async function showUsePasskeyButton(data: ShowUsePasskeyButtonAction) {
 }
 
 export async function initPassiveLogin() {
-	console.log(supportsConditionalUI, supportsWebAuthn);
 	let input = createElement("input", {
 		attributes: {
 			style: "display: none;",
@@ -549,7 +546,6 @@ export async function initPassiveLogin() {
 		let json = await response.json();
 		sessionID = json.id;
 		authenticationOptions = json.value.authenticationOptions;
-		console.log(json);
 		handleAction(json.value);
 		if (json.done) return;
 	});
