@@ -10,7 +10,7 @@ import {
 } from "./constants.js";
 import { v4 as uuidv4 } from "uuid";
 import { parse as uuidParse } from "uuid-parse";
-import { uint8ArrayToBase64, base64ToUint8Array } from "./utils";
+import { uint8ArrayToBase64, base64ToUint8Array, checkPassword } from "./utils";
 import {
 	beginPasskeyRegistration,
 	beginPasskeyAuthentication,
@@ -31,7 +31,6 @@ import {
 	UserRole,
 	LoginDataReturnPacket,
 	InputLoginDataReturn,
-	checkPassword,
 } from "./types.js";
 import { base64URLStringToBuffer } from "@simplewebauthn/browser";
 import { FastifyReply, FastifyRequest } from "fastify";

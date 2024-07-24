@@ -4,7 +4,6 @@ import {
 	AssertionResponseLoginDataReturn,
 	AttestationResponseLoginDataReturn,
 	AuthenticatePasskeyAction,
-	checkPassword,
 	CollectAction,
 	CollectionType,
 	CollectionTypeString,
@@ -15,6 +14,7 @@ import {
 	OtherAction,
 	RegisterPasskeyAction,
 } from "../../../server/types.ts";
+import { checkPassword } from "../../../server/utils.ts";
 import {
 	startAuthentication,
 	startRegistration,
