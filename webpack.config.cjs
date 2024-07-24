@@ -7,6 +7,8 @@ module.exports = {
 		login: "./client/static/javascript/login.ts",
 		adminPanel: "./client/static/javascript/admin-panel.ts",
 		test: "./client/static/javascript/test.ts",
+		"passive-authentication":
+			"./client/static/javascript/passive-authentication.ts",
 	},
 	output: {
 		filename: "[name].js",

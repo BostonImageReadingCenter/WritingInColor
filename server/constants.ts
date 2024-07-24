@@ -8,7 +8,7 @@ import {
 	Uint8ArrayFromHexString,
 	base64ToUint8Array,
 } from "./utils";
-
+import { PasswordRequirements } from "./types";
 // Load environment variables from .env file
 config();
 
@@ -88,7 +88,19 @@ const MySQLConfig = {
 	connectionLimit: 10,
 	queueLimit: 0,
 };
+const ToS = readFileSync(
+	path.resolve(__dirname, "../documents/tos.html"),
+	"utf8"
+);
 
+const passwordRequirements: PasswordRequirements = {
+	min_length: 10,
+	max_length: 100,
+	min_uppercase: 1,
+	min_lowercase: 1,
+	min_digits: 1,
+	min_non_alphanumeric: 1,
+};
 // Export the updated TOKEN_SECRET and TOKEN_SECRET_EXPIRATION
 export {
 	SECRET_PRIVATE_KEY,
@@ -104,4 +116,6 @@ export {
 	rpName,
 	origin,
 	ROLES,
+	ToS,
+	passwordRequirements,
 };

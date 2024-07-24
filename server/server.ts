@@ -2,6 +2,8 @@ import Fastify from "fastify";
 import routes from "./routes.js";
 import fastify_cookie from "@fastify/cookie";
 import fp from "fastify-plugin";
+import { spawn } from "child_process";
+import path from "path";
 
 const fastify = Fastify({
 	logger: false,
@@ -26,12 +28,15 @@ fastify.register(fastify_cookie, {
 
 fastify.register(routes, {});
 
-/*
+function restart() {
+	const newProcess = spawn("bun", [path.resolve(__dirname, "server.ts")], {
+		stdio: "inherit",
+		detached: true,
+	});
 
-Security: https://medium.com/@ferrosful/nodejs-security-unleashed-exploring-dos-ddos-attacks-cf089d5caff4
-
-*/
-
+	newProcess.unref();
+	process.exit();
+}
 /**
  * Run the server!
  */
@@ -40,8 +45,13 @@ const start = async () => {
 		await fastify.listen({ port: 3000 });
 	} catch (err) {
 		fastify.log.error(err);
-		process.exit(1);
-		// TODO: Enable proper error handling for production environment.
+		restart(); // restart the server
 	}
 };
 start();
+
+/*
+
+Security: https://medium.com/@ferrosful/nodejs-security-unleashed-exploring-dos-ddos-attacks-cf089d5caff4
+
+*/

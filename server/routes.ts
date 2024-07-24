@@ -60,7 +60,10 @@ async function routes(fastify: FastifyInstance, options) {
 	fastify.register(fastifyStatic, {
 		root: client_root,
 	});
+
+	// Initialize the database
 	const database = new Database();
+
 	/**
 	 * Get the user from the request
 	 */
@@ -79,6 +82,7 @@ async function routes(fastify: FastifyInstance, options) {
 		}
 		return user;
 	}
+
 	// Home
 	fastify.get("/", async (request: FastifyRequest, reply: FastifyReply) => {
 		let user = await getUser(request, reply);
@@ -89,6 +93,7 @@ async function routes(fastify: FastifyInstance, options) {
 		);
 		return reply;
 	});
+
 	// Test page. Just used for random stuff.
 	fastify.get("/test", async (request: FastifyRequest, reply: FastifyReply) => {
 		let user = await getUser(request, reply);
@@ -104,12 +109,28 @@ async function routes(fastify: FastifyInstance, options) {
 	fastify.get(
 		"/login",
 		async (request: FastifyRequest, reply: FastifyReply) => {
+			let user = await getUser(request, reply);
+			if (user) return reply.redirect("/my-profile");
 			reply
 				.code(200)
 				.header("Content-Type", "text/html")
 				.send(nunjucks.render("login.html"));
 		}
 	);
+
+	// User profile page
+	fastify.get(
+		"/my-profile",
+		async (request: FastifyRequest, reply: FastifyReply) => {
+			let user = await getUser(request, reply);
+			if (!user) return reply.redirect("/login");
+			reply
+				.code(200)
+				.header("Content-Type", "text/html")
+				.send(nunjucks.render("my-profile.html", { user }));
+		}
+	);
+
 	// Loading this page will automatically logout the user
 	fastify.get(
 		"/logout",
@@ -139,6 +160,7 @@ async function routes(fastify: FastifyInstance, options) {
 				.redirect(origin + "/");
 		}
 	);
+
 	/*
 		API ENDPOINTS
 	*/
@@ -155,7 +177,7 @@ async function routes(fastify: FastifyInstance, options) {
 			);
 			auth_sessions.set(id, {
 				id,
-				expires: Date.now() + 1000 * 60 * 1,
+				expires: Date.now() + 1000 * 60 * 1, // Give the user 1 minute to interact with the login page before it expires
 				generator,
 			});
 			cleanSessions();
@@ -172,18 +194,25 @@ async function routes(fastify: FastifyInstance, options) {
 		async (request: FastifyRequest, reply: FastifyReply) => {
 			let json: any = request.body;
 			let id = json.id;
-			let session = auth_sessions.get(id); // Use JWTs for login sessions???
+			let session = auth_sessions.get(id);
+
 			if (!session)
 				return reply
 					.code(404)
 					.send({ error: "The requested session no longer exists." });
+
 			if (Date.now() > session.expires) {
 				delete auth_sessions[id];
 				return reply.code(410).send({ error: "Login session has expired." });
 			}
-			session.expires += 1000 * 60 * 1;
-			let result = await session.generator.next({ request, reply, json });
-			console.log(result);
+
+			session.expires += 1000 * 60 * 1; // Since the user has interacted with the page, give them another minute
+			console.log(json);
+			let result = await session.generator.next({
+				request,
+				reply,
+				return: json.return,
+			});
 			if (result.done) delete auth_sessions[id];
 			setCookies(result.value.setCookies || [], reply);
 			return reply

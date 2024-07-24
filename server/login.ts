@@ -5,15 +5,12 @@ import {
 	REFRESH_TOKEN_EXPIRATION_TIME,
 	SECRET_PRIVATE_KEY,
 	SECRET_PUBLIC_KEY,
+	ToS,
+	passwordRequirements,
 } from "./constants.js";
-import { Pool } from "mysql2/promise";
 import { v4 as uuidv4 } from "uuid";
 import { parse as uuidParse } from "uuid-parse";
-import {
-	uint8ArrayToBase64,
-	base64ToUint8Array,
-	Uint8ArrayFromHexString,
-} from "./utils";
+import { uint8ArrayToBase64, base64ToUint8Array, checkPassword } from "./utils";
 import {
 	beginPasskeyRegistration,
 	beginPasskeyAuthentication,
@@ -32,6 +29,8 @@ import {
 	LoginDataReturn,
 	SetCookieOptions,
 	UserRole,
+	LoginDataReturnPacket,
+	InputLoginDataReturn,
 } from "./types.js";
 import { base64URLStringToBuffer } from "@simplewebauthn/browser";
 import { FastifyReply, FastifyRequest } from "fastify";
@@ -42,6 +41,7 @@ import {
 } from "@simplewebauthn/typescript-types";
 import { Database } from "./db.js";
 import { generateSalt, hashPassword } from "./security.js";
+import validator from "validator";
 
 // JWTs
 export async function CreateJWT(payload: JWT_REGISTERED_CLAIMS) {
@@ -209,38 +209,45 @@ export async function loginUserWithPasskey(
 		return loginUser(userID, database);
 	} else {
 		console.log("\n\n\x1b[31;1mAuthentication Failed!\x1b[0m\n\n");
-		// TODO: Handle verification failure
 		return false;
 	}
 }
-
+function getReturn(ret: LoginDataReturn[], type: string) {
+	return ret.filter((x) => x.type === type)?.[0];
+}
+function getInputValue(ret: LoginDataReturn[], input: string) {
+	return (getReturn(ret, "input") as InputLoginDataReturn)?.values?.[input];
+}
 export async function* login(
 	database: Database,
 	options: LoginInitializationOptions
-): AsyncGenerator<LoginData, LoginData, LoginDataReturn> {
+): AsyncGenerator<LoginData, LoginData, LoginDataReturnPacket> {
 	let authenticationOptions: PublicKeyCredentialRequestOptionsJSON;
 	let verifyAuthentication: Function;
-	let result: LoginDataReturn;
-
-	let actions: Action[] = [
-		{
+	let result: LoginDataReturnPacket;
+	let actions: Action[] = [];
+	if (!options.conditionalUIOnly) {
+		actions.push({
 			action: "collect",
-			type: "email",
+			types: [{ type: "email" }],
 			header: "Please enter your email.",
 			message: "We need your email to be sure its you.",
-		},
-	];
+		});
+	}
+
 	if (options.supportsWebAuthn) {
 		let x = await beginPasskeyAuthentication();
 		authenticationOptions = x.WebAuthnOptions;
 		verifyAuthentication = x.verify;
 		actions.push({
-			action: "show-use-passkey-button",
-		});
-		actions.push({
 			action: "set-authentication-options",
 			authenticationOptions,
 		});
+		if (!options.conditionalUIOnly) {
+			actions.push({
+				action: "show-use-passkey-button",
+			});
+		}
 		if (options.supportsConditionalUI)
 			actions.push({
 				action: "init-conditional-ui",
@@ -249,27 +256,54 @@ export async function* login(
 	result = yield {
 		actions,
 	};
-	if (options.supportsWebAuthn && result.json.assertionResponse) {
-		let assertionResponse: AuthenticationResponseJSON =
-			result.json.assertionResponse;
+	let assertionResponse: AuthenticationResponseJSON | undefined =
+		result.return.filter((x) => x.type === "assertion-response")?.[0]
+			?.assertionResponse;
+	if (options.supportsWebAuthn && assertionResponse) {
 		let success = await loginUserWithPasskey(
 			database,
 			assertionResponse,
 			verifyAuthentication
 		);
 		console.log("Login with passkey (conditional ui)", success !== false);
+		let actions = [];
+		if (success) {
+			actions.push({
+				action: "redirect",
+				path: "/my-profile",
+			});
+		} else {
+			actions.push({
+				action: "error",
+				errors: ["Invalid passkey"],
+			});
+		}
 		return {
 			data: { success: success !== false },
 			setCookies: success || [],
-			actions: [
-				{
-					action: "redirect",
-					path: "/",
-				}, // TODO: redirect only if successful
-			],
+			actions,
 		};
-	} else {
-		let email = result.json.value;
+	} else if (!options.conditionalUIOnly) {
+		let email = result.return.filter((x) => x.type === "input")?.[0]?.values
+			.email;
+		while (!validator.isEmail(email)) {
+			result = yield {
+				actions: [
+					{
+						action: "error",
+						errors: ["Please enter a valid email."],
+					},
+					{
+						action: "collect",
+						types: [{ type: "email" }],
+						header: "Please enter your email.",
+						message: "We need your email to be sure its you.",
+					},
+				],
+			};
+			email = result.return.filter((x) => x.type === "input")?.[0]?.values
+				.email;
+		}
 		let user = await database.getUserByEmail(email);
 		if (!user) {
 			// User does not exist
@@ -277,7 +311,7 @@ export async function* login(
 				actions: [
 					{
 						action: "collect",
-						type: "binary",
+						types: [{ type: "binary" }],
 						header: "Create an Account?",
 						message:
 							"You don't have an account yet. Would you like to create one?",
@@ -285,10 +319,33 @@ export async function* login(
 				],
 			};
 
-			if (!result.json.value)
+			if (!result.return.filter((x) => x.type === "input")?.[0].values.binary)
 				return {
 					actions: [{ action: "exit" }],
 				};
+
+			result = yield {
+				actions: [
+					{
+						action: "collect",
+						types: [
+							{ type: "binary" },
+							{
+								type: "show-document",
+								html: ToS,
+								required: true,
+							},
+						],
+						header: "Do you agree to the Terms of Service?",
+						message: "",
+					},
+				],
+			};
+			if (!result.return.filter((x) => x.type === "input")?.[0]?.values.binary)
+				return {
+					actions: [{ action: "exit" }],
+				};
+
 			let userID = Buffer.from(uuidParse(uuidv4()));
 			let passkeys: Passkey[] = [];
 			if (options.supportsWebAuthn) {
@@ -306,7 +363,8 @@ export async function* login(
 					],
 				};
 				let attestationResponse: RegistrationResponseJSON =
-					result.json.attestationResponse;
+					result.return.filter((x) => x.type === "attestation-response")?.[0]
+						.attestationResponse;
 				const verification = await verify(attestationResponse);
 				if (verification.verified && verification.registrationInfo) {
 					passkeyRegistrationSucceeded = true;
@@ -323,7 +381,19 @@ export async function* login(
 						transports: transportsString,
 					});
 				} else {
-					// TODO: Handle verification failure
+					yield {
+						actions: [
+							{
+								action: "error",
+								errors: [
+									"Passkey registration failed. Please try again later.",
+								],
+							},
+							{
+								action: "reload",
+							},
+						],
+					};
 				}
 				yield {
 					actions: [],
@@ -333,18 +403,31 @@ export async function* login(
 				};
 			}
 			let salt = generateSalt();
-			result = yield {
-				actions: [
-					{
-						action: "collect",
-						type: "create-password",
-						header: "Create Password",
-						message: "Create a password for your account.",
-					},
-				],
-			};
-			let passwordHash = hashPassword(result.json.value, salt);
-			console.log(passwordHash.byteLength);
+			let passwordValue: string;
+			let errors = [];
+			while (true) {
+				result = yield {
+					actions: [
+						{
+							action: "error",
+							errors,
+						},
+						{
+							action: "collect",
+							types: [
+								{ type: "create-password", requirements: passwordRequirements },
+							],
+							header: "Create Password",
+							message: "Create a password for your account.",
+						},
+					],
+				};
+				passwordValue = result.return.filter((x) => x.type === "input")?.[0]
+					.values["create-password"];
+				errors = checkPassword(passwordValue, passwordRequirements);
+				if (errors.length === 0) break;
+			}
+			let passwordHash = hashPassword(passwordValue, salt);
 			await database.createUser({
 				user: {
 					id: userID,
@@ -361,11 +444,12 @@ export async function* login(
 				actions: [
 					{
 						action: "redirect",
-						path: "/",
+						path: "/my-profile",
 					},
 				],
 			};
 		}
+		// User exists
 		if (options.supportsWebAuthn) {
 			const passkeys = await database.getPasskeysByUserID(user.id);
 			if (passkeys.length !== 0) {
@@ -386,53 +470,79 @@ export async function* login(
 						},
 					],
 				};
-				let assertionResponse = result.json.assertionResponse;
+				let assertionResponse = result.return.filter(
+					(x) => x.type === "assertion-response"
+				)?.[0].assertionResponse;
 				let success = await loginUserWithPasskey(
 					database,
 					assertionResponse,
 					verifyAuthentication
 				);
+				let actions = [];
+				if (success) {
+					actions.push({
+						action: "redirect",
+						path: "/my-profile",
+					});
+				} else {
+					actions = actions.concat([
+						{
+							action: "error",
+							errors: ["Invalid passkey"],
+						},
+						{
+							action: "reload",
+						},
+					]);
+				}
 				return {
 					data: { success: success !== false },
 					setCookies: success || [],
+					actions,
+				};
+			}
+		}
+		let errors = [];
+		while (true) {
+			result = yield {
+				actions: [
+					{
+						action: "error",
+						errors,
+					},
+					{
+						action: "collect",
+						types: [{ type: "get-password" }],
+						header: "Enter Password",
+						message: "Enter your password.",
+					},
+				],
+			};
+			errors = [];
+			let passwordHash = hashPassword(
+				result.return.filter((x) => x.type === "input")?.[0].values[
+					"get-password"
+				],
+				user.salt
+			);
+			if (passwordHash.equals(user.password)) {
+				// Password is correct
+				let setCookies = await loginUser(user.id, database);
+				return {
+					data: { success: true },
+					setCookies,
 					actions: [
 						{
 							action: "redirect",
-							path: "/",
+							path: "/my-profile",
 						},
 					],
 				};
 			}
+
+			// Password is incorrect
+			errors.push("Invalid password");
 		}
-		result = yield {
-			actions: [
-				{
-					action: "collect",
-					type: "get-password",
-					header: "Enter Password",
-					message: "Enter your password.",
-				},
-			],
-		};
-		let passwordHash = hashPassword(result.json.value, user.salt);
-		if (passwordHash.equals(user.password)) {
-			let setCookies = await loginUser(user.id, database);
-			return {
-				data: { success: true },
-				setCookies,
-				actions: [
-					{
-						action: "redirect",
-						path: "/",
-					},
-				],
-			};
-		}
-		// Wrong password
-		return {
-			data: { success: false },
-			actions: [{ action: "exit" }],
-		};
 	}
 }
 

@@ -11,6 +11,7 @@
 		<!-- CSS -->
 		<link rel="stylesheet" href="/static/css/core.css" />
 		<link rel="stylesheet" href="/static/css/hover-menu.css" />
+
 		<!--Font-->
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -18,13 +19,21 @@
 		<!-- JavaScript -->
 		<script type="module" src="/static/javascript/bundle/core.js"></script>
 
+		<!-- Passive Authentication -->
+		{% if not user %}
+		<script
+			type="module"
+			src="/static/javascript/bundle/passive-authentication.js"
+		></script>
+		{% endif %}
+
+		<!-- Admin Panel -->
 		{% block head %}{% endblock %} {% if user and user.roles.includes("admin")
 		%} {{ admin.admin_imports() }} {% endif %}
 	</head>
-	
+
 	<body>
 		{% if user and user.roles.includes("admin") %} {{ admin.admin_panel() }} {%
 		endif %} {% block body %}{% endblock %}
 	</body>
-	
 </html>
