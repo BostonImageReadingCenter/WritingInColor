@@ -146,9 +146,9 @@ async function handleAction(data: LoginData) {
 		} else if (item.action === "show-use-passkey-button") {
 			showUsePasskeyButton(item);
 		} else if (item.action === "exit") {
-			// Reload
+			// Go back to the home page
 			window.location.href = "/";
-			// window.location.reload();
+		} else if (item.action === "reload") {
 		} else if (item.action === "set-authentication-options") {
 			authenticationOptions = item.authenticationOptions;
 		} else if (item.action === "redirect") {

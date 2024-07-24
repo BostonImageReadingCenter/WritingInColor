@@ -210,7 +210,6 @@ export async function loginUserWithPasskey(
 		return loginUser(userID, database);
 	} else {
 		console.log("\n\n\x1b[31;1mAuthentication Failed!\x1b[0m\n\n");
-		// TODO: Handle verification failure
 		return false;
 	}
 }
@@ -268,15 +267,22 @@ export async function* login(
 			verifyAuthentication
 		);
 		console.log("Login with passkey (conditional ui)", success !== false);
+		let actions = [];
+		if (success) {
+			actions.push({
+				action: "redirect",
+				path: "/my-profile",
+			});
+		} else {
+			actions.push({
+				action: "error",
+				errors: ["Invalid passkey"],
+			});
+		}
 		return {
 			data: { success: success !== false },
 			setCookies: success || [],
-			actions: [
-				{
-					action: "redirect",
-					path: "/my-profile",
-				}, // TODO: redirect only if successful
-			],
+			actions,
 		};
 	} else if (!options.conditionalUIOnly) {
 		let email = result.return.filter((x) => x.type === "input")?.[0]?.values
@@ -376,7 +382,19 @@ export async function* login(
 						transports: transportsString,
 					});
 				} else {
-					// TODO: Handle verification failure
+					yield {
+						actions: [
+							{
+								action: "error",
+								errors: [
+									"Passkey registration failed. Please try again later.",
+								],
+							},
+							{
+								action: "reload",
+							},
+						],
+					};
 				}
 				yield {
 					actions: [],
@@ -461,15 +479,27 @@ export async function* login(
 					assertionResponse,
 					verifyAuthentication
 				);
+				let actions = [];
+				if (success) {
+					actions.push({
+						action: "redirect",
+						path: "/my-profile",
+					});
+				} else {
+					actions = actions.concat([
+						{
+							action: "error",
+							errors: ["Invalid passkey"],
+						},
+						{
+							action: "reload",
+						},
+					]);
+				}
 				return {
 					data: { success: success !== false },
 					setCookies: success || [],
-					actions: [
-						{
-							action: "redirect",
-							path: "/my-profile",
-						},
-					],
+					actions,
 				};
 			}
 		}

@@ -236,7 +236,8 @@ export interface ActionBase {
 		| "redirect"
 		| "success"
 		| "reset-form"
-		| "error";
+		| "error"
+		| "reload";
 }
 export interface CollectAction extends ActionBase {
 	action: "collect";
@@ -284,7 +285,8 @@ export interface OtherAction extends ActionBase {
 		| "init-conditional-ui"
 		| "exit"
 		| "success"
-		| "reset-form";
+		| "reset-form"
+		| "reload";
 }
 export type Action =
 	| OtherAction
