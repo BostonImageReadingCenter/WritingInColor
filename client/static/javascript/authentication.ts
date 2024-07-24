@@ -46,11 +46,11 @@ let collectionFormSubmitHandler: (event: SubmitEvent) => Promise<void>;
 
 window.addEventListener("load", async (event) => {
 	// Check if browser supports WebAuthn
-	supportsWebAuthn = false;
-	// window.PublicKeyCredential &&
-	// navigator.credentials &&
-	// typeof navigator.credentials.create === "function" &&
-	// typeof navigator.credentials.get === "function";
+	supportsWebAuthn =
+		window.PublicKeyCredential &&
+		navigator.credentials &&
+		typeof navigator.credentials.create === "function" &&
+		typeof navigator.credentials.get === "function";
 	// Check if browser supports Conditional UI
 	supportsConditionalUI =
 		typeof PublicKeyCredential.isConditionalMediationAvailable === "function" &&
