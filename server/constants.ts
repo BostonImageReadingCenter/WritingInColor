@@ -8,7 +8,6 @@ import {
 	Uint8ArrayFromHexString,
 	base64ToUint8Array,
 } from "./utils";
-
 // Load environment variables from .env file
 config();
 
@@ -88,7 +87,10 @@ const MySQLConfig = {
 	connectionLimit: 10,
 	queueLimit: 0,
 };
-
+const ToS = readFileSync(
+	path.resolve(__dirname, "../documents/tos.html"),
+	"utf8"
+);
 // Export the updated TOKEN_SECRET and TOKEN_SECRET_EXPIRATION
 export {
 	SECRET_PRIVATE_KEY,
@@ -104,4 +106,5 @@ export {
 	rpName,
 	origin,
 	ROLES,
+	ToS,
 };

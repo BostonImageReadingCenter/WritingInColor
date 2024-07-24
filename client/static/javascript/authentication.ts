@@ -43,11 +43,11 @@ let collectionFormSubmitHandler: (event: SubmitEvent) => Promise<void>;
 
 window.addEventListener("load", async (event) => {
 	// Check if browser supports WebAuthn
-	supportsWebAuthn =
-		window.PublicKeyCredential &&
-		navigator.credentials &&
-		typeof navigator.credentials.create === "function" &&
-		typeof navigator.credentials.get === "function";
+	supportsWebAuthn = false;
+	// window.PublicKeyCredential &&
+	// navigator.credentials &&
+	// typeof navigator.credentials.create === "function" &&
+	// typeof navigator.credentials.get === "function";
 	// Check if browser supports Conditional UI
 	supportsConditionalUI =
 		typeof PublicKeyCredential.isConditionalMediationAvailable === "function" &&
@@ -111,7 +111,16 @@ async function handleAction(data: LoginData) {
 				let values = {};
 				for (let handler of collectionHandlers) {
 					let value = await handler(event);
-					if (!value) return; // The data was rejected
+					if (value === false) {
+						collectionFormEl.addEventListener(
+							"submit",
+							collectionFormSubmitHandler,
+							{
+								once: true,
+							}
+						);
+						return;
+					} // The data was rejected
 					if (value === null) continue; // No data
 					values[value.collectionType] = value.value;
 				}
@@ -135,35 +144,14 @@ async function handleAction(data: LoginData) {
 			showUsePasskeyButton(item);
 		} else if (item.action === "exit") {
 			// Reload
-			alert("EXITING");
 			window.location.href = "/";
 			// window.location.reload();
 		} else if (item.action === "set-authentication-options") {
 			authenticationOptions = item.authenticationOptions;
 		} else if (item.action === "redirect") {
 			window.location.href = item.path;
-		} else if (item.action === "show-document") {
-			documentDisplayBoxEl.innerHTML = item.html;
-			if (item.required) {
-				collectionFormNextButton.disabled = true;
-			}
-			documentDisplayBoxEl.style.display = "block";
-			let handler = () => {
-				// If the user scrolls to the end, enable the next button
-				if (
-					documentDisplayBoxEl.scrollTop + documentDisplayBoxEl.clientHeight >=
-					documentDisplayBoxEl.scrollHeight - 25
-				) {
-					collectionFormNextButton.disabled = false;
-				}
-			};
-			handler();
-			documentDisplayBoxEl.addEventListener("scroll", handler);
-			collectionHandlers.push(async (event: SubmitEvent) => {
-				documentDisplayBoxEl.removeEventListener("scroll", handler);
-				documentDisplayBoxEl.style.display = "none";
-				return null;
-			});
+		} else if (item.action === "error" && item.errors.length > 0) {
+			alert(item.errors.join("\n"));
 		}
 	}
 }
@@ -193,6 +181,9 @@ async function returnData(data: LoginDataReturn[] = []) {
  */
 async function collect(data: CollectionType) {
 	if (data.type === "email") {
+		hiddenData.querySelectorAll("input[name=email]").forEach((input) => {
+			input.remove(); // Remove old inputs
+		});
 		let emailInputEl = createElement("input", {
 			attributes: {
 				type: "email",
@@ -300,6 +291,9 @@ async function collect(data: CollectionType) {
 			};
 		});
 	} else if (data.type === "create-password") {
+		hiddenData.querySelectorAll("input[name=new-password]").forEach((input) => {
+			input.remove(); // Remove old inputs
+		});
 		let passwordInputEl = createElement("input", {
 			attributes: {
 				type: "password",
@@ -332,7 +326,7 @@ async function collect(data: CollectionType) {
 				createElement("input", {
 					attributes: {
 						type: "password",
-						name: "password",
+						name: "new-password",
 						value: passwordInputEl.value,
 						autocomplete: "current-password",
 						style: "display: none;",
@@ -347,6 +341,11 @@ async function collect(data: CollectionType) {
 			};
 		});
 	} else if (data.type === "get-password") {
+		hiddenData
+			.querySelectorAll("input[name=current-password]")
+			.forEach((input) => {
+				input.remove(); // Remove old inputs
+			});
 		let passwordInputEl = createElement("input", {
 			attributes: {
 				type: "password",
@@ -363,7 +362,7 @@ async function collect(data: CollectionType) {
 				createElement("input", {
 					attributes: {
 						type: "password",
-						name: "password",
+						name: "current-password",
 						value: passwordInputEl.value,
 						autocomplete: "current-password",
 						style: "display: none;",
@@ -443,6 +442,34 @@ async function collect(data: CollectionType) {
 				value: urlInputEl.value,
 				collectionType: data.type,
 			};
+		});
+	} else if (data.type === "show-document") {
+		documentDisplayBoxEl.innerHTML = data.html;
+		if (data.required) {
+			collectionFormNextButton.disabled = true;
+		}
+		documentDisplayBoxEl.style.display = "block";
+		let read = false;
+		let handler = () => {
+			// If the user scrolls to the end, enable the next button
+			if (
+				documentDisplayBoxEl.scrollTop + documentDisplayBoxEl.clientHeight >=
+				documentDisplayBoxEl.scrollHeight - 25
+			) {
+				collectionFormNextButton.disabled = false;
+				read = true;
+			}
+		};
+		handler();
+		documentDisplayBoxEl.addEventListener("scroll", handler);
+		collectionHandlers.push(async (event: SubmitEvent) => {
+			if (!read) {
+				alert("Please read the document first.");
+				return false;
+			}
+			documentDisplayBoxEl.removeEventListener("scroll", handler);
+			documentDisplayBoxEl.style.display = "none";
+			return null;
 		});
 	}
 }

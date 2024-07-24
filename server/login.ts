@@ -5,6 +5,7 @@ import {
 	REFRESH_TOKEN_EXPIRATION_TIME,
 	SECRET_PRIVATE_KEY,
 	SECRET_PUBLIC_KEY,
+	ToS,
 } from "./constants.js";
 import { v4 as uuidv4 } from "uuid";
 import { parse as uuidParse } from "uuid-parse";
@@ -39,6 +40,7 @@ import {
 } from "@simplewebauthn/typescript-types";
 import { Database } from "./db.js";
 import { generateSalt, hashPassword } from "./security.js";
+import validator from "validator";
 
 // JWTs
 export async function CreateJWT(payload: JWT_REGISTERED_CLAIMS) {
@@ -277,6 +279,24 @@ export async function* login(
 	} else if (!options.conditionalUIOnly) {
 		let email = result.return.filter((x) => x.type === "input")?.[0]?.values
 			.email;
+		while (!validator.isEmail(email)) {
+			result = yield {
+				actions: [
+					{
+						action: "error",
+						errors: ["Please enter a valid email."],
+					},
+					{
+						action: "collect",
+						types: [{ type: "email" }],
+						header: "Please enter your email.",
+						message: "We need your email to be sure its you.",
+					},
+				],
+			};
+			email = result.return.filter((x) => x.type === "input")?.[0]?.values
+				.email;
+		}
 		let user = await database.getUserByEmail(email);
 		if (!user) {
 			// User does not exist
@@ -300,16 +320,15 @@ export async function* login(
 			result = yield {
 				actions: [
 					{
-						action: "show-document",
-						html: `We can use your data however we see fit. You give your data out of your own
-	free will. You have the right and ability to delete your account at any time.
-	This privacy policy will be updated in the future to be more private, but we
-	needed to make it all-encompassing for now so that we don't get sued.`,
-						required: true,
-					},
-					{
 						action: "collect",
-						types: [{ type: "binary" }],
+						types: [
+							{ type: "binary" },
+							{
+								type: "show-document",
+								html: ToS,
+								required: true,
+							},
+						],
 						header: "Do you agree to the Terms of Service?",
 						message: "",
 					},
@@ -443,40 +462,47 @@ export async function* login(
 				};
 			}
 		}
-		result = yield {
-			actions: [
-				{
-					action: "collect",
-					types: [{ type: "get-password" }],
-					header: "Enter Password",
-					message: "Enter your password.",
-				},
-			],
-		};
-		let passwordHash = hashPassword(
-			result.return.filter((x) => x.type === "input")?.[0].values[
-				"get-password"
-			],
-			user.salt
-		);
-		if (passwordHash.equals(user.password)) {
-			let setCookies = await loginUser(user.id, database);
-			return {
-				data: { success: true },
-				setCookies,
+		let errors = [];
+		while (true) {
+			result = yield {
 				actions: [
 					{
-						action: "redirect",
-						path: "/my-profile",
+						action: "error",
+						errors,
+					},
+					{
+						action: "collect",
+						types: [{ type: "get-password" }],
+						header: "Enter Password",
+						message: "Enter your password.",
 					},
 				],
 			};
+			errors = [];
+			let passwordHash = hashPassword(
+				result.return.filter((x) => x.type === "input")?.[0].values[
+					"get-password"
+				],
+				user.salt
+			);
+			if (passwordHash.equals(user.password)) {
+				// Password is correct
+				let setCookies = await loginUser(user.id, database);
+				return {
+					data: { success: true },
+					setCookies,
+					actions: [
+						{
+							action: "redirect",
+							path: "/my-profile",
+						},
+					],
+				};
+			}
+
+			// Password is incorrect
+			errors.push("Invalid password");
 		}
-		// Wrong password
-		return {
-			data: { success: false },
-			actions: [{ action: "exit" }],
-		};
 	}
 }
 

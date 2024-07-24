@@ -149,13 +149,19 @@ export type CollectionTypeString =
 	| "choice"
 	| "telephone"
 	| "text"
-	| "url";
+	| "url"
+	| "show-document";
 export interface CollectionTypeBase {
 	type: CollectionTypeString;
 }
 export interface ChoiceCollectionType extends CollectionTypeBase {
 	type: "choice";
 	options: string;
+}
+export interface ShowDocumentCollectionType extends CollectionTypeBase {
+	type: "show-document";
+	html: string;
+	required: boolean;
 }
 export interface OtherCollectionType extends CollectionTypeBase {
 	type:
@@ -167,7 +173,10 @@ export interface OtherCollectionType extends CollectionTypeBase {
 		| "text"
 		| "url";
 }
-export type CollectionType = OtherCollectionType | ChoiceCollectionType;
+export type CollectionType =
+	| OtherCollectionType
+	| ChoiceCollectionType
+	| ShowDocumentCollectionType;
 
 export interface ActionBase {
 	action:
@@ -181,8 +190,8 @@ export interface ActionBase {
 		| "set-authentication-options"
 		| "redirect"
 		| "success"
-		| "show-document"
-		| "reset-form";
+		| "reset-form"
+		| "error";
 }
 export interface CollectAction extends ActionBase {
 	action: "collect";
@@ -219,10 +228,9 @@ export interface RedirectAction extends ActionBase {
 	action: "redirect";
 	path: string;
 }
-export interface ShowDocumentAction extends ActionBase {
-	action: "show-document";
-	html: string;
-	required: boolean;
+export interface ErrorAction extends ActionBase {
+	action: "error";
+	errors: string[];
 }
 export interface OtherAction extends ActionBase {
 	action:
@@ -240,7 +248,7 @@ export type Action =
 	| AuthenticatePasskeyAction
 	| SetAuthenticationOptionsAction
 	| RedirectAction
-	| ShowDocumentAction;
+	| ErrorAction;
 export interface SetCookieOptions {
 	name: string;
 	value: string;
