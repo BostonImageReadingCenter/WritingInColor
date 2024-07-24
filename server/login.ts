@@ -6,6 +6,7 @@ import {
 	SECRET_PRIVATE_KEY,
 	SECRET_PUBLIC_KEY,
 	ToS,
+	passwordRequirements,
 } from "./constants.js";
 import { v4 as uuidv4 } from "uuid";
 import { parse as uuidParse } from "uuid-parse";
@@ -30,6 +31,7 @@ import {
 	UserRole,
 	LoginDataReturnPacket,
 	InputLoginDataReturn,
+	checkPassword,
 } from "./types.js";
 import { base64URLStringToBuffer } from "@simplewebauthn/browser";
 import { FastifyReply, FastifyRequest } from "fastify";
@@ -384,22 +386,31 @@ export async function* login(
 				};
 			}
 			let salt = generateSalt();
-			result = yield {
-				actions: [
-					{
-						action: "collect",
-						types: [{ type: "create-password" }],
-						header: "Create Password",
-						message: "Create a password for your account.",
-					},
-				],
-			};
-			let passwordHash = hashPassword(
-				result.return.filter((x) => x.type === "input")?.[0].values[
-					"create-password"
-				],
-				salt
-			);
+			let passwordValue: string;
+			let errors = [];
+			while (true) {
+				result = yield {
+					actions: [
+						{
+							action: "error",
+							errors,
+						},
+						{
+							action: "collect",
+							types: [
+								{ type: "create-password", requirements: passwordRequirements },
+							],
+							header: "Create Password",
+							message: "Create a password for your account.",
+						},
+					],
+				};
+				passwordValue = result.return.filter((x) => x.type === "input")?.[0]
+					.values["create-password"];
+				errors = checkPassword(passwordValue, passwordRequirements);
+				if (errors.length === 0) break;
+			}
+			let passwordHash = hashPassword(passwordValue, salt);
 			await database.createUser({
 				user: {
 					id: userID,

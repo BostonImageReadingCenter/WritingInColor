@@ -141,6 +141,53 @@ export interface UserRole {
 	role_id: number;
 	user_id: Buffer;
 }
+export interface PasswordRequirements {
+	min_length: number;
+	max_length: number;
+	min_uppercase: number;
+	min_lowercase: number;
+	min_digits: number;
+	min_non_alphanumeric: number;
+}
+export function checkPassword(
+	password: string,
+	requirements: PasswordRequirements
+) {
+	let errors: string[] = [];
+	if (password.length < requirements.min_length) {
+		errors.push(
+			`Password must be at least ${requirements.min_length} characters long.`
+		);
+	}
+	if (password.length > requirements.max_length) {
+		errors.push(
+			`Password must be at most ${requirements.max_length} characters long.`
+		);
+	}
+	if (password.match(/[a-z]/).length < requirements.min_lowercase) {
+		errors.push(
+			`Password must contain at least ${requirements.min_lowercase} lowercase characters.`
+		);
+	}
+	if (password.match(/[A-Z]/).length < requirements.min_uppercase) {
+		errors.push(
+			`Password must contain at least ${requirements.min_uppercase} uppercase characters.`
+		);
+	}
+	if (password.match(/[0-9]/).length < requirements.min_digits) {
+		errors.push(
+			`Password must contain at least ${requirements.min_digits} digits.`
+		);
+	}
+	if (
+		password.match(/[^a-zA-Z0-9]/).length < requirements.min_non_alphanumeric
+	) {
+		errors.push(
+			`Password must contain at least ${requirements.min_non_alphanumeric} non-alphanumeric characters.`
+		);
+	}
+	return errors;
+}
 export type CollectionTypeString =
 	| "email"
 	| "binary"
@@ -163,20 +210,18 @@ export interface ShowDocumentCollectionType extends CollectionTypeBase {
 	html: string;
 	required: boolean;
 }
+export interface CreatePasswordCollectionType extends CollectionTypeBase {
+	type: "create-password";
+	requirements: PasswordRequirements;
+}
 export interface OtherCollectionType extends CollectionTypeBase {
-	type:
-		| "email"
-		| "binary"
-		| "create-password"
-		| "get-password"
-		| "telephone"
-		| "text"
-		| "url";
+	type: "email" | "binary" | "get-password" | "telephone" | "text" | "url";
 }
 export type CollectionType =
 	| OtherCollectionType
 	| ChoiceCollectionType
-	| ShowDocumentCollectionType;
+	| ShowDocumentCollectionType
+	| CreatePasswordCollectionType;
 
 export interface ActionBase {
 	action:

@@ -4,6 +4,7 @@ import {
 	AssertionResponseLoginDataReturn,
 	AttestationResponseLoginDataReturn,
 	AuthenticatePasskeyAction,
+	checkPassword,
 	CollectAction,
 	CollectionType,
 	CollectionTypeString,
@@ -19,6 +20,8 @@ import {
 	startRegistration,
 } from "@simplewebauthn/browser";
 import { PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/typescript-types";
+import validator from "validator";
+
 var collectionMessageEl: HTMLElement,
 	collectionHeaderEl: HTMLElement,
 	collectionFormEl: HTMLFormElement,
@@ -199,6 +202,10 @@ async function collect(data: CollectionType) {
 		collectionInputsEl.appendChild(emailInputEl);
 
 		collectionHandlers.push(async (event: SubmitEvent) => {
+			if (!validator.isEmail(emailInputEl.value)) {
+				alert("Please enter a valid email.");
+				return false;
+			}
 			hiddenData.appendChild(
 				createElement("input", {
 					attributes: {
@@ -322,12 +329,18 @@ async function collect(data: CollectionType) {
 				alert("Passwords do not match.");
 				return false;
 			}
+			let value = passwordInputEl.value;
+			let errors = checkPassword(value, data.requirements);
+			if (errors.length > 0) {
+				alert(errors.join("\n"));
+				return false;
+			}
 			hiddenData.appendChild(
 				createElement("input", {
 					attributes: {
 						type: "password",
 						name: "new-password",
-						value: passwordInputEl.value,
+						value,
 						autocomplete: "current-password",
 						style: "display: none;",
 					},
