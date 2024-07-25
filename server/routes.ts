@@ -33,7 +33,7 @@ nunjucks.configure(client_root, { autoescape: true });
 function cleanSessions() {
 	let now = Date.now() + 10;
 	for (let id in auth_sessions) {
-		if (Date.now() > auth_sessions[id].expires) delete auth_sessions[id];
+		if (now > auth_sessions[id].expires) delete auth_sessions[id];
 	}
 }
 
