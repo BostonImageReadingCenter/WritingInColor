@@ -11,9 +11,33 @@ import { parse as uuidParse } from "uuid-parse";
 import { Passkey, User } from "./types";
 import { Uint8ArrayFromHexString } from "./utils";
 import { v4 as uuidv4 } from "uuid";
+import { spawn } from "child_process";
 
+async function testConnection(pool: Pool, tries = 0) {
+	if (tries > 5) {
+		throw new Error("Too many tries, aborting");
+	}
+	tries++;
+	try {
+		// Test the connection
+		await pool.query("SELECT * FROM users");
+		console.log("\x1b[32mMySQL server running!\x1b[0m");
+	} catch (err) {
+		if (err.code === "ECONNREFUSED") {
+			console.log(
+				"\x1b[31mMySQL server not running!\x1b[0m Starting MySQL server..."
+			);
+			spawn("mysqld"); // Start the MySQL server
+			await new Promise((resolve) => setTimeout(resolve, 3000)); // Wait for the server to start
+			testConnection(pool, tries); // Try again
+		} else {
+			throw err;
+		}
+	}
+}
 async function initDatabase(): Promise<Pool> {
 	const pool = mysql.createPool(MySQLConfig);
+	testConnection(pool);
 	return pool;
 }
 
@@ -33,7 +57,9 @@ type Queryable = Pool | PoolConnection;
 class Database {
 	pool: mysql.Pool;
 	constructor() {
-		this.pool = mysql.createPool(MySQLConfig);
+		initDatabase().then((pool) => {
+			this.pool = pool;
+		});
 	}
 	getConnection() {
 		return this.pool.getConnection();
