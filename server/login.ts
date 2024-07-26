@@ -228,6 +228,7 @@ export async function* login(
 	let verifyAuthentication: Function;
 	let result: LoginDataReturnPacket;
 
+	// conditionalUIOnly means that there is no login form.
 	let actions: Action[] = [];
 	if (!options.conditionalUIOnly) {
 		actions.push({
@@ -268,7 +269,6 @@ export async function* login(
 			assertionResponse,
 			verifyAuthentication
 		);
-		console.log("Login with passkey (Conditional UI)", success !== false);
 		let actions = [];
 		if (success)
 			actions.push({
