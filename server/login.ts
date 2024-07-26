@@ -227,6 +227,7 @@ export async function* login(
 	let authenticationOptions: PublicKeyCredentialRequestOptionsJSON;
 	let verifyAuthentication: Function;
 	let result: LoginDataReturnPacket;
+
 	let actions: Action[] = [];
 	if (!options.conditionalUIOnly) {
 		actions.push({
