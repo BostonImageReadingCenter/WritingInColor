@@ -41,18 +41,6 @@ async function initDatabase(): Promise<Pool> {
 	return pool;
 }
 
-async function test() {
-	let pool = await initDatabase();
-	try {
-		const [rows] = await pool.query("SELECT * FROM roles");
-	} catch (err) {
-		console.error(err);
-	} finally {
-		// Close the pool to end the program
-		pool.end();
-	}
-}
-
 type Queryable = Pool | PoolConnection;
 class Database {
 	pool: mysql.Pool;
@@ -178,4 +166,4 @@ class Database {
 	}
 }
 
-export { initDatabase, test, Database };
+export { initDatabase, Database };
