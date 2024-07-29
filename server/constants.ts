@@ -101,6 +101,16 @@ const passwordRequirements: PasswordRequirements = {
 	min_digits: 1,
 	min_non_alphanumeric: 1,
 };
+let COURSES = JSON.parse(
+	readFileSync(path.resolve(__dirname, "../documents/courses.json"), "utf8")
+).courses;
+let SVG = {
+	star: readFileSync(
+		path.resolve(__dirname, "../client/static/media/image/icon/star.svg"),
+		"utf8"
+	),
+};
+
 // Export the updated TOKEN_SECRET and TOKEN_SECRET_EXPIRATION
 export {
 	SECRET_PRIVATE_KEY,
@@ -118,4 +128,6 @@ export {
 	ROLES,
 	ToS,
 	passwordRequirements,
+	COURSES,
+	SVG,
 };

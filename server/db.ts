@@ -1,15 +1,8 @@
-import mysql, {
-	Pool,
-	PoolConnection,
-	QueryOptions,
-	FieldPacket,
-	QueryResult,
-} from "mysql2/promise";
+import mysql, { Pool, PoolConnection } from "mysql2/promise";
 
 import { MySQLConfig } from "./constants";
 import { parse as uuidParse } from "uuid-parse";
 import { Passkey, User } from "./types";
-import { Uint8ArrayFromHexString } from "./utils";
 import { v4 as uuidv4 } from "uuid";
 import { spawn } from "child_process";
 
@@ -112,6 +105,23 @@ class Database {
 			[userID, roleID]
 		);
 	}
+	async addPasskeyToUser(
+		userID: Buffer,
+		passkey: Passkey,
+		connection: Queryable = this.pool
+	) {
+		await connection.query(
+			"INSERT INTO passkeys (id, user_id, credential_id, public_key, counter, transports) VALUES (?, ?, ?, ?, ?, ?)",
+			[
+				passkey.id ?? Buffer.from(uuidParse(uuidv4())),
+				userID,
+				passkey.credential_id,
+				passkey.public_key,
+				passkey.counter,
+				passkey.transports,
+			]
+		);
+	}
 	async createUser(
 		{
 			user,
@@ -135,25 +145,12 @@ class Database {
 
 			// Add emails
 			for (const email of emails) {
-				await connection.query(
-					"INSERT INTO emails (user_id, email) VALUES (?, ?)",
-					[user.id, email]
-				);
+				this.addEmailToUser(user.id, email, connection);
 			}
 
 			// Add passkeys
 			for (const passkey of passkeys) {
-				await connection.query(
-					"INSERT INTO passkeys (id, user_id, credential_id, public_key, counter, transports) VALUES (?, ?, ?, ?, ?, ?)",
-					[
-						passkey.id ?? Buffer.from(uuidParse(uuidv4())),
-						user.id,
-						passkey.credential_id,
-						passkey.public_key,
-						passkey.counter,
-						passkey.transports,
-					]
-				);
+				this.addPasskeyToUser(user.id, passkey, connection);
 			}
 
 			await connection.commit();
@@ -163,6 +160,10 @@ class Database {
 		} finally {
 			connection.release();
 		}
+	}
+
+	async deleteUser(userID: Buffer, connection: Queryable = this.pool) {
+		await connection.query("DELETE FROM users WHERE id = ?", [userID]);
 	}
 }
 

@@ -69,136 +69,45 @@
 				</div>
 				<h2>Currently Offered Courses</h2>
 				<div class="course-grid">
+					{% for course in COURSES %}
 					<div class="course">
 						<!-- Course details here -->
 						<div class="image_course1">
-							<img src="static/media/image/icon/course1.svg" />
+							<img src="{{ course.image }}" />
 						</div>
 						<div class="course-header">
 							<div class="education_icon">
 								<img src="static/media/image/icon/svg_education_icon.svg" />
 							</div>
-							<h3>Narrative Medicine</h3>
+							<h3>{{ course.name }}</h3>
 						</div>
-						<p>Storytelling to enhance empathy and improve patient care.</p>
-						<div class="star_icon">
-							<img src="static/media/image/icon/star_icon.svg" />
-						</div>
-						<div class="time_course">
-							<div class="time_course-item">
-								<div class="cursor_icon">
-									<img src="static/media/image/icon/svg_cursor.svg" />
-								</div>
-								<p>2 days per week (90 minutes)</p>
-							</div>
-							<div class="time_course-item">
-								<div class="time_icon">
-									<img src="static/media/image/icon/time_icon.svg" />
-								</div>
-								<p>5 Weeks Total</p>
-							</div>
-						</div>
-					</div>
+						<p>{{ course.description }}</p>
+						<div class="star-container">
+							{% set num_stars = 5 %}
+							{% set percentage = 100 * (course.rating / num_stars) %}
+							{% set overlay_width = 100 - percentage %}
 
-					<div class="course">
-						<!-- Course details here -->
-						<div class="image_course2">
-							<img src="static/media/image/icon/image 2.svg" />
-						</div>
-						<div class="course-header">
-							<div class="education_icon">
-								<img src="static/media/image/icon/svg_education_icon.svg" />
-							</div>
-							<h3>Poetry for Beginners</h3>
-						</div>
-						<p>
-							Beginner class discovering various poetic styles and techniques.
-						</p>
-						<div class="star_icon">
-							<img src="static/media/image/icon/star_icon.svg" />
+							{% for i in range(num_stars) %}
+								{{ SVG.star | safe }}
+							{% endfor %}
+							<div class="star-overlay" style="width:{{ overlay_width }}%"></div>
 						</div>
 						<div class="time_course">
 							<div class="time_course-item">
 								<div class="cursor_icon">
 									<img src="static/media/image/icon/svg_cursor.svg" />
 								</div>
-								<p>2 days per week (90 minutes)</p>
+								<p>{{ course.class_time }}</p>
 							</div>
 							<div class="time_course-item">
 								<div class="time_icon">
 									<img src="static/media/image/icon/time_icon.svg" />
 								</div>
-								<p>5 Weeks Total</p>
+								<p>{{ course.course_duration }}</p>
 							</div>
 						</div>
 					</div>
-
-					<div class="course">
-						<!-- Course details here -->
-						<div class="image_course3">
-							<img src="static/media/image/icon/image 3.svg" />
-						</div>
-						<div class="course-header">
-							<div class="education_icon">
-								<img src="static/media/image/icon/svg_education_icon.svg" />
-							</div>
-							<h3>Poetry for Intermediates</h3>
-						</div>
-						<p>
-							Intermediate poetry: refining techniques and exploring diverse
-							forms.
-						</p>
-						<div class="star_icon">
-							<img src="static/media/image/icon/star_icon.svg" />
-						</div>
-						<div class="time_course">
-							<div class="time_course-item">
-								<div class="cursor_icon">
-									<img src="static/media/image/icon/svg_cursor.svg" />
-								</div>
-								<p>2 days per week (90 minutes)</p>
-							</div>
-							<div class="time_course-item">
-								<div class="time_icon">
-									<img src="static/media/image/icon/time_icon.svg" />
-								</div>
-								<p>5 Weeks Total</p>
-							</div>
-						</div>
-					</div>
-					<div class="course">
-						<!-- Course details here -->
-						<div class="image_course4">
-							<img src="static/media/image/icon/image 4.svg" />
-						</div>
-						<div class="course-header">
-							<div class="education_icon">
-								<img src="static/media/image/icon/svg_education_icon.svg" />
-							</div>
-							<h3>Personal Statements</h3>
-						</div>
-						<p>
-							Express individuality through impactful personal college
-							statements.
-						</p>
-						<div class="star_icon">
-							<img src="static/media/image/icon/star_icon.svg" />
-						</div>
-						<div class="time_course">
-							<div class="time_course-item">
-								<div class="cursor_icon">
-									<img src="static/media/image/icon/svg_cursor.svg" />
-								</div>
-								<p>2 days per week (90 minutes)</p>
-							</div>
-							<div class="time_course-item">
-								<div class="time_icon">
-									<img src="static/media/image/icon/time_icon.svg" />
-								</div>
-								<p>5 Weeks Total</p>
-							</div>
-						</div>
-					</div>
+					{% endfor %}
 				</div>
 			</section>
 

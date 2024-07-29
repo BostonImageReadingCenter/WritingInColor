@@ -292,11 +292,29 @@ p {
 	width: 24px;
 	height: auto;
 }
-.star_icon img {
-	width: 100px;
-	margin: 10px 0;
-	height: auto;
+
+.star-container {
+	display: inline-flex;
 	align-items: center;
+	position: relative;
+	gap: 2px;
+	justify-content: space-evenly;
+}
+
+.star-container svg {
+	width: 14px;
+	display: flex;
+	color: gold;
+}
+
+.star-overlay {
+	background-color: black;
+	mix-blend-mode: color;
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 1;
 }
 
 .time_course {
@@ -329,59 +347,57 @@ p {
 	main {
 		padding: 1rem;
 	}
-	
+
 	.hero .container,
 	.mission .container {
 		grid-template-columns: 1fr;
-    gap: 10px;
+		gap: 10px;
 	}
 	.hero .text-section,
 	.mission .text-section {
 		font-size: large;
-    width: 70%;
+		width: 70%;
 		padding: 10px;
 	}
-	
+
 	.hero .text-section,
 	.mission .text-section,
 	.hero .image-section,
 	.mission .image-section {
-    width: 72.5%;
+		width: 72.5%;
 		grid-column: 1 / -1;
 	}
-	
+
 	.course-grid,
 	.testimonial-grid,
 	.founder-grid {
-    
-    justify-content:flex-end;
+		justify-content: flex-end;
 		grid-template-columns: 1fr;
 	}
-	
+
 	.course {
 		max-width: 100%;
-    width: 300px;
-    height: 510px;
+		width: 300px;
+		height: 510px;
 	}
-  #site-title {
-    display: none;
-  }
-  #donate-button, 
-  #menu-button,
-  #login-icon{ 
-    justify-content: flex-end;
-  }
-  .header-container {
-    display: flex;
-    justify-content: flex-end;
-  }
-  .logo{ 
-    display: flex;
-    justify-content: flex-start; 
-    margin-right: auto;
-    left: -100px;
-  }
- 
+	#site-title {
+		display: none;
+	}
+	#donate-button,
+	#menu-button,
+	#login-icon {
+		justify-content: flex-end;
+	}
+	.header-container {
+		display: flex;
+		justify-content: flex-end;
+	}
+	.logo {
+		display: flex;
+		justify-content: flex-start;
+		margin-right: auto;
+		left: -100px;
+	}
 }
 //Footer CSS
 footer {
@@ -523,70 +539,72 @@ footer {
 
 //TESTIMONIALS
 .testimonials {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  padding-top: 50px;
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 20px;
+	padding-top: 50px;
 }
 
 .statement {
-  background-color: transparent;
-  border-color: transparent;
-  position: relative;
-  background-size: cover;
-  background-position: center;
-  height: 500px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin-bottom: 200px;
-  border-width: 0;
-  box-shadow: 0 10px 8px rgba(0, 0, 0, 0.1);
+	background-color: transparent;
+	border-color: transparent;
+	position: relative;
+	background-size: cover;
+	background-position: center;
+	height: 500px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-bottom: 200px;
+	border-width: 0;
+	box-shadow: 0 10px 8px rgba(0, 0, 0, 0.1);
 }
 
 .test-grid {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 70%;
-  height: auto;
-  gap: 10px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	width: 70%;
+	height: auto;
+	gap: 10px;
 }
 
 .row-test {
-  text-align: center;
-  background-color: white;
-  padding: 20px;
-  font-size: 22px;
-  width: 120%;
+	text-align: center;
+	background-color: white;
+	padding: 20px;
+	font-size: 22px;
+	width: 120%;
 }
 
 .row2 {
-  align-items: center;
-  margin: auto;
-  border-radius: 50%;
-  width: 100px;
-  height: 100px;
-  z-index: 0;
+	align-items: center;
+	margin: auto;
+	border-radius: 50%;
+	width: 100px;
+	height: 100px;
+	z-index: 0;
 }
 
-.person1, .person2, .person3 {
-  width: 100%;
-  height: auto;
+.person1,
+.person2,
+.person3 {
+	width: 100%;
+	height: auto;
 }
 
 .test-background {
-  position: absolute;
-  width: 105%;
-  height: 110%;
-  z-index: -1;
-  top: -30px;
-  left: -40px;
+	position: absolute;
+	width: 105%;
+	height: 110%;
+	z-index: -1;
+	top: -30px;
+	left: -40px;
 }
 
 #test-phrase {
-  text-align: center;
-  font-size: 28px;
-  margin-bottom: 20px;
-  grid-column: span 3;
+	text-align: center;
+	font-size: 28px;
+	margin-bottom: 20px;
+	grid-column: span 3;
 }

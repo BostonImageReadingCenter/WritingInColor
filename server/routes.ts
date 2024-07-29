@@ -14,7 +14,7 @@ import {
 	DecodeJWT,
 } from "./login";
 import { v4 as uuidv4 } from "uuid";
-import { origin, ROLES } from "./constants.js";
+import { COURSES, origin, ROLES, SVG } from "./constants.js";
 import {
 	LoginData,
 	LoginInitializationOptions,
@@ -89,6 +89,8 @@ async function routes(fastify: FastifyInstance, options) {
 		reply.code(200).header("Content-Type", "text/html").send(
 			nunjucks.render("index.html", {
 				user,
+				COURSES,
+				SVG,
 			})
 		);
 		return reply;
