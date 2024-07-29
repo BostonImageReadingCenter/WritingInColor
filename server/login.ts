@@ -215,9 +215,11 @@ export async function loginUserWithPasskey(
 function getReturn(ret: LoginDataReturn[], type: string) {
 	return ret.filter((x) => x.type === type)?.[0];
 }
+
 function getInputValue(ret: LoginDataReturn[], input: string) {
 	return (getReturn(ret, "input") as InputLoginDataReturn)?.values?.[input];
 }
+
 export async function* login(
 	database: Database,
 	options: LoginInitializationOptions
@@ -225,6 +227,8 @@ export async function* login(
 	let authenticationOptions: PublicKeyCredentialRequestOptionsJSON;
 	let verifyAuthentication: Function;
 	let result: LoginDataReturnPacket;
+
+	// conditionalUIOnly means that there is no login form.
 	let actions: Action[] = [];
 	if (!options.conditionalUIOnly) {
 		actions.push({
@@ -265,19 +269,17 @@ export async function* login(
 			assertionResponse,
 			verifyAuthentication
 		);
-		console.log("Login with passkey (conditional ui)", success !== false);
 		let actions = [];
-		if (success) {
+		if (success)
 			actions.push({
 				action: "redirect",
 				path: "/my-profile",
 			});
-		} else {
+		else
 			actions.push({
 				action: "error",
 				errors: ["Invalid passkey"],
 			});
-		}
 		return {
 			data: { success: success !== false },
 			setCookies: success || [],

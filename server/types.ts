@@ -325,6 +325,9 @@ export interface LoginData {
 export interface LoginInitializationOptions {
 	supportsWebAuthn: boolean;
 	supportsConditionalUI: boolean;
+	/**
+	 * If true, then this page has no login UI and should only use the Conditional UI (passkey, if one is saved for this site)
+	 */
 	conditionalUIOnly?: boolean;
 }
 export interface LoginDataReturnBase {

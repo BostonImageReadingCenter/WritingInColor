@@ -1,5 +1,3 @@
-import { Action } from "../../../server/types";
-
 const newProperties = {
 	setClass(...classes) {
 		for (let c of classes) {

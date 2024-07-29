@@ -27,7 +27,7 @@ var collectionMessageEl: HTMLElement,
 	collectionFormEl: HTMLFormElement,
 	collectionInputsEl: HTMLDivElement,
 	collectionFormNextButton: HTMLButtonElement,
-	hiddenData: HTMLDivElement,
+	hiddentDataEl: HTMLDivElement,
 	sessionID: string,
 	supportsWebAuthn: boolean,
 	supportsConditionalUI: boolean,
@@ -44,7 +44,7 @@ let collectionHandlers: ((event: SubmitEvent) => Promise<
 >)[] = [];
 let collectionFormSubmitHandler: (event: SubmitEvent) => Promise<void>;
 
-window.addEventListener("load", async (event) => {
+window.addEventListener("load", async (event: Event) => {
 	// Check if browser supports WebAuthn
 	supportsWebAuthn =
 		window.PublicKeyCredential &&
@@ -57,42 +57,6 @@ window.addEventListener("load", async (event) => {
 		(await PublicKeyCredential.isConditionalMediationAvailable());
 	for (let onload_function of onload) onload_function();
 });
-
-export async function initLoginPage() {
-	// Get HTML elements
-	collectionMessageEl = document.getElementById("collection-message");
-	collectionHeaderEl = document.getElementById("collection-header");
-	collectionFormEl = document.getElementById(
-		"collection-form"
-	) as HTMLFormElement;
-	collectionInputsEl = document.getElementById(
-		"collection-inputs"
-	) as HTMLDivElement;
-	collectionFormNextButton = document.getElementById(
-		"collection-form-next-button"
-	) as HTMLButtonElement;
-	documentDisplayBoxEl = document.getElementById("document-display-box");
-	hiddenData = document.getElementById("hidden-data") as HTMLDivElement;
-
-	// Initiate login
-	fetch("/api/login/init", {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-		},
-		body: JSON.stringify({
-			supportsWebAuthn,
-			supportsConditionalUI,
-			conditionalUIOnly: false,
-		} as LoginInitializationOptions),
-	}).then(async (response) => {
-		let json = await response.json();
-		sessionID = json.id;
-		authenticationOptions = json.value.authenticationOptions;
-		handleAction(json.value);
-		if (json.done) return;
-	});
-}
 
 /**
  * Handles actions from LoginData returned from the server
@@ -184,7 +148,7 @@ async function returnData(data: LoginDataReturn[] = []) {
  */
 async function collect(data: CollectionType) {
 	if (data.type === "email") {
-		hiddenData.querySelectorAll("input[name=email]").forEach((input) => {
+		hiddentDataEl.querySelectorAll("input[name=email]").forEach((input) => {
 			input.remove(); // Remove old inputs
 		});
 		let emailInputEl = createElement("input", {
@@ -206,7 +170,7 @@ async function collect(data: CollectionType) {
 				alert("Please enter a valid email.");
 				return false;
 			}
-			hiddenData.appendChild(
+			hiddentDataEl.appendChild(
 				createElement("input", {
 					attributes: {
 						type: "email",
@@ -298,9 +262,11 @@ async function collect(data: CollectionType) {
 			};
 		});
 	} else if (data.type === "create-password") {
-		hiddenData.querySelectorAll("input[name=new-password]").forEach((input) => {
-			input.remove(); // Remove old inputs
-		});
+		hiddentDataEl
+			.querySelectorAll("input[name=new-password]")
+			.forEach((input) => {
+				input.remove(); // Remove old inputs
+			});
 		let passwordInputEl = createElement("input", {
 			attributes: {
 				type: "password",
@@ -335,7 +301,7 @@ async function collect(data: CollectionType) {
 				alert(errors.join("\n"));
 				return false;
 			}
-			hiddenData.appendChild(
+			hiddentDataEl.appendChild(
 				createElement("input", {
 					attributes: {
 						type: "password",
@@ -354,7 +320,7 @@ async function collect(data: CollectionType) {
 			};
 		});
 	} else if (data.type === "get-password") {
-		hiddenData
+		hiddentDataEl
 			.querySelectorAll("input[name=current-password]")
 			.forEach((input) => {
 				input.remove(); // Remove old inputs
@@ -371,7 +337,7 @@ async function collect(data: CollectionType) {
 		}) as HTMLInputElement;
 		collectionInputsEl.appendChild(passwordInputEl);
 		collectionHandlers.push(async (event: SubmitEvent) => {
-			hiddenData.appendChild(
+			hiddentDataEl.appendChild(
 				createElement("input", {
 					attributes: {
 						type: "password",
@@ -403,7 +369,7 @@ async function collect(data: CollectionType) {
 		}) as HTMLInputElement;
 		collectionInputsEl.appendChild(telephoneInputEl);
 		collectionHandlers.push(async (event: SubmitEvent) => {
-			hiddenData.appendChild(
+			hiddentDataEl.appendChild(
 				createElement("input", {
 					attributes: {
 						type: "tel",
@@ -609,7 +575,24 @@ async function showUsePasskeyButton(data: OtherAction) {
 	);
 	collectionFormEl.appendChild(usePasskeyButton);
 }
-
+async function initLoginSession(conditionalUIOnly: boolean) {
+	let response = await fetch("/api/login/init", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify({
+			supportsWebAuthn,
+			supportsConditionalUI,
+			conditionalUIOnly,
+		} as LoginInitializationOptions),
+	});
+	let json = await response.json();
+	sessionID = json.id;
+	authenticationOptions = json.value.authenticationOptions;
+	handleAction(json.value);
+	return response;
+}
 export async function initPassiveLogin() {
 	let input = createElement("input", {
 		attributes: {
@@ -618,25 +601,33 @@ export async function initPassiveLogin() {
 		},
 	});
 	document.body.appendChild(input);
-	if (!(supportsWebAuthn && supportsConditionalUI)) {
-		return;
-	}
+	if (!(supportsWebAuthn && supportsConditionalUI)) return;
 	// Initiate login
-	fetch("/api/login/init", {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json",
-		},
-		body: JSON.stringify({
-			supportsWebAuthn,
-			supportsConditionalUI,
-			conditionalUIOnly: true,
-		} as LoginInitializationOptions),
-	}).then(async (response) => {
-		let json = await response.json();
-		sessionID = json.id;
-		authenticationOptions = json.value.authenticationOptions;
-		handleAction(json.value);
-		if (json.done) return;
-	});
+	initLoginSession(true);
+}
+
+export async function initLoginPage() {
+	// Get HTML elements
+	collectionMessageEl = document.getElementById(
+		"collection-message"
+	) as HTMLHeadingElement;
+	collectionHeaderEl = document.getElementById(
+		"collection-header"
+	) as HTMLHeadingElement;
+	collectionFormEl = document.getElementById(
+		"collection-form"
+	) as HTMLFormElement;
+	collectionInputsEl = document.getElementById(
+		"collection-inputs"
+	) as HTMLDivElement;
+	collectionFormNextButton = document.getElementById(
+		"collection-form-next-button"
+	) as HTMLButtonElement;
+	documentDisplayBoxEl = document.getElementById(
+		"document-display-box"
+	) as HTMLDivElement;
+	hiddentDataEl = document.getElementById("hidden-data") as HTMLDivElement;
+
+	// Initiate login
+	initLoginSession(false);
 }
