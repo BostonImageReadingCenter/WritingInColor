@@ -326,11 +326,63 @@ p {
 }
 
 @media (max-width: 768px) {
+	main {
+		padding: 1rem;
+	}
+	
+	.hero .container,
+	.mission .container {
+		grid-template-columns: 1fr;
+    gap: 10px;
+	}
+	.hero .text-section,
+	.mission .text-section {
+		font-size: large;
+    width: 70%;
+		padding: 10px;
+	}
+	
+	.hero .text-section,
+	.mission .text-section,
+	.hero .image-section,
+	.mission .image-section {
+    width: 72.5%;
+		grid-column: 1 / -1;
+	}
+	
+	.course-grid,
+	.testimonial-grid,
+	.founder-grid {
+    
+    justify-content:flex-end;
+		grid-template-columns: 1fr;
+	}
+	
 	.course {
 		max-width: 100%;
+    width: 300px;
+    height: 510px;
 	}
+  #site-title {
+    display: none;
+  }
+  #donate-button, 
+  #menu-button,
+  #login-icon{ 
+    justify-content: flex-end;
+  }
+  .header-container {
+    display: flex;
+    justify-content: flex-end;
+  }
+  .logo{ 
+    display: flex;
+    justify-content: flex-start; 
+    margin-right: auto;
+    left: -100px;
+  }
+ 
 }
-
 //Footer CSS
 footer {
 	background-color: #fff7ee;
