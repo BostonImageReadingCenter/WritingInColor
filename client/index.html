@@ -1,220 +1,265 @@
-{% extends "layout.html" %} {% block title %}Writing in Color – Home{% endblock %} {% block head %}{% endblock %} {% block body %}
+{% extends "layout.html" %} {% block title %}Writing in Color – Home{% endblock
+%} {% block head %}{% endblock %} {% block body %}
 <header id="header">
-			<div class="header-container">
-				<div class="logo">
-					<img
-						src="/static/media/image/logotype/WIC_Logo.svg"
-						alt="WIC Logo"
-						class="logo"
-					/>
-				</div>
-				<h1 id="site-title">Writing in Color</h1>
-
-				<div class="donate-container">
-					<button id="donate-button" class="donate-button">Donate</button>
-					<script>
-						document.getElementById("donate-button").onclick = function () {
-							window.location.href = "https://givebutter.com/l6Qr7d";
-						};
-					</script>
-				</div>
-				<div class="login-container">
-					<div class="hover-menu">
-						<img
-							src="/static/media/image/icon/person-circle.svg"
-							id="login-icon"
-							width="30"
-						/>
-						<!-- Login icon click handler -->
-						<script>
-							document.getElementById("login-icon").onclick = function () {
-								window.location.href = "/login";
-							};
-						</script>
-					</div>
-				</div>
-
-				<div id="menu-button">
-					<!-- Menu button content -->
-					<img src="/static/media/image/icon/Menu.svg" width="30" />
-					<img src="/static/media/image/icon/Menu-1.svg" width="30" />
-				</div>
-			</div>
-		</header>
-		<main>
-			<section class="hero">
-				<div class="container">
-					<div class="text-section">
-						<h1>
-							Teaching People of Color How to Write via Free Educational Writing
-							Courses
-						</h1>
-					</div>
-					<div class="image-section">
-						<img
-							src="static/media/image/logotype/main_image.svg"
-							alt="Main Image"
-						/>
-					</div>
-				</div>
-			</section>
-
-			<section class="courses">
-				<img
-					src="static/media/image/backgrounds/Vector 12.png"
-					class="background-image1"
-				/>
-				<div id="phrase">
-					<h2>Check it Out!</h2>
-				</div>
-				<h2>Currently Offered Courses</h2>
-				<div class="course-grid">
-					{% for course in COURSES %}
-					<div class="course">
-						<!-- Course details here -->
-						<div class="course-image">
-							<img src="{{ course.image }}" />
-						</div>
-						<div class="course-header">
-								<img src="static/media/image/icon/svg_education_icon.svg" class="education_icon"/>
-							<h3 class="course-name">{{ course.name }}</h3>
-						</div>
-						<p class="course-description">{{ course.description }}</p>
-						<div class="star-container">
-							{% set num_stars = 5 %}
-							{% set percentage = 100 * (course.rating / num_stars) %}
-							{% set overlay_width = 100 - percentage %}
-
-							{% for i in range(num_stars) %}
-								{{ SVG.star | safe }}
-							{% endfor %}
-							<div class="star-overlay" style="width:{{ overlay_width }}%"></div>
-						</div>
-						<div class="time_course">
-							<div class="time_course-item">
-								<img src="static/media/image/icon/svg_cursor.svg" class="cursor_icon" />
-								<p>{{ course.class_time }}</p>
-							</div>
-							<div class="time_course-item">
-								<img src="static/media/image/icon/time_icon.svg" class="time_icon"/>
-								<p>{{ course.course_duration }}</p>
-							</div>
-						</div>
-					</div>
-					{% endfor %}
-				</div>
-			</section>
-
-			<section class="mission">
-				<div class="container">
-					<div class="text-section">
-						<h2>What We Stand For</h2>
-						<p>
-							Writing in Color offers free writing courses for people of color.
-							Our organization was developed to create a space for people of
-							color to learn the value of reading articles by writers of color
-							as well as sharing their reflections as a class. We specifically
-							have chosen teachers who identify as people of color to create a
-							clear foundation of safety. Additionally, all sources and
-							references included in the curriculum are from writers of color.
-							Lastly, participants are invited to enroll in the writing courses
-							as a means to both share and heal collectively. While we do
-							lightly encourage publication of written pieces, the primary goal
-							is to create a culture of safety and teach concrete writing
-							skills.
-						</p>
-					</div>
-					<div class="image-section">
-						<img src="static/media/image/icon/mission.png" />
-					</div>
-				</div>
-			</section>
-
-			<section class="testimonials">
-				<img src="static/media/image/icon/testimonial-grad-bg.png" class="test-background" alt="Background Image"/>
-				<h2 id="test-phrase">Testimonials From Our Students</h2>
-				<div class="statement" style="background-image: url('static/media/image/icon/testimonial-bg.png');">
-					<div class="test-grid">
-						<p class="row-test">“This is such a unique opportunity and I’m so grateful I was able to be part of it.”</p>
-						<img src="static/media/image/icon/pfp1.png" class="row2"/>
-					</div>
-				</div>
-				<div class="statement" style="background-image: url('static/media/image/icon/testimonial-bg2.png');">
-					<div class="test-grid">
-						<p class="row-test">“The Writing in Color course was helpful in creating a space to improve my writing, connect with other writers, and provide me with thoughtful feedback and insights to writing OpEds.”</p>
-						<img src="static/media/image/icon/pfp2.png" class="row2"/>
-					</div>
-				</div>
-				<div class="statement" style="background-image: url('static/media/image/icon/testimonial-bg3.png');">
-					<div class="test-grid">
-						<p class="row-test">“I worried I might feel out of place because I hadn’t considered myself a writer before, but the workshop environment was very supportive and I learned even more than I expected.”</p>
-						<img src="static/media/image/icon/pfp3.png" class="row2"/>
-					</div>
-				</div>
-			</section>
-
-			<section class="founders">
-				<img src="static/media/image/icon/founders_background.png" class="founders-background" alt="Background Image"/>
-				<h1 id="other-font">Our Founders</h1>
-				<h2 id="founder-phrase">Meet The Ones Making This Possible</h2>
-				<div class="founder">
-				<img src="static/media/image/icon/farah_pfp.png" class="farah" alt="Farah Dadabhoy"/>
-				<div class="sub-grid">
-					<h3 class="row1">Farah Dadabhoy, MD, MS</h3>
-					<h4 class="row">Co-Founder, Executive Director</h4>
-					<h4 class="row">Farah Dadabhoy is a Clinical Instructor at Harvard Medical School and a Pain Medicine Fellow at Brigham and Women’s Hospital.</h4>
-				</div>
-				</div>
-				<div class="founder">
-				<img src="static/media/image/icon/adaira_pfp.png" class="adaira" alt="Adaira Landry"/>
-				<div class="sub-grid">
-					<h3 class="row1">Adaira Landry, MD MEd</h3>
-					<h4 class="row">Co-Founder, Executive Director</h4>
-					<h4 class="row">Adaira Landry is an Assistant Professor at Harvard Medical School and an Emergency Medicine Physician at Brigham and Women’s Hospital.</h4>
-				</div>
-				</div>
-			</section>
-		</main>
-	</body>
-	<footer>
-		<!-- TODO: put global footer content here. -->
-		<section class="icons">
+	<div class="header-container">
+		<div class="logo">
 			<img
 				src="/static/media/image/logotype/WIC_Logo.svg"
-				class="footer-logo"
+				alt="WIC Logo"
+				class="logo"
 			/>
-			<p class="footer-phrase">Get in Touch</p>
-			<div class="social-icons-container">
-				<img src="/static/media/image/icon/instagram.png" id="social-insta" />
-				<img src="/static/media/image/icon/X.png" id="social-X" />
-				<img src="/static/media/image/icon/facebook.png" id="social-fb" />
+		</div>
+		<h1 id="site-title">Writing in Color</h1>
+
+		<div class="donate-container">
+			<button id="donate-button" class="donate-button">Donate</button>
+			<script>
+				document.getElementById("donate-button").onclick = function () {
+					window.location.href = "https://givebutter.com/l6Qr7d";
+				};
+			</script>
+		</div>
+		<div class="login-container">
+			<div class="hover-menu">
+				<img
+					src="/static/media/image/icon/person-circle.svg"
+					id="login-icon"
+					width="30"
+				/>
+				<!-- Login icon click handler -->
 				<script>
-					document.getElementById("social-fb").onclick = function () {
-						window.location.href = "https://www.facebook.com/squarespace";
-					};
-					document.getElementById("social-X").onclick = function () {
-						window.location.href = "https://x.com/squarespace";
-					};
-					document.getElementById("social-insta").onclick = function () {
-						window.location.href = "https://www.instagram.com/squarespace/";
+					document.getElementById("login-icon").onclick = function () {
+						window.location.href = "/login";
 					};
 				</script>
 			</div>
-			<img src="/static/media/image/icon/Button.png" class="button-email" /> 
-			<!-- Personally, I would use a button here instead of an image -->
-			<img src="/static/media/image/icon/Line 1.png" class="seperate" />
-			<!-- You could just style up a hr for this as well. -->
-		</section>
-		<section class="guidelines">
-			<p class="privacy">
-				Privacy Notice | Terms of Use | Student Guidelines
-			</p>
-			<p class="nonprofit">
-				Writing in Color is fiscally sponsored by NOPI - Nonprofit Incubator,
-				a program of NOPI INC, a Massachusetts nonprofit corporation and
-				501(c)(3) organization, EIN 81-5089505. Learn more at
-				https://thenopi.org.
-			</p>
-		</section>
-	</footer>
+		</div>
+
+		<div id="menu-button">
+			<!-- Menu button content -->
+			<img src="/static/media/image/icon/Menu.svg" width="30" />
+			<img src="/static/media/image/icon/Menu-1.svg" width="30" />
+		</div>
+	</div>
+</header>
+<main>
+	<section class="hero">
+		<div class="container">
+			<div class="text-section">
+				<h1>
+					Teaching People of Color How to Write via Free Educational Writing
+					Courses
+				</h1>
+			</div>
+			<div class="image-section">
+				<img
+					src="static/media/image/logotype/main_image.svg"
+					alt="Main Image"
+				/>
+			</div>
+		</div>
+	</section>
+
+	<section class="courses">
+		<img
+			src="static/media/image/backgrounds/Vector 12.png"
+			class="background-image1"
+		/>
+		<div id="phrase">
+			<h2>Check it Out!</h2>
+		</div>
+		<h2>Currently Offered Courses</h2>
+		<div class="course-grid">
+			{% for course in COURSES %}
+			<div class="course">
+				<!-- Course details here -->
+				<img src="{{ course.image }}" class="course-image" />
+				<div class="course-header">
+					<img
+						src="static/media/image/icon/svg_education_icon.svg"
+						class="education_icon"
+					/>
+					<h3 class="course-name">{{ course.name }}</h3>
+				</div>
+				<p class="course-description">{{ course.description }}</p>
+				<div class="star-container">
+					{% set num_stars = 5 %} {% set percentage = 100 * (course.rating /
+					num_stars) %} {% set overlay_width = 100 - percentage %} {% for i in
+					range(num_stars) %} {{ SVG.star | safe }} {% endfor %}
+					<div class="star-overlay" style="width:{{ overlay_width }}%"></div>
+				</div>
+				<div class="time_course-item class-time">
+					<img
+						src="static/media/image/icon/svg_cursor.svg"
+						class="cursor_icon"
+					/>
+					<p>{{ course.class_time }}</p>
+				</div>
+				<div class="time_course-item course-duration">
+					<img src="static/media/image/icon/time_icon.svg" class="time_icon" />
+					<p>{{ course.course_duration }}</p>
+				</div>
+			</div>
+			{% endfor %}
+		</div>
+	</section>
+
+	<section class="mission">
+		<div class="container">
+			<div class="image-section">
+				<img src="static/media/image/icon/mission.png" />
+			</div>
+			<div class="text-section">
+				<h2>What We Stand For</h2>
+				<p>
+					Writing in Color offers free writing courses for people of color. Our
+					organization was developed to create a space for people of color to
+					learn the value of reading articles by writers of color as well as
+					sharing their reflections as a class. We specifically have chosen
+					teachers who identify as people of color to create a clear foundation
+					of safety. Additionally, all sources and references included in the
+					curriculum are from writers of color. Lastly, participants are invited
+					to enroll in the writing courses as a means to both share and heal
+					collectively. While we do lightly encourage publication of written
+					pieces, the primary goal is to create a culture of safety and teach
+					concrete writing skills.
+				</p>
+			</div>
+		</div>
+	</section>
+
+	<section id="testimonial-section">
+		<img
+			src="static/media/image/icon/testimonial-grad-bg.png"
+			class="testimonial-background"
+			alt="Background Image"
+		/>
+		<h2 id="testimonial-header">Testimonials From Our Students</h2>
+		<div class="testimonials">
+			<div
+				class="statement"
+				style="
+					background-image: url('static/media/image/icon/testimonial-bg.png');
+				"
+			>
+				<div class="test-grid">
+					<p class="row-test">
+						“This is such a unique opportunity and I’m so grateful I was able to
+						be part of it.”
+					</p>
+					<img src="static/media/image/icon/pfp1.png" class="row2" />
+				</div>
+			</div>
+			<div
+				class="statement"
+				style="
+					background-image: url('static/media/image/icon/testimonial-bg2.png');
+				"
+			>
+				<div class="test-grid">
+					<p class="row-test">
+						“The Writing in Color course was helpful in creating a space to
+						improve my writing, connect with other writers, and provide me with
+						thoughtful feedback and insights to writing OpEds.”
+					</p>
+					<img src="static/media/image/icon/pfp2.png" class="row2" />
+				</div>
+			</div>
+			<div
+				class="statement"
+				style="
+					background-image: url('static/media/image/icon/testimonial-bg3.png');
+				"
+			>
+				<div class="test-grid">
+					<p class="row-test">
+						“I worried I might feel out of place because I hadn’t considered
+						myself a writer before, but the workshop environment was very
+						supportive and I learned even more than I expected.”
+					</p>
+					<img src="static/media/image/icon/pfp3.png" class="row2" />
+				</div>
+			</div>
+		</div>
+	</section>
+
+	<section class="founders">
+		<img
+			src="static/media/image/icon/founders_background.png"
+			class="founders-background"
+			alt="Background Image"
+		/>
+		<h1 id="other-font">Our Founders</h1>
+		<h2 id="founder-phrase">Meet The Ones Making This Possible</h2>
+		<div class="founders-container">
+			<div class="founder">
+				<img
+					src="static/media/image/icon/farah_pfp.png"
+					id="farah-image"
+					class="founder-image"
+					alt="Farah Dadabhoy"
+				/>
+				<div class="founder-info">
+					<span class="founder-name">Farah Dadabhoy, MD, MS</span>
+					<span class="founder-role">Co-Founder, Executive Director</span>
+					<span class="founder-bio">
+						Farah Dadabhoy is a Clinical Instructor at Harvard Medical School
+						and a Pain Medicine Fellow at Brigham and Women’s Hospital.
+					</span>
+				</div>
+			</div>
+			<div class="founder">
+				<img
+					src="static/media/image/icon/adaira_pfp.png"
+					id="adaira-image"
+					class="founder-image"
+					alt="Adaira Landry"
+				/>
+				<div class="founder-info">
+					<span class="founder-name">Adaira Landry, MD MEd</span>
+					<span class="founder-role">Co-Founder, Executive Director</span>
+					<span class="founder-bio">
+						Adaira Landry is an Assistant Professor at Harvard Medical School
+						and an Emergency Medicine Physician at Brigham and Women’s Hospital.
+					</span>
+				</div>
+			</div>
+		</div>
+	</section>
+</main>
+<footer>
+	<!-- TODO: put global footer content here. -->
+	<section class="icons">
+		<img src="/static/media/image/logotype/WIC_Logo.svg" class="footer-logo" />
+		<p class="footer-phrase">Get in Touch</p>
+		<div class="social-icons-container">
+			<img src="/static/media/image/icon/instagram.png" id="social-insta" />
+			<img src="/static/media/image/icon/X.png" id="social-X" />
+			<img src="/static/media/image/icon/facebook.png" id="social-fb" />
+			<script>
+				document.getElementById("social-fb").onclick = function () {
+					window.location.href = "https://www.facebook.com/squarespace";
+				};
+				document.getElementById("social-X").onclick = function () {
+					window.location.href = "https://x.com/squarespace";
+				};
+				document.getElementById("social-insta").onclick = function () {
+					window.location.href = "https://www.instagram.com/squarespace/";
+				};
+			</script>
+		</div>
+		<img src="/static/media/image/icon/Button.png" class="button-email" />
+		<!-- Personally, I would use a button here instead of an image -->
+		<img src="/static/media/image/icon/Line 1.png" class="seperate" />
+		<!-- You could just style up a hr for this as well. -->
+	</section>
+	<section class="guidelines">
+		<p class="privacy">Privacy Notice | Terms of Use | Student Guidelines</p>
+		<p class="nonprofit">
+			Writing in Color is fiscally sponsored by NOPI - Nonprofit Incubator, a
+			program of NOPI INC, a Massachusetts nonprofit corporation and 501(c)(3)
+			organization, EIN 81-5089505. Learn more at https://thenopi.org.
+		</p>
+	</section>
+</footer>
 {% endblock %}
