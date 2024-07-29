@@ -72,16 +72,14 @@
 					{% for course in COURSES %}
 					<div class="course">
 						<!-- Course details here -->
-						<div class="image_course1">
+						<div class="course-image">
 							<img src="{{ course.image }}" />
 						</div>
 						<div class="course-header">
-							<div class="education_icon">
-								<img src="static/media/image/icon/svg_education_icon.svg" />
-							</div>
-							<h3>{{ course.name }}</h3>
+								<img src="static/media/image/icon/svg_education_icon.svg" class="education_icon"/>
+							<h3 class="course-name">{{ course.name }}</h3>
 						</div>
-						<p>{{ course.description }}</p>
+						<p class="course-description">{{ course.description }}</p>
 						<div class="star-container">
 							{% set num_stars = 5 %}
 							{% set percentage = 100 * (course.rating / num_stars) %}
@@ -94,15 +92,11 @@
 						</div>
 						<div class="time_course">
 							<div class="time_course-item">
-								<div class="cursor_icon">
-									<img src="static/media/image/icon/svg_cursor.svg" />
-								</div>
+								<img src="static/media/image/icon/svg_cursor.svg" class="cursor_icon" />
 								<p>{{ course.class_time }}</p>
 							</div>
 							<div class="time_course-item">
-								<div class="time_icon">
-									<img src="static/media/image/icon/time_icon.svg" />
-								</div>
+								<img src="static/media/image/icon/time_icon.svg" class="time_icon"/>
 								<p>{{ course.course_duration }}</p>
 							</div>
 						</div>
