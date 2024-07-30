@@ -1,8 +1,8 @@
 @import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,100..900,0..100,0..1;1,9..144,100..900,0..100,0..1&display=swap");
 $light-background-color: #ffe8ce;
 $lighter-background-color: #fff7ee;
-$border-input-color: #B8B8B8;
-body{ 
+$border-input-color: #b8b8b8;
+body {
 	background-color: $light-background-color;
 }
 html * {
@@ -13,17 +13,16 @@ html * {
 
 input[type="email"] {
 	width: 400px;
-	height:auto;
-    padding: 10px;
+	height: auto;
+	padding: 10px;
 	justify-content: flex-start;
-    margin: 8px 0;
-    box-sizing: border-box;
-    border: 1px solid $border-input-color;
-    border-radius: 10px;
-    font-size: 16px;
-    background-color: $light-background-color;
-    color: #333;
-	
+	margin: 8px 0;
+	box-sizing: border-box;
+	border: 1px solid $border-input-color;
+	border-radius: 10px;
+	font-size: 16px;
+	background-color: $light-background-color;
+	color: #333;
 }
 
 input[type="password"] {
@@ -47,3 +46,15 @@ input[type="text"] {
 	cursor: pointer;
 }
 // etc...
+
+.document-display-box {
+	width: 500px;
+	height: 500px;
+	max-width: 100%;
+	max-height: calc(100% - 200px);
+	overflow-y: scroll;
+	text-wrap: wrap;
+	word-wrap: break-word;
+	border: 2px solid black;
+	padding: 10px;
+}

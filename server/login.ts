@@ -235,7 +235,8 @@ export async function* login(
 			action: "collect",
 			types: [{ type: "email" }],
 			header: "Log In",
-			message: "By continuing, you agree to the Terms of Use and Privacy Policy.",
+			message:
+				"By continuing, you agree to the Terms of Use and Privacy Policy.",
 		});
 	}
 
@@ -313,7 +314,7 @@ export async function* login(
 				actions: [
 					{
 						action: "collect",
-						types: [{ type: "binary" }],
+						types: [{ type: "binary", submits: true }],
 						header: "Create an Account?",
 						message:
 							"You don't have an account yet. Would you like to create one?",
@@ -331,7 +332,7 @@ export async function* login(
 					{
 						action: "collect",
 						types: [
-							{ type: "binary" },
+							{ type: "binary", submits: true },
 							{
 								type: "show-document",
 								html: ToS,

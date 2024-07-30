@@ -71,6 +71,7 @@ async function handleAction(data: LoginData) {
 			collectionInputsEl.innerHTML = "";
 			collectionMessageEl.innerText = item.message;
 			collectionHeaderEl.innerText = item.header;
+			collectionFormNextButton.style.display = "block";
 			collectionHandlers = [];
 			for (let type of item.types) collect(type);
 			collectionFormSubmitHandler = async (event: SubmitEvent) => {
@@ -79,8 +80,8 @@ async function handleAction(data: LoginData) {
 				for (let handler of collectionHandlers) {
 					let value = await handler(event);
 					if (value === false) {
-						collectionFormEl.addEventListener(
-							"submit",
+						collectionFormNextButton.addEventListener(
+							"click",
 							collectionFormSubmitHandler,
 							{
 								once: true,
@@ -98,9 +99,13 @@ async function handleAction(data: LoginData) {
 					},
 				]);
 			};
-			collectionFormEl.addEventListener("submit", collectionFormSubmitHandler, {
-				once: true,
-			});
+			collectionFormNextButton.addEventListener(
+				"click",
+				collectionFormSubmitHandler,
+				{
+					once: true,
+				}
+			);
 		} else if (item.action === "register-passkey") {
 			registerPasskey(item);
 		} else if (item.action === "authenticate-passkey") {
@@ -189,6 +194,9 @@ async function collect(data: CollectionType) {
 			};
 		});
 	} else if (data.type === "binary") {
+		if (data.submits === true) {
+			collectionFormNextButton.style.display = "none";
+		}
 		let yesButtonEl = createElement("button", {
 			attributes: {},
 			classes: [],
@@ -208,6 +216,9 @@ async function collect(data: CollectionType) {
 			"click",
 			async (event) => {
 				value = true;
+				if (data.submits === true) {
+					collectionFormNextButton.dispatchEvent(new PointerEvent("click"));
+				}
 			},
 			{
 				once: true,
@@ -217,6 +228,9 @@ async function collect(data: CollectionType) {
 			"click",
 			async (event) => {
 				value = false;
+				if (data.submits === true) {
+					collectionFormNextButton.dispatchEvent(new PointerEvent("click"));
+				}
 			},
 			{
 				once: true,
@@ -423,6 +437,7 @@ async function collect(data: CollectionType) {
 			};
 		});
 	} else if (data.type === "show-document") {
+		console.log("show-document");
 		documentDisplayBoxEl.innerHTML = data.html;
 		if (data.required) {
 			collectionFormNextButton.disabled = true;

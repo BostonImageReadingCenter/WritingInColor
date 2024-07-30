@@ -207,6 +207,10 @@ export interface ChoiceCollectionType extends CollectionTypeBase {
 	type: "choice";
 	options: string;
 }
+export interface BinaryCollectionType extends CollectionTypeBase {
+	type: "binary";
+	submits: boolean;
+}
 export interface ShowDocumentCollectionType extends CollectionTypeBase {
 	type: "show-document";
 	html: string;
@@ -217,13 +221,14 @@ export interface CreatePasswordCollectionType extends CollectionTypeBase {
 	requirements: PasswordRequirements;
 }
 export interface OtherCollectionType extends CollectionTypeBase {
-	type: "email" | "binary" | "get-password" | "telephone" | "text" | "url";
+	type: "email" | "get-password" | "telephone" | "text" | "url";
 }
 export type CollectionType =
 	| OtherCollectionType
 	| ChoiceCollectionType
 	| ShowDocumentCollectionType
-	| CreatePasswordCollectionType;
+	| CreatePasswordCollectionType
+	| BinaryCollectionType;
 
 /*
 
