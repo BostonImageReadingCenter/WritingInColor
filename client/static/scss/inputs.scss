@@ -1,5 +1,29 @@
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,100..900,0..100,0..1;1,9..144,100..900,0..100,0..1&display=swap");
+$light-background-color: #ffe8ce;
+$lighter-background-color: #fff7ee;
+$border-input-color: #B8B8B8;
+body{ 
+	background-color: $light-background-color;
+}
+html * {
+	font-family: "Fraunces", serif;
+	font-weight: 400;
+	font-style: normal;
+}
+
 input[type="email"] {
-	// Styles for email input
+	width: 400px;
+	height:auto;
+    padding: 10px;
+	justify-content: flex-start;
+    margin: 8px 0;
+    box-sizing: border-box;
+    border: 1px solid $border-input-color;
+    border-radius: 10px;
+    font-size: 16px;
+    background-color: $light-background-color;
+    color: #333;
+	
 }
 
 input[type="password"] {
@@ -8,5 +32,18 @@ input[type="password"] {
 
 input[type="text"] {
 	// Styles for text input
+}
+
+#collection-form-next-button {
+	border-radius: 20px;
+	border: transparent;
+	font-size: 18px;
+	background-color: $light-background-color;
+	width: 30%;
+	padding: 10px;
+	font-weight: 300;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
 }
 // etc...
