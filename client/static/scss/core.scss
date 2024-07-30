@@ -1,6 +1,4 @@
-//@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&display=swap');
 @import url("https://fonts.googleapis.com/css2?family=Montserrat+Subrayada&display=swap");
-//@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz@9..144&display=swap');
 @import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,100..900,0..100,0..1;1,9..144,100..900,0..100,0..1&display=swap");
 // Lato
 @import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Inter:wght@100..900&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap");
@@ -150,6 +148,9 @@ main {
 	.image-section {
 		flex: 3;
 		min-width: 480px;
+		img {
+			box-shadow: 0 0 8px 8px $light-background-color inset;
+		}
 	}
 }
 .mission .container {
@@ -268,12 +269,16 @@ p {
 		}
 		.course-header {
 			display: flex;
+			padding: 10px 0;
 			align-items: center;
 			gap: 10px;
 			justify-content: center;
+			img {
+				margin: 0;
+			}
 			h3 {
 				flex: 1;
-				margin: 10px 0;
+				margin: 0;
 				font-size: 1.4em;
 			}
 		}
@@ -306,12 +311,11 @@ p {
 	display: inline-flex;
 	align-items: center;
 	position: relative;
-	gap: 2px;
+	gap: 5px;
 	justify-content: space-evenly;
 }
 
 .star-container svg {
-	width: 1em;
 	display: flex;
 	color: gold;
 }
