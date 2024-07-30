@@ -45,12 +45,10 @@
 <main>
 	<section class="hero">
 		<div class="container">
-			<div class="text-section">
-				<h1>
-					Teaching People of Color How to Write via Free Educational Writing
-					Courses
-				</h1>
-			</div>
+			<h1 class="text-section">
+				Teaching People of Color How to Write via Free Educational Writing
+				Courses
+			</h1>
 			<div class="image-section">
 				<img
 					src="static/media/image/logotype/main_image.svg"
@@ -81,13 +79,13 @@
 					/>
 					<h3 class="course-name">{{ course.name }}</h3>
 				</div>
-				<p class="course-description">{{ course.description }}</p>
 				<div class="star-container">
 					{% set num_stars = 5 %} {% set percentage = 100 * (course.rating /
 					num_stars) %} {% set overlay_width = 100 - percentage %} {% for i in
 					range(num_stars) %} {{ SVG.star | safe }} {% endfor %}
 					<div class="star-overlay" style="width:{{ overlay_width }}%"></div>
 				</div>
+				<p class="course-description">{{ course.description }}</p>
 				<div class="time_course-item class-time">
 					<img
 						src="static/media/image/icon/svg_cursor.svg"
