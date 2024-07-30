@@ -425,11 +425,18 @@ footer {
 	height: 35px;
 }
 
-.button-email {
-	cursor: pointer;
-	width: 80px;
-	height: auto;
+#email-button {
+	background-color: black;
+    color: white;
+    padding: 10px 20px; 
+    border: none; 
+    border-radius: 5px; 
+    font-size: 15px; 
+    cursor: pointer; 
+	align-items: center;
+	justify-content: center;
 	margin-top: 15px;
+    
 }
 
 .seperate {
