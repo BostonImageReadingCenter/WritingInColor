@@ -1,5 +1,7 @@
 {% extends "layout.html" %} {% block title %}Writing in Color – Home{% endblock
-%} {% block head %}{% endblock %} {% block body %}
+%} {% block head %}
+<link rel="stylesheet" href="/static/css/home.css" />
+{% endblock %} {% block body %}
 <header id="header">
 	<div class="header-container">
 		<div class="logo">
@@ -43,187 +45,193 @@
 	</div>
 </header>
 <main>
-	<section class="hero">
-		<div class="container">
-			<h1 class="text-section">
-				Teaching People of Color How to Write via Free Educational Writing
-				Courses
-			</h1>
-			<div class="image-section">
-				<img
-					src="static/media/image/logotype/main_image.svg"
-					alt="Main Image"
-				/>
-			</div>
-		</div>
-	</section>
-
-	<section class="courses">
-		<img
-			src="static/media/image/backgrounds/Vector 12.png"
-			class="background-image1"
-		/>
-		<div id="phrase">
-			<h2>Check it Out!</h2>
-		</div>
-		<h2>Currently Offered Courses</h2>
-		<div class="course-grid">
-			{% for course in COURSES %}
-			<div class="course">
-				<!-- Course details here -->
-				<img src="{{ course.image }}" class="course-image" />
-				<div class="course-header">
+	<div id="homepage-content-wrapper">
+		<section class="hero">
+			<div class="container">
+				<h1 class="text-section">
+					Teaching People of Color How to Write via Free Educational Writing
+					Courses
+				</h1>
+				<div class="image-section">
 					<img
-						src="static/media/image/icon/svg_education_icon.svg"
-						class="education_icon"
+						src="static/media/image/logotype/main_image.svg"
+						alt="Main Image"
 					/>
-					<h3 class="course-name">{{ course.name }}</h3>
 				</div>
-				<div class="star-container">
-					{% set num_stars = 5 %} {% set percentage = 100 * (course.rating /
-					num_stars) %} {% set overlay_width = 100 - percentage %} {% for i in
-					range(num_stars) %} {{ SVG.star | safe }} {% endfor %}
-					<div class="star-overlay" style="width:{{ overlay_width }}%"></div>
+			</div>
+		</section>
+
+		<section class="courses">
+			<img
+				src="static/media/image/backgrounds/Vector 12.png"
+				class="background-image1"
+			/>
+			<div id="phrase">
+				<h2>Check it Out!</h2>
+			</div>
+			<h2>Currently Offered Courses</h2>
+			<div class="course-grid">
+				{% for course in COURSES %}
+				<div class="course">
+					<!-- Course details here -->
+					<img src="{{ course.image }}" class="course-image" />
+					<div class="course-header">
+						<img
+							src="static/media/image/icon/svg_education_icon.svg"
+							class="education_icon"
+						/>
+						<h3 class="course-name">{{ course.name }}</h3>
+					</div>
+					<div class="star-container">
+						{% set num_stars = 5 %} {% set percentage = 100 * (course.rating /
+						num_stars) %} {% set overlay_width = 100 - percentage %} {% for i in
+						range(num_stars) %} {{ SVG.star | safe }} {% endfor %}
+						<div class="star-overlay" style="width:{{ overlay_width }}%"></div>
+					</div>
+					<p class="course-description">{{ course.description }}</p>
+					<div class="time_course-item class-time">
+						<img
+							src="static/media/image/icon/svg_cursor.svg"
+							class="cursor_icon"
+						/>
+						<p>{{ course.class_time }}</p>
+					</div>
+					<div class="time_course-item course-duration">
+						<img
+							src="static/media/image/icon/time_icon.svg"
+							class="time_icon"
+						/>
+						<p>{{ course.course_duration }}</p>
+					</div>
 				</div>
-				<p class="course-description">{{ course.description }}</p>
-				<div class="time_course-item class-time">
+				{% endfor %}
+			</div>
+		</section>
+
+		<section class="mission">
+			<div class="container">
+				<div class="image-section">
+					<img src="static/media/image/icon/mission.png" />
+				</div>
+				<div class="text-section">
+					<h2>What We Stand For</h2>
+					<p>
+						Writing in Color offers free writing courses for people of color.
+						Our organization was developed to create a space for people of color
+						to learn the value of reading articles by writers of color as well
+						as sharing their reflections as a class. We specifically have chosen
+						teachers who identify as people of color to create a clear
+						foundation of safety. Additionally, all sources and references
+						included in the curriculum are from writers of color. Lastly,
+						participants are invited to enroll in the writing courses as a means
+						to both share and heal collectively. While we do lightly encourage
+						publication of written pieces, the primary goal is to create a
+						culture of safety and teach concrete writing skills.
+					</p>
+				</div>
+			</div>
+		</section>
+
+		<section id="testimonial-section">
+			<img
+				src="static/media/image/icon/testimonial-grad-bg.png"
+				class="testimonial-background"
+				alt="Background Image"
+			/>
+			<h2 id="testimonial-header">Testimonials From Our Students</h2>
+			<div class="testimonials">
+				<div
+					class="statement"
+					style="
+						background-image: url('static/media/image/icon/testimonial-bg.png');
+					"
+				>
+					<div class="test-grid">
+						<p class="row-test">
+							“This is such a unique opportunity and I’m so grateful I was able
+							to be part of it.”
+						</p>
+						<img src="static/media/image/icon/pfp1.png" class="row2" />
+					</div>
+				</div>
+				<div
+					class="statement"
+					style="
+						background-image: url('static/media/image/icon/testimonial-bg2.png');
+					"
+				>
+					<div class="test-grid">
+						<p class="row-test">
+							“The Writing in Color course was helpful in creating a space to
+							improve my writing, connect with other writers, and provide me
+							with thoughtful feedback and insights to writing OpEds.”
+						</p>
+						<img src="static/media/image/icon/pfp2.png" class="row2" />
+					</div>
+				</div>
+				<div
+					class="statement"
+					style="
+						background-image: url('static/media/image/icon/testimonial-bg3.png');
+					"
+				>
+					<div class="test-grid">
+						<p class="row-test">
+							“I worried I might feel out of place because I hadn’t considered
+							myself a writer before, but the workshop environment was very
+							supportive and I learned even more than I expected.”
+						</p>
+						<img src="static/media/image/icon/pfp3.png" class="row2" />
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section class="founders">
+			<img
+				src="static/media/image/icon/founders_background.png"
+				class="founders-background"
+				alt="Background Image"
+			/>
+			<h1 id="other-font">Our Founders</h1>
+			<h2 id="founder-phrase">Meet The Ones Making This Possible</h2>
+			<div class="founders-container">
+				<div class="founder">
 					<img
-						src="static/media/image/icon/svg_cursor.svg"
-						class="cursor_icon"
+						src="static/media/image/icon/farah_pfp.png"
+						id="farah-image"
+						class="founder-image"
+						alt="Farah Dadabhoy"
 					/>
-					<p>{{ course.class_time }}</p>
+					<div class="founder-info">
+						<span class="founder-name">Farah Dadabhoy, MD, MS</span>
+						<span class="founder-role">Co-Founder, Executive Director</span>
+						<span class="founder-bio">
+							Farah Dadabhoy is a Clinical Instructor at Harvard Medical School
+							and a Pain Medicine Fellow at Brigham and Women’s Hospital.
+						</span>
+					</div>
 				</div>
-				<div class="time_course-item course-duration">
-					<img src="static/media/image/icon/time_icon.svg" class="time_icon" />
-					<p>{{ course.course_duration }}</p>
-				</div>
-			</div>
-			{% endfor %}
-		</div>
-	</section>
-
-	<section class="mission">
-		<div class="container">
-			<div class="image-section">
-				<img src="static/media/image/icon/mission.png" />
-			</div>
-			<div class="text-section">
-				<h2>What We Stand For</h2>
-				<p>
-					Writing in Color offers free writing courses for people of color. Our
-					organization was developed to create a space for people of color to
-					learn the value of reading articles by writers of color as well as
-					sharing their reflections as a class. We specifically have chosen
-					teachers who identify as people of color to create a clear foundation
-					of safety. Additionally, all sources and references included in the
-					curriculum are from writers of color. Lastly, participants are invited
-					to enroll in the writing courses as a means to both share and heal
-					collectively. While we do lightly encourage publication of written
-					pieces, the primary goal is to create a culture of safety and teach
-					concrete writing skills.
-				</p>
-			</div>
-		</div>
-	</section>
-
-	<section id="testimonial-section">
-		<img
-			src="static/media/image/icon/testimonial-grad-bg.png"
-			class="testimonial-background"
-			alt="Background Image"
-		/>
-		<h2 id="testimonial-header">Testimonials From Our Students</h2>
-		<div class="testimonials">
-			<div
-				class="statement"
-				style="
-					background-image: url('static/media/image/icon/testimonial-bg.png');
-				"
-			>
-				<div class="test-grid">
-					<p class="row-test">
-						“This is such a unique opportunity and I’m so grateful I was able to
-						be part of it.”
-					</p>
-					<img src="static/media/image/icon/pfp1.png" class="row2" />
+				<div class="founder">
+					<img
+						src="static/media/image/icon/adaira_pfp.png"
+						id="adaira-image"
+						class="founder-image"
+						alt="Adaira Landry"
+					/>
+					<div class="founder-info">
+						<span class="founder-name">Adaira Landry, MD MEd</span>
+						<span class="founder-role">Co-Founder, Executive Director</span>
+						<span class="founder-bio">
+							Adaira Landry is an Assistant Professor at Harvard Medical School
+							and an Emergency Medicine Physician at Brigham and Women’s
+							Hospital.
+						</span>
+					</div>
 				</div>
 			</div>
-			<div
-				class="statement"
-				style="
-					background-image: url('static/media/image/icon/testimonial-bg2.png');
-				"
-			>
-				<div class="test-grid">
-					<p class="row-test">
-						“The Writing in Color course was helpful in creating a space to
-						improve my writing, connect with other writers, and provide me with
-						thoughtful feedback and insights to writing OpEds.”
-					</p>
-					<img src="static/media/image/icon/pfp2.png" class="row2" />
-				</div>
-			</div>
-			<div
-				class="statement"
-				style="
-					background-image: url('static/media/image/icon/testimonial-bg3.png');
-				"
-			>
-				<div class="test-grid">
-					<p class="row-test">
-						“I worried I might feel out of place because I hadn’t considered
-						myself a writer before, but the workshop environment was very
-						supportive and I learned even more than I expected.”
-					</p>
-					<img src="static/media/image/icon/pfp3.png" class="row2" />
-				</div>
-			</div>
-		</div>
-	</section>
-
-	<section class="founders">
-		<img
-			src="static/media/image/icon/founders_background.png"
-			class="founders-background"
-			alt="Background Image"
-		/>
-		<h1 id="other-font">Our Founders</h1>
-		<h2 id="founder-phrase">Meet The Ones Making This Possible</h2>
-		<div class="founders-container">
-			<div class="founder">
-				<img
-					src="static/media/image/icon/farah_pfp.png"
-					id="farah-image"
-					class="founder-image"
-					alt="Farah Dadabhoy"
-				/>
-				<div class="founder-info">
-					<span class="founder-name">Farah Dadabhoy, MD, MS</span>
-					<span class="founder-role">Co-Founder, Executive Director</span>
-					<span class="founder-bio">
-						Farah Dadabhoy is a Clinical Instructor at Harvard Medical School
-						and a Pain Medicine Fellow at Brigham and Women’s Hospital.
-					</span>
-				</div>
-			</div>
-			<div class="founder">
-				<img
-					src="static/media/image/icon/adaira_pfp.png"
-					id="adaira-image"
-					class="founder-image"
-					alt="Adaira Landry"
-				/>
-				<div class="founder-info">
-					<span class="founder-name">Adaira Landry, MD MEd</span>
-					<span class="founder-role">Co-Founder, Executive Director</span>
-					<span class="founder-bio">
-						Adaira Landry is an Assistant Professor at Harvard Medical School
-						and an Emergency Medicine Physician at Brigham and Women’s Hospital.
-					</span>
-				</div>
-			</div>
-		</div>
-	</section>
+		</section>
+	</div>
 </main>
 <footer>
 	<!-- TODO: put global footer content here. -->

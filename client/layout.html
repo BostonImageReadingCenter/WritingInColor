@@ -11,10 +11,6 @@
 
 		<title>{% block title %}Writing in Color{% endblock %}</title>
 
-		<!-- CSS -->
-		<link rel="stylesheet" href="/static/css/core.css" />
-		<link rel="stylesheet" href="/static/css/hover-menu.css" />
-
 		<!--Font-->
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -30,9 +26,12 @@
 		></script>
 		{% endif %}
 
+		<!-- Template block -->
+		{% block head %}{% endblock %}
+
 		<!-- Admin Panel -->
-		{% block head %}{% endblock %} {% if user and user.roles.includes("admin")
-		%} {{ admin.admin_imports() }} {% endif %}
+		{% if user and user.roles.includes("admin") %} {{ admin.admin_imports() }}
+		{% endif %}
 	</head>
 
 	<body>
