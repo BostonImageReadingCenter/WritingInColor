@@ -32,7 +32,8 @@ var collectionMessageEl: HTMLElement,
 	supportsWebAuthn: boolean,
 	supportsConditionalUI: boolean,
 	authenticationOptions: PublicKeyCredentialRequestOptionsJSON,
-	documentDisplayBoxEl: HTMLElement;
+	documentDisplayBoxEl: HTMLElement,
+	afterFormEl: HTMLElement;
 
 export var onload: Function[] = [];
 let collectionHandlers: ((event: SubmitEvent) => Promise<
@@ -118,6 +119,8 @@ async function handleAction(data: LoginData) {
 			// Go back to the home page
 			window.location.href = "/";
 		} else if (item.action === "reload") {
+			// Reload the page
+			window.location.reload();
 		} else if (item.action === "set-authentication-options") {
 			authenticationOptions = item.authenticationOptions;
 		} else if (item.action === "redirect") {
@@ -500,9 +503,7 @@ async function authenticatePasskey(
 	}
 ) {
 	let WebAuthnOptions = authenticationOptions;
-	if (data.WebAuthnOptions) {
-		WebAuthnOptions = data.WebAuthnOptions;
-	}
+	if (data.WebAuthnOptions) WebAuthnOptions = data.WebAuthnOptions;
 	const assertionResponse = await startAuthentication(WebAuthnOptions);
 	const verificationResponse = await fetch("/api/login/return", {
 		method: "POST",
@@ -588,7 +589,7 @@ async function showUsePasskeyButton(data: OtherAction) {
 			once: true,
 		}
 	);
-	collectionFormEl.appendChild(usePasskeyButton);
+	afterFormEl.appendChild(usePasskeyButton);
 }
 async function initLoginSession(conditionalUIOnly: boolean) {
 	let response = await fetch("/api/login/init", {
@@ -641,6 +642,7 @@ export async function initLoginPage() {
 	documentDisplayBoxEl = document.getElementById(
 		"document-display-box"
 	) as HTMLDivElement;
+	afterFormEl = document.getElementById("after-form") as HTMLDivElement;
 	hiddentDataEl = document.getElementById("hidden-data") as HTMLDivElement;
 
 	// Initiate login

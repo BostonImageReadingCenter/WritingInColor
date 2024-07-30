@@ -316,15 +316,14 @@ export async function* login(
 						action: "collect",
 						types: [{ type: "binary", submits: true }],
 						header: "Create an Account?",
-						message:
-							"You don't have an account yet. Would you like to create one?",
+						message: `No account found for ${email}. Do you want to create one?`,
 					},
 				],
 			};
 
 			if (!result.return.filter((x) => x.type === "input")?.[0].values.binary)
 				return {
-					actions: [{ action: "exit" }],
+					actions: [{ action: "reload" }],
 				};
 
 			result = yield {
