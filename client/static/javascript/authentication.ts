@@ -577,7 +577,7 @@ async function showUsePasskeyButton(data: OtherAction) {
 	let usePasskeyButton = createElement("button", {
 		attributes: {},
 		classes: [],
-		id: "usePasskey",
+		id: "use-passkey",
 	});
 	usePasskeyButton.innerText = "Sign in with a passkey";
 	usePasskeyButton.addEventListener(

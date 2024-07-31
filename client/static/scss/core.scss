@@ -13,7 +13,9 @@ $header-padding: 15px;
 $header-height: 75px;
 $border-input-color: #b8b8b8;
 // You can change any of these, add new ones, remove them. Just make sure to update their usage in the other SCSS files that rely on this one.
-
+:root {
+	// CSS Variables
+}
 * {
 	box-sizing: border-box;
 }
@@ -21,6 +23,8 @@ html,
 body {
 	height: 100%;
 	width: 100%;
+	overflow-x: hidden;
+	overflow-y: auto;
 }
 body {
 	background-color: $light-background-color;
@@ -64,12 +68,12 @@ body {
 //top header
 header {
 	position: sticky;
-	padding: 1 rem var(--header-padding);
+	padding: 1 rem $header-padding;
 	width: 100%;
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	background-color: var(--lighter-background-color);
+	background-color: $lighter-background-color;
 	height: 80px;
 }
 
@@ -139,7 +143,7 @@ header {
 	}
 	.image-section {
 		flex: 3;
-		min-width: 480px;
+		min-width: 480px; // TODO
 		img {
 			box-shadow: 0 0 8px 8px $light-background-color inset;
 		}
@@ -172,7 +176,7 @@ header {
 	min-width: 300px;
 }
 .mission .text-section {
-	min-width: 500px;
+	min-width: 500px; //TODO!!
 }
 .hero .image-section img,
 .mission .image-section img {
@@ -240,6 +244,7 @@ p {
 	gap: 20px;
 	justify-content: space-evenly;
 }
+
 .course-grid {
 	.course {
 		display: flex;
@@ -501,6 +506,7 @@ footer {
 	object-fit: fill;
 	z-index: -1;
 }
+
 #other-font {
 	font-family: "Montserrat Subrayada", sans-serif;
 	font-weight: 400;
