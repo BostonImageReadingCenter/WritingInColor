@@ -22,7 +22,6 @@ body {
 	background-color: $light-background-color;
 	color: $dark-font-color;
 	margin: 0;
-	padding: 0;
 	font-family: "Lato", sans-serif;
 	font-weight: 400;
 	font-style: normal;
@@ -337,6 +336,18 @@ p {
 	main {
 		padding: 1rem;
 	}
+	body {
+		margin: 0;
+		position: sticky;
+		padding: 1 rem var(--header-padding);
+		width: 100%;
+		justify-content: center;
+		align-items: center;
+    	flex-direction: column;
+
+    	max-width: 100%;
+    	
+	}
 
 	.hero .text-section,
 	.mission .text-section {
@@ -349,7 +360,8 @@ p {
 	.mission .text-section,
 	.hero .image-section,
 	.mission .image-section {
-		width: 72.5%;
+		width: 50px;
+		display: flex;
 	}
 
 	.course {
