@@ -1,7 +1,6 @@
-@import url("https://fonts.googleapis.com/css2?family=Montserrat+Subrayada&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,100..900,0..100,0..1;1,9..144,100..900,0..100,0..1&display=swap");
-// Lato
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Inter:wght@100..900&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap");
+// Import fonts
+@import url("https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,100..900,0..100,0..1;1,9..144,100..900,0..100,0..1&family=Inter:ital,wght@0,100..900;1,100..900&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Montserrat+Subrayada:wght@400;700&display=swap");
+
 // Color Scheme Definitions
 $light-background-color: #ffe8ce;
 $lighter-background-color: #fff7ee;
@@ -12,12 +11,17 @@ $dark-font-color: black;
 $light-font-color: white;
 $header-padding: 15px;
 $header-height: 75px;
+$border-input-color: #b8b8b8;
 // You can change any of these, add new ones, remove them. Just make sure to update their usage in the other SCSS files that rely on this one.
 
 * {
 	box-sizing: border-box;
 }
-
+html,
+body {
+	height: 100%;
+	width: 100%;
+}
 body {
 	background-color: $light-background-color;
 	color: $dark-font-color;
@@ -25,10 +29,6 @@ body {
 	font-family: "Lato", sans-serif;
 	font-weight: 400;
 	font-style: normal;
-}
-
-main {
-	padding: 20px;
 }
 
 // Simple Helper classes
@@ -124,14 +124,6 @@ header {
 	flex-direction: column;
 	gap: -1px;
 	cursor: pointer;
-}
-
-// Main Page
-
-main {
-	display: grid;
-	gap: 2rem;
-	padding: 2rem;
 }
 
 .hero .container {
@@ -336,18 +328,6 @@ p {
 	main {
 		padding: 1rem;
 	}
-	body {
-		margin: 0;
-		position: sticky;
-		padding: 1 rem var(--header-padding);
-		width: 100%;
-		justify-content: center;
-		align-items: center;
-    	flex-direction: column;
-
-    	max-width: 100%;
-    	
-	}
 
 	.hero .text-section,
 	.mission .text-section {
@@ -439,16 +419,15 @@ footer {
 
 #email-button {
 	background-color: black;
-    color: white;
-    padding: 10px 20px; 
-    border: none; 
-    border-radius: 5px; 
-    font-size: 15px; 
-    cursor: pointer; 
+	color: white;
+	padding: 10px 20px;
+	border: none;
+	border-radius: 5px;
+	font-size: 15px;
+	cursor: pointer;
 	align-items: center;
 	justify-content: center;
 	margin-top: 15px;
-    
 }
 
 .seperate {
