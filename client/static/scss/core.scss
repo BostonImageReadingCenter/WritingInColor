@@ -30,7 +30,7 @@ body {
 	background-color: $light-background-color;
 	color: $dark-font-color;
 	margin: 0;
-	font-family: "Lato", sans-serif;
+	font-family: "Inter", sans-serif;
 	font-weight: 400;
 	font-style: normal;
 }
@@ -138,11 +138,13 @@ header {
 	flex-wrap: wrap-reverse;
 	.text-section {
 		flex: 2;
-		//min-width: 320px;//
+		min-width: 320px;
+		max-width: 80vw;
 	}
 	.image-section {
 		flex: 3;
-		//min-width: 480px; // TODO
+		min-width: 480px; // TODO
+		max-width: 80vw;
 		img {
 			box-shadow: 0 0 8px 8px $light-background-color inset;
 		}
@@ -155,6 +157,8 @@ header {
 	gap: 2rem;
 	flex-direction: row;
 	.text-section {
+		display: flex;
+		flex-direction: column;
 		h2 {
 			font-size: 1.75rem;
 			font-weight: bold;
@@ -162,6 +166,9 @@ header {
 		p {
 			font-size: 1.25rem;
 			font-weight: normal;
+			hyphens: auto; /* Enables hyphenation according to language rules */
+			word-break: break-word; /* Allows breaking words if necessary */
+			overflow-wrap: anywhere; /* Ensures the word breaks to prevent overflow */
 		}
 	}
 }
@@ -172,10 +179,12 @@ header {
 }
 .mission .image-section {
 	height: 80%;
-	//min-width: 300px;
+	min-width: 300px;
+	max-width: 80vw;
 }
 .mission .text-section {
-	//min-width: 500px; //TODO!!
+	min-width: 500px; //TODO!!
+	max-width: 80vw;
 }
 .hero .image-section img,
 .mission .image-section img {
@@ -380,6 +389,11 @@ p {
 		left: -100px;
 	}
 }
+@media screen and (max-width: 350px) {
+	.donate-button {
+		display: none;
+	}
+}
 //Footer CSS
 footer {
 	background-color: #fff7ee;
@@ -481,20 +495,28 @@ footer {
 		gap: 2rem;
 		display: flex;
 		flex-direction: row;
+		flex-wrap: wrap;
 		justify-content: space-evenly;
 		align-items: center;
 		padding-top: 50px;
+		position: relative;
 		.founder-image {
-			width: 150px;
+			width: 150px !important;
 			height: 150px;
+			flex-shrink: 0;
+			flex-grow: 0;
 		}
 		.founder-info {
+			flex: 1;
+			min-width: min-content;
 			display: flex;
 			flex-direction: column;
 			gap: 0;
 			.founder-name {
 				font-size: 28px;
-				height: 40px;
+				flex-shrink: 1; /* Allow the header to shrink and wrap as a last resort */
+				min-width: 100%; /* Make the header occupy full width to ensure it wraps last */
+				white-space: normal; /* Allow the header to wrap */
 			}
 			.founder-role {
 				font-weight: 300;
