@@ -14,7 +14,14 @@ import {
 	DecodeJWT,
 } from "./login";
 import { v4 as uuidv4 } from "uuid";
-import { COURSES, origin, ROLES, SVG } from "./constants.js";
+import {
+	COURSES,
+	FOUNDERS,
+	origin,
+	ROLES,
+	SVG,
+	TESTIMONIALS,
+} from "./constants.js";
 import {
 	LoginData,
 	LoginInitializationOptions,
@@ -91,6 +98,8 @@ async function routes(fastify: FastifyInstance, options) {
 				user,
 				COURSES,
 				SVG,
+				TESTIMONIALS,
+				FOUNDERS,
 			})
 		);
 		return reply;

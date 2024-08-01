@@ -63,14 +63,14 @@
 
 		<section class="courses">
 			<img
-				src="static/media/image/backgrounds/courses-background-image.png"
+				src="static/media/image/background/courses-background-image.png"
 				class="background-image1"
 			/>
 			<div id="phrase">
 				<h2>Check it Out!</h2>
 			</div>
 			<h2>Currently Offered Courses</h2>
-			<div class="course-grid">
+			<div class="course-grid templated">
 				{% for course in COURSES %}
 				<div class="course">
 					<!-- Course details here -->
@@ -134,101 +134,51 @@
 
 		<section id="testimonial-section">
 			<img
-				src="static/media/image/backgrounds/testimonial-grad-bg.png"
+				src="static/media/image/background/testimonial-grad-bg.png"
 				class="testimonial-background"
 				alt="Background Image"
 			/>
 			<h2 id="testimonial-header">Testimonials From Our Students</h2>
-			<div class="testimonials">
+			<div class="testimonials templated">
+				{% for testimonial in TESTIMONIALS %}
 				<div
 					class="statement"
 					style="
-						background-image: url('static/media/image/backgrounds/testimonial-bg.png');
+						background-image: url('{{ testimonial.image }}');
 					"
 				>
 					<div class="test-grid">
-						<p class="row-test">
-							“This is such a unique opportunity and I’m so grateful I was able
-							to be part of it.”
-						</p>
-						<img src="static/media/image/pictures-people/pfp1.png" class="row2" />
+						<p class="row-test">“{{ testimonial.content }}”</p>
+						<img src="{{ testimonial.person_image }}" class="row2" />
 					</div>
 				</div>
-				<div
-					class="statement"
-					style="
-						background-image: url('static/media/image/backgrounds/testimonial-bg2.png');
-					"
-				>
-					<div class="test-grid">
-						<p class="row-test">
-							“The Writing in Color course was helpful in creating a space to
-							improve my writing, connect with other writers, and provide me
-							with thoughtful feedback and insights to writing OpEds.”
-						</p>
-						<img src="static/media/image/pictures-people/pfp2.png" class="row2" />
-					</div>
-				</div>
-				<div
-					class="statement"
-					style="
-						background-image: url('static/media/image/backgrounds/testimonial-bg3.png');
-					"
-				>
-					<div class="test-grid">
-						<p class="row-test">
-							“I worried I might feel out of place because I hadn’t considered
-							myself a writer before, but the workshop environment was very
-							supportive and I learned even more than I expected.”
-						</p>
-						<img src="static/media/image/pictures-people/pfp3.png" class="row2" />
-					</div>
-				</div>
+				{% endfor %}
 			</div>
 		</section>
 
 		<section class="founders">
 			<img
-				src="static/media/image/backgrounds/founders_background.png"
+				src="static/media/image/background/founders_background.png"
 				class="founders-background"
 				alt="Background Image"
 			/>
 			<h1 id="founder-section">Our Founders</h1>
 			<h2 id="founder-phrase">Meet The Ones Making This Possible</h2>
-			<div class="founders-container">
+			<div class="founders-container templated">
+				{% for founder in FOUNDERS %}
 				<div class="founder">
 					<img
-						src="static/media/image/pictures-people/farah_pfp.png"
-						id="farah-image"
+						src="{{ founder.image }}"
 						class="founder-image"
-						alt="Farah Dadabhoy"
+						alt="{{ founder.name }}"
 					/>
 					<div class="founder-info">
-						<span class="founder-name">Farah Dadabhoy, MD, MS</span>
-						<span class="founder-role">Co-Founder, Executive Director</span>
-						<span class="founder-bio">
-							Farah Dadabhoy is a Clinical Instructor at Harvard Medical School
-							and a Pain Medicine Fellow at Brigham and Women’s Hospital.
-						</span>
+						<span class="founder-name">{{ founder.name }}</span>
+						<span class="founder-role">{{ founder.role }}</span>
+						<span class="founder-bio"> {{ founder.bio }} </span>
 					</div>
 				</div>
-				<div class="founder">
-					<img
-						src="static/media/image/pictures-people/adaira_pfp.png"
-						id="adaira-image"
-						class="founder-image"
-						alt="Adaira Landry"
-					/>
-					<div class="founder-info">
-						<span class="founder-name">Adaira Landry, MD MEd</span>
-						<span class="founder-role">Co-Founder, Executive Director</span>
-						<span class="founder-bio">
-							Adaira Landry is an Assistant Professor at Harvard Medical School
-							and an Emergency Medicine Physician at Brigham and Women’s
-							Hospital.
-						</span>
-					</div>
-				</div>
+				{% endfor %}
 			</div>
 		</section>
 	</div>
@@ -239,20 +189,21 @@
 		<img src="/static/media/image/logotype/WIC_Logo.svg" class="footer-logo" />
 		<p class="footer-phrase">Get in Touch</p>
 		<div class="social-icons-container">
-			<img src="/static/media/image/icon/instagram.png" id="social-insta" />
-			<img src="/static/media/image/icon/X.png" id="social-X" />
-			<img src="/static/media/image/icon/facebook.png" id="social-fb" />
-			<script>
-				document.getElementById("social-fb").onclick = function () {
-					window.location.href = "https://www.facebook.com/squarespace";
-				};
-				document.getElementById("social-X").onclick = function () {
-					window.location.href = "https://x.com/squarespace";
-				};
-				document.getElementById("social-insta").onclick = function () {
-					window.location.href = "https://www.instagram.com/squarespace/";
-				};
-			</script>
+			<img
+				src="/static/media/image/icon/instagram.png"
+				id="social-insta"
+				onclick="window.location.href = 'https://www.instagram.com/squarespace/'"
+			/>
+			<img
+				src="/static/media/image/icon/X.png"
+				id="social-X"
+				onclick="window.location.href = 'https://x.com/squarespace'"
+			/>
+			<img
+				src="/static/media/image/icon/facebook.png"
+				id="social-fb"
+				onlcick="window.location.href = 'https://www.facebook.com/squarespace'"
+			/>
 		</div>
 		<button id="email-button" class="email-button">Email Us</button>
 		<!-- Personally, I would use a button here instead of an image -->

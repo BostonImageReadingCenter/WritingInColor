@@ -104,6 +104,17 @@ const passwordRequirements: PasswordRequirements = {
 let COURSES = JSON.parse(
 	readFileSync(path.resolve(__dirname, "../documents/courses.json"), "utf8")
 ).courses;
+
+let TESTIMONIALS = JSON.parse(
+	readFileSync(
+		path.resolve(__dirname, "../documents/testimonials.json"),
+		"utf8"
+	)
+).testimonials;
+let FOUNDERS = JSON.parse(
+	readFileSync(path.resolve(__dirname, "../documents/founders.json"), "utf8")
+).founders;
+
 let SVG = {
 	star: readFileSync(
 		path.resolve(__dirname, "../client/static/media/image/icon/star.svg"),
@@ -130,4 +141,6 @@ export {
 	passwordRequirements,
 	COURSES,
 	SVG,
+	TESTIMONIALS,
+	FOUNDERS,
 };
