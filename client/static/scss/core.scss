@@ -138,11 +138,11 @@ header {
 	flex-wrap: wrap-reverse;
 	.text-section {
 		flex: 2;
-		min-width: 320px;
+		//min-width: 320px;//
 	}
 	.image-section {
 		flex: 3;
-		min-width: 480px; // TODO
+		//min-width: 480px; // TODO
 		img {
 			box-shadow: 0 0 8px 8px $light-background-color inset;
 		}
@@ -172,10 +172,10 @@ header {
 }
 .mission .image-section {
 	height: 80%;
-	min-width: 300px;
+	//min-width: 300px;
 }
 .mission .text-section {
-	min-width: 500px; //TODO!!
+	//min-width: 500px; //TODO!!
 }
 .hero .image-section img,
 .mission .image-section img {
@@ -283,17 +283,24 @@ p {
 			color: #555;
 			margin: 0;
 		}
+
 		.time_course-item {
 			display: flex;
 			align-items: center;
+			.class-time img {
+				width: 50px;
+			}
 			img {
 				margin-right: 8px;
-				width: 24px;
+				width: 20px;
 				height: auto;
 			}
+			
 		}
 	}
 }
+
+
 
 .education_icon,
 .time_icon,
@@ -510,10 +517,7 @@ footer {
 	z-index: -1;
 }
 
-#other-font {
-	font-family: "Montserrat Subrayada", sans-serif;
-	font-weight: 400;
-	font-style: normal;
+#founder-section {
 	margin-top: 50px;
 	margin-left: 20px;
 }
