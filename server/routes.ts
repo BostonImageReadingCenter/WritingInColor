@@ -21,6 +21,7 @@ import { v4 as uuidv4 } from "uuid";
 import {
 	COURSES,
 	FOUNDERS,
+	getFileType,
 	origin,
 	ROLES,
 	SVG,
@@ -32,7 +33,9 @@ import {
 	LoginInitializationOptions,
 	SetCookieOptions,
 	User,
+	FileFields,
 } from "./types.js";
+import { Multipart, MultipartFields } from "@fastify/multipart";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -244,46 +247,54 @@ async function routes(fastify: FastifyInstance, options) {
 			if (!(user && user.roles.includes("admin")))
 				return reply.code(401).send("Unauthorized");
 			let json: any = request.body;
-			const results = [];
-			const filePromises = [];
-
-			// @ts-ignore
 			const parts = request.parts();
-			let index = 0;
+			const results: Array<{
+				status: string;
+				filename: string;
+				error?: string;
+			}> = [];
+			const fileFields: FileFields = {};
+
 			for await (const part of parts) {
-				if (part.file) {
-					let info = json.uploads[index];
+				if (part.type === "file") {
+					const customFilename =
+						fileFields[part.fieldname]?.filename || part.filename;
 					const uploadPath = path.join(
 						__dirname,
 						"../client/static",
-						uploadTags[info.type][info.tag],
-						info.filename || part.filename
+						uploadTags[getFileType(part.mimetype)][
+							fileFields[part.fieldname]?.tag ?? "other"
+						],
+						customFilename
 					);
-					const filePromise = pipelineAsync(
-						part.file,
-						fs.createWriteStream(uploadPath)
-					)
-						.then(() => {
-							results.push({
-								status: "File uploaded successfully",
-								filename: part.filename,
-							});
-						})
-						.catch((err) => {
-							results.push({
-								status: "Upload failed",
-								filename: part.filename,
-								error: err.message,
-							});
-						});
 
-					filePromises.push(filePromise);
+					try {
+						await pipelineAsync(part.file, fs.createWriteStream(uploadPath));
+						results.push({
+							status: "File uploaded successfully",
+							filename: customFilename,
+						});
+					} catch (err) {
+						results.push({
+							status: "Upload failed",
+							filename: customFilename,
+							error: err.message,
+						});
+					}
 				} else {
-					console.log(`Field ${part.fieldname} = ${part.value}`);
+					// Collect form fields
+					if (
+						part.fieldname.startsWith("filename_") ||
+						part.fieldname.startsWith("tag_")
+					) {
+						const [type, fieldname] = part.fieldname.split("_");
+						if (!fileFields[fieldname]) {
+							fileFields[fieldname] = { filename: "", tag: "" };
+						}
+						fileFields[fieldname][type] = part.value;
+					}
 				}
-				index++;
 			}
-			await Promise.all(filePromises);
 
 			return reply.send(results);
 		}

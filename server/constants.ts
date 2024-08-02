@@ -142,7 +142,69 @@ let uploadTags = {
 		speech: "/media/audio/speech/",
 		other: "/media/audio/other/",
 	},
+	document: {
+		other: "/document/text/",
+	},
+	spreadsheet: {
+		other: "/document/spreadsheet/",
+	},
+	presentation: {
+		other: "/document/presentation/",
+	},
+	compressed: {
+		other: "/compressed/",
+	},
+	other: {
+		other: "/media/other/",
+	},
 };
+// Helper function to determine file type
+const MIMETYPES = {
+	image: [/^image\/.*/],
+	video: [/^video\/.*/],
+	audio: [/^audio\/.*/, /application\/x-cdf/],
+	document: [
+		/application\/pdf/,
+		/application\/msword/,
+		/application\/vnd.openxmlformats-officedocument.wordprocessingml.document/,
+		/application\/vnd.amazon.ebook/,
+	],
+	spreadsheet: [
+		/application\/vnd.ms-excel/,
+		/application\/vnd.openxmlformats-officedocument.spreadsheetml.sheet/,
+		/application\/vnd.google-apps.spreadsheet/,
+		/application\/vnd.apple.numbers/,
+	],
+	presentation: [
+		/application\/vnd.google-apps.presentation/,
+		/application\/vnd.apple.keynote/,
+		/application\/vnd.ms-powerpoint/,
+		/application\/vnd.openxmlformats-officedocument.presentationml.presentation/,
+		/application\/vnd.oasis.opendocument.presentation/,
+	],
+	compressed: [
+		/application\/x-freearc/,
+		/application\/x-bzip/,
+		/application\/x-bzip2/,
+		/application\/x-7z-compressed/,
+		/application\/gzip/,
+		/application\/x-gzip/,
+		/application\/vnd.rar/,
+		/application\/x-tar/,
+		/application\/zip/,
+		/x-zip-compressed/,
+		/application\/x-zip-compressed/,
+	],
+};
+
+function getFileType(mimetype: string): string {
+	for (let key in MIMETYPES) {
+		if (MIMETYPES[key].some((regex: RegExp) => regex.test(mimetype))) {
+			return key;
+		}
+	}
+	return "other";
+}
 
 // Export the updated TOKEN_SECRET and TOKEN_SECRET_EXPIRATION
 export {
@@ -166,4 +228,6 @@ export {
 	TESTIMONIALS,
 	FOUNDERS,
 	uploadTags,
+	getFileType,
+	MIMETYPES,
 };

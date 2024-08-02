@@ -44,37 +44,36 @@ function isOnlyTextNode(element: Element) {
 			selfClosingTags.includes(element.nodeName.toLowerCase())
 		)
 			return false;
-		for (let child of Array.from(element.children)) {
+		for (let child of Array.from(element.children))
 			if (!isOnlyTextNode(child)) return false;
-		}
-		console.log(element, "is only text node");
+
 		return true; // All child nodes are text nodes
 	}
 	return false; // Not an element node
 }
 
 // Function to check if an element is an image
-function isImage(element) {
+function isImage(element: Element) {
 	return element.nodeName === "IMG";
 }
 
 // Function to check if an element is a video
-function isVideo(element) {
+function isVideo(element: Element) {
 	return element.nodeName === "VIDEO";
 }
 
 // Function to check if an element is audio
-function isAudio(element) {
+function isAudio(element: Element) {
 	return element.nodeName === "AUDIO";
 }
 
 // Function to check if an element is an iframe
-function isIframe(element) {
+function isIframe(element: Element) {
 	return element.nodeName === "IFRAME";
 }
 
 // Function to check if an element is a link
-function isLink(element) {
+function isLink(element: Element) {
 	return element.nodeName === "A" && element.hasAttribute("href");
 }
 

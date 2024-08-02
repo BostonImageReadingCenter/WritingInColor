@@ -381,3 +381,10 @@ export interface LoginDataReturnPacket {
 	reply: FastifyReply;
 	return: LoginDataReturn[];
 }
+
+export interface FileFields {
+	[key: string]: {
+		filename: string;
+		tag: string;
+	};
+}
