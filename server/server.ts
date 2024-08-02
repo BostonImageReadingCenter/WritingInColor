@@ -4,6 +4,7 @@ import fastify_cookie from "@fastify/cookie";
 import fp from "fastify-plugin";
 import { spawn } from "child_process";
 import path from "path";
+import fastify_multipart from "@fastify/multipart";
 
 const fastify = Fastify({
 	logger: false,
@@ -19,6 +20,7 @@ fastify.addHook("onResponse", async (request, reply) => {
 fastify.addHook("onError", async (request, reply, error) => {
 	console.log("\x1b[31m" + error.stack + "\x1b[0m");
 });
+fastify.register(fastify_multipart);
 fastify.register(fastify_cookie, {
 	parseOptions: {
 		secure: true,

@@ -5,6 +5,10 @@ import { fileURLToPath } from "url";
 import { Database } from "./db";
 import { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { parse as uuidParse } from "uuid-parse";
+import { pipeline } from "stream";
+import path from "path";
+import { promisify } from "util";
+import fs from "fs";
 
 import {
 	login,
@@ -21,6 +25,7 @@ import {
 	ROLES,
 	SVG,
 	TESTIMONIALS,
+	uploadTags,
 } from "./constants.js";
 import {
 	LoginData,
@@ -33,6 +38,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const client_root = join(__dirname, "../client/");
 let auth_sessions = new Map();
+let pipelineAsync = promisify(pipeline);
 
 // Configure Nunjucks to use the client_root directory.
 nunjucks.configure(client_root, { autoescape: true });
@@ -229,6 +235,57 @@ async function routes(fastify: FastifyInstance, options) {
 			return reply
 				.code(200)
 				.send({ id, done: result.done, value: result.value });
+		}
+	);
+	fastify.post(
+		"/api/upload",
+		async (request: FastifyRequest, reply: FastifyReply) => {
+			let user = await getUser(request, reply);
+			if (!(user && user.roles.includes("admin")))
+				return reply.code(401).send("Unauthorized");
+			let json: any = request.body;
+			const results = [];
+			const filePromises = [];
+
+			// @ts-ignore
+			const parts = request.parts();
+			let index = 0;
+			for await (const part of parts) {
+				if (part.file) {
+					let info = json.uploads[index];
+					const uploadPath = path.join(
+						__dirname,
+						"../client/static",
+						uploadTags[info.type][info.tag],
+						info.filename || part.filename
+					);
+					const filePromise = pipelineAsync(
+						part.file,
+						fs.createWriteStream(uploadPath)
+					)
+						.then(() => {
+							results.push({
+								status: "File uploaded successfully",
+								filename: part.filename,
+							});
+						})
+						.catch((err) => {
+							results.push({
+								status: "Upload failed",
+								filename: part.filename,
+								error: err.message,
+							});
+						});
+
+					filePromises.push(filePromise);
+				} else {
+					console.log(`Field ${part.fieldname} = ${part.value}`);
+				}
+				index++;
+			}
+			await Promise.all(filePromises);
+
+			return reply.send(results);
 		}
 	);
 }

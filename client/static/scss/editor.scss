@@ -39,6 +39,8 @@ $color-picker-input-size-ratio: math.div(8, 3);
 	flex-direction: row;
 	gap: $editor-menu-gap;
 	padding: $editor-menu-padding;
+	// A nice shadow
+	box-shadow: 0 3px 5px 3px rgba(0, 0, 0, 0.1);
 
 	// Font options
 	font-family: "Inter", sans-serif;

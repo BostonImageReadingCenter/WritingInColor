@@ -15,13 +15,77 @@ interface Command {
 }
 let commandStack: Command[] = []; // Commands performed. This list is used for undo and redo operations.
 let undid: Command[] = []; // Commands that were undone with ctrl+z
+
+const selfClosingTags = [
+	"area",
+	"base",
+	"br",
+	"col",
+	"command",
+	"embed",
+	"hr",
+	"img",
+	"input",
+	"keygen",
+	"link",
+	"meta",
+	"param",
+	"source",
+	"track",
+	"wbr",
+];
+
+function isOnlyTextNode(element: Element) {
+	// Check if element is a node and has child nodes
+	if (element.nodeType === Node.TEXT_NODE) return true;
+	if (element.nodeType === Node.ELEMENT_NODE) {
+		if (
+			element.classList.contains("edit-mode-exempt") ||
+			selfClosingTags.includes(element.nodeName.toLowerCase())
+		)
+			return false;
+		for (let child of Array.from(element.children)) {
+			if (!isOnlyTextNode(child)) return false;
+		}
+		console.log(element, "is only text node");
+		return true; // All child nodes are text nodes
+	}
+	return false; // Not an element node
+}
+
+// Function to check if an element is an image
+function isImage(element) {
+	return element.nodeName === "IMG";
+}
+
+// Function to check if an element is a video
+function isVideo(element) {
+	return element.nodeName === "VIDEO";
+}
+
+// Function to check if an element is audio
+function isAudio(element) {
+	return element.nodeName === "AUDIO";
+}
+
+// Function to check if an element is an iframe
+function isIframe(element) {
+	return element.nodeName === "IFRAME";
+}
+
+// Function to check if an element is a link
+function isLink(element) {
+	return element.nodeName === "A" && element.hasAttribute("href");
+}
+
+// The EDITABLE object containing the above functions
 const EDITABLE = {
-	text: ["p", "h1", "h2", "h3", "h4", "h5", "h6"],
-	image: ["img"],
-	video: ["video"],
-	iframe: ["iframe"],
-	audio: ["audio"],
-	link: ["a"],
+	text: isOnlyTextNode,
+	image: isImage,
+	video: isVideo,
+	audio: isAudio,
+	iframe: isIframe,
+	link: isLink,
 };
 function getBoundingPageRect(element: HTMLElement) {
 	// Get the bounding client rect of the element
@@ -41,6 +105,24 @@ function getBoundingPageRect(element: HTMLElement) {
 		right: rect.left + rect.width + scrollX,
 	};
 }
+function getScrollableAncestors(element: HTMLElement) {
+	const scrollableAncestors = [];
+	let parent = element.parentElement;
+	while (parent) {
+		const overflowY = window.getComputedStyle(parent).overflowY;
+		const overflowX = window.getComputedStyle(parent).overflowX;
+		if (
+			overflowY === "auto" ||
+			overflowY === "scroll" ||
+			overflowX === "auto" ||
+			overflowX === "scroll"
+		) {
+			scrollableAncestors.push(parent);
+		}
+		parent = parent.parentElement;
+	}
+	return scrollableAncestors;
+}
 
 const HANDLERS = {
 	/**
@@ -53,28 +135,30 @@ const HANDLERS = {
 		currentlyEditing = element;
 		textEditMenu.style.display = "flex";
 		element.focus();
-		let resizeHandler = () => {
-			let menuBoundingRect = getBoundingPageRect(textEditMenu);
-			let elementBoundingRect = getBoundingPageRect(element);
-			textEditMenu.style.left =
-				String(
-					Math.min(
-						Math.max(
-							elementBoundingRect.left +
-								elementBoundingRect.width / 2 -
-								menuBoundingRect.width / 2,
-							0
-						),
-						document.documentElement.scrollWidth - menuBoundingRect.width
-					)
-				) + "px";
-			textEditMenu.style.top =
-				String(
-					Math.min(
-						document.documentElement.scrollHeight - menuBoundingRect.height,
-						Math.max(0, elementBoundingRect.bottom + 10)
-					)
-				) + "px";
+		let updateEditMenuPosition = () => {
+			requestAnimationFrame(() => {
+				let menuBoundingRect = getBoundingPageRect(textEditMenu);
+				let elementBoundingRect = getBoundingPageRect(element);
+				textEditMenu.style.left =
+					String(
+						Math.min(
+							Math.max(
+								elementBoundingRect.left +
+									elementBoundingRect.width / 2 -
+									menuBoundingRect.width / 2,
+								0
+							),
+							document.documentElement.scrollWidth - menuBoundingRect.width
+						)
+					) + "px";
+				textEditMenu.style.top =
+					String(
+						Math.min(
+							document.documentElement.scrollHeight - menuBoundingRect.height,
+							Math.max(0, elementBoundingRect.bottom + 10)
+						)
+					) + "px";
+			});
 		};
 		let previousText = element.innerText;
 		let inputHandler = (event: InputEvent) => {
@@ -87,12 +171,18 @@ const HANDLERS = {
 			});
 			previousText = element.innerText;
 		};
-		resizeHandler();
+		updateEditMenuPosition();
 		const resizeObserver = new ResizeObserver((entries) => {
-			requestAnimationFrame(resizeHandler);
+			updateEditMenuPosition();
 		});
 		resizeObserver.observe(element);
 		element.addEventListener("input", inputHandler);
+
+		// Attach scroll listeners to scrollable ancestors
+		const scrollableAncestors = getScrollableAncestors(element);
+		scrollableAncestors.forEach((ancestor) =>
+			ancestor.addEventListener("scroll", updateEditMenuPosition)
+		);
 		element.addEventListener(
 			"inactive",
 			() => {
@@ -117,21 +207,28 @@ window.addEventListener("load", () => {
 	textEditMenu.style.display = "none";
 
 	// Add event listeners to elements
-	for (let type in EDITABLE) {
-		for (let tag of EDITABLE[type]) {
-			let elements = Array.from(document.getElementsByTagName(tag));
-			for (let element of elements) {
-				element.addEventListener("click", () => {
-					// Run the handlers if edit mode is on
-					if (edit_mode_toggle.checked) {
-						if (currentlyEditing)
-							currentlyEditing.dispatchEvent(new CustomEvent("inactive"));
-						HANDLERS[type](element);
+	document.body.querySelectorAll("*").forEach((element) => {
+		for (let type in EDITABLE) {
+			if (EDITABLE[type](element)) {
+				element.addEventListener(
+					"click",
+					(event: PointerEvent) => {
+						// Run the handlers if edit mode is on
+						if (edit_mode_toggle.checked) {
+							event.preventDefault();
+							event.stopImmediatePropagation();
+							if (currentlyEditing)
+								currentlyEditing.dispatchEvent(new CustomEvent("inactive"));
+							HANDLERS[type](element);
+						}
+					},
+					{
+						capture: true,
 					}
-				});
+				);
 			}
 		}
-	}
+	});
 	window.addEventListener("click", (event: PointerEvent) => {
 		// Disable editing for an element if the user clicks off of it.
 		if (currentlyEditing) {
@@ -249,7 +346,7 @@ function rgbToHex(r: number, g: number, b: number) {
 
 function createTextEditMenu() {
 	let menu = createElement("menu", {
-		classes: ["editor-menu"],
+		classes: ["editor-menu", "edit-mode-exempt"],
 		children: [
 			{
 				tag: "div",
@@ -289,7 +386,7 @@ function createTextEditMenu() {
 				children: [
 					{
 						tag: "span",
-						classes: ["font-selector", "menu-item"],
+						classes: ["font-selector", "menu-item", "edit-mode-exempt"],
 						text: "Aa",
 					},
 				],
@@ -312,7 +409,7 @@ function createTextEditMenu() {
 							step: "0.5",
 							inputmode: "numeric",
 						},
-						classes: ["font-size-selector", "menu-item"],
+						classes: ["font-size-selector", "menu-item", "edit-mode-exempt"],
 						text: "20",
 					},
 				],
@@ -337,7 +434,7 @@ function createTextEditMenu() {
 				children: [
 					{
 						tag: "span",
-						classes: ["bold-toggle", "menu-item"],
+						classes: ["bold-toggle", "menu-item", "edit-mode-exempt"],
 						text: "B",
 					},
 				],
@@ -363,7 +460,7 @@ function createTextEditMenu() {
 				children: [
 					{
 						tag: "span",
-						classes: ["strikethrough-toggle", "menu-item"],
+						classes: ["strikethrough-toggle", "menu-item", "edit-mode-exempt"],
 						text: "S",
 					},
 				],
@@ -393,7 +490,7 @@ function createTextEditMenu() {
 				children: [
 					{
 						tag: "span",
-						classes: ["underline-toggle", "menu-item"],
+						classes: ["underline-toggle", "menu-item", "edit-mode-exempt"],
 						text: "U",
 					},
 				],
@@ -518,9 +615,21 @@ function createTextEditMenu() {
 						tag: "menu",
 						classes: ["hover-menu__content", "right", "menu-bar", "vertical"],
 						children: [
-							{ tag: "li", classes: ["hover-menu__item"], text: "Item 0" },
-							{ tag: "li", classes: ["hover-menu__item"], text: "Item 1" },
-							{ tag: "li", classes: ["hover-menu__item"], text: "Item 2" },
+							{
+								tag: "li",
+								classes: ["hover-menu__item", "edit-mode-exempt"],
+								text: "Item 0",
+							},
+							{
+								tag: "li",
+								classes: ["hover-menu__item", "edit-mode-exempt"],
+								text: "Item 1",
+							},
+							{
+								tag: "li",
+								classes: ["hover-menu__item", "edit-mode-exempt"],
+								text: "Item 2",
+							},
 						],
 					},
 				],
@@ -529,6 +638,24 @@ function createTextEditMenu() {
 	});
 	document.body.appendChild(menu);
 	return menu;
+}
+
+function createImageEditMenu() {
+	let menu = createElement({
+		tag: "div",
+		classes: ["image-selector"],
+		id: "image-selector",
+		children: [],
+	});
+}
+
+function createFileManager() {
+	let menu = createElement({
+		tag: "div",
+		classes: ["file-manager"],
+		id: "file-manager",
+		children: [],
+	});
 }
 
 export { createTextEditMenu };

@@ -121,6 +121,28 @@ let SVG = {
 		"utf8"
 	),
 };
+let uploadTags = {
+	image: {
+		person: "/media/image/people/",
+		icon: "/media/image/icon/",
+		course: "/media/image/course/",
+		branding: "/media/image/branding/",
+		logotype: "/media/image/branding/logotype/",
+		background: "/media/image/background/",
+		other: "/media/image/other",
+	},
+	video: {
+		background: "/media/video/background/",
+		effects: "/media/video/effects/",
+		other: "/media/video/other/",
+	},
+	audio: {
+		effects: "/media/audio/effects/",
+		music: "/media/audio/music/",
+		speech: "/media/audio/speech/",
+		other: "/media/audio/other/",
+	},
+};
 
 // Export the updated TOKEN_SECRET and TOKEN_SECRET_EXPIRATION
 export {
@@ -143,4 +165,5 @@ export {
 	SVG,
 	TESTIMONIALS,
 	FOUNDERS,
+	uploadTags,
 };
