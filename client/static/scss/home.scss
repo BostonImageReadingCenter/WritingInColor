@@ -1,9 +1,14 @@
 @import "./core.scss";
 
+main {
+	width: 100%;
+}
+
 #homepage-content-wrapper {
 	display: grid;
 	gap: 2rem;
 	padding: 1.25rem;
+	width: 100%;
 }
 
 //Courses Setup and Grid
@@ -26,7 +31,8 @@
 		box-shadow: $standard-shadow;
 		// border-radius: 8px;
 		background-color: #fff;
-		width: 320px;
+		min-width: 1px;
+		max-width: 320px;
 		position: relative;
 		.course-image {
 			width: 100%;
@@ -163,7 +169,8 @@
 		background-size: cover;
 		background-position: center;
 		height: 475px;
-		width: 320px;
+		min-width: 1px;
+		max-width: 320px;
 		display: flex;
 		flex-direction: column;
 		justify-content: center;
@@ -178,6 +185,7 @@
 			padding: 20px;
 			font-size: 1.1rem;
 			background-color: white;
+			overflow-y: auto;
 			// background-color: rgba(255, 255, 255, 0.5);
 			// backdrop-filter: blur(20px);
 			// border-radius: 8px;
@@ -227,4 +235,76 @@
 	z-index: -1;
 	top: -30px;
 	left: -40px;
+}
+.mission .container {
+	display: flex;
+	align-items: center;
+	justify-content: space-evenly;
+	gap: 2rem;
+	flex-direction: row;
+	flex-wrap: wrap;
+	position: relative;
+	.image-section {
+		flex: 1;
+		width: 50%;
+		max-width: 100%;
+		min-width: 45%;
+	}
+	.text-section {
+		flex: 1;
+		min-width: 45%;
+		width: 50%;
+		max-width: 100%;
+		display: flex;
+		flex-direction: column;
+		h2 {
+			font-size: 1.75rem;
+			font-weight: bold;
+		}
+		p {
+			font-size: 1.25rem;
+			font-weight: normal;
+			hyphens: auto; /* Enables hyphenation according to language rules */
+			word-break: break-word; /* Allows breaking words if necessary */
+			overflow-wrap: anywhere; /* Ensures the word breaks to prevent overflow */
+		}
+	}
+}
+
+.hero .container {
+	display: flex;
+	justify-content: space-evenly;
+	align-items: center;
+	gap: 2rem;
+	flex-wrap: wrap-reverse;
+	position: relative;
+	.text-section {
+		flex: 2;
+		font-size: 1.5rem;
+		font-family: "Fraunces", serif;
+		font-weight: 400;
+		min-width: 35%;
+		width: fit-content;
+		max-width: 80vw;
+	}
+	.image-section {
+		flex: 3;
+		min-width: 55%;
+		width: fit-content;
+		max-width: 80vw;
+		img {
+			box-shadow: 0 0 8px 8px $light-background-color inset;
+		}
+	}
+}
+
+.hero .image-section img,
+.mission .image-section img {
+	max-width: 100%;
+	height: auto;
+}
+
+.course-background,
+.testimonial-background {
+	width: 100%;
 }
