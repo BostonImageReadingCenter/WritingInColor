@@ -12,6 +12,7 @@ $light-font-color: white;
 $header-padding: 15px;
 $header-height: 75px;
 $border-input-color: #b8b8b8;
+$standard-shadow: 0 7px 7px rgba(0, 0, 0, 0.25);
 // You can change any of these, add new ones, remove them. Just make sure to update their usage in the other SCSS files that rely on this one.
 :root {
 	// CSS Variables
@@ -224,7 +225,7 @@ header {
 	z-index: 2;
 	padding: 1rem;
 	border: 1px solid #ccc;
-	border-radius: 8px;
+	// border-radius: 8px;
 	background-color: #fff;
 }
 
@@ -242,81 +243,6 @@ h2 {
 p {
 	margin-bottom: 1rem;
 	color: $dark-font-color;
-}
-
-//Courses Setup and Grid
-.course-grid,
-.testimonial-grid {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 20px;
-	justify-content: space-evenly;
-}
-
-.course-grid {
-	.course {
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		gap: 10px;
-		padding: 20px;
-		box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-		border-radius: 8px;
-		background-color: #fff;
-		width: 320px;
-		text-align: flex-start;
-		position: relative;
-		.course-image {
-			width: 100%;
-			height: 50%;
-			border-radius: 8px;
-			object-fit: cover;
-		}
-		.course-header {
-			display: flex;
-			padding: 10px 0;
-			align-items: center;
-			gap: 10px;
-			justify-content: center;
-			img {
-				margin: 0;
-			}
-			h3 {
-				flex: 1;
-				margin: 0;
-				font-size: 1.4em;
-			}
-		}
-		p {
-			font-size: 1em;
-			color: #555;
-			margin: 0;
-		}
-
-		.time_course-item {
-			display: flex;
-			align-items: center;
-			.class-time img {
-				width: 50px;
-			}
-			img {
-				margin-right: 8px;
-				width: 20px;
-				height: auto;
-			}
-			
-		}
-	}
-}
-
-
-
-.education_icon,
-.time_icon,
-.cursor_icon {
-	margin: 5px 0;
-	width: 24px;
-	height: auto;
 }
 
 .star-container {
@@ -363,12 +289,6 @@ p {
 	.mission .image-section {
 		width: 50px;
 		display: flex;
-	}
-
-	.course {
-		max-width: 100%;
-		width: 300px;
-		height: 510px;
 	}
 	#site-title {
 		display: none;
@@ -480,147 +400,4 @@ footer {
 	margin: 5px 0;
 	line-height: 1.5;
 	text-align: center;
-}
-
-//FOUNDERS
-.founders-container {
-	display: flex;
-	flex-direction: column;
-	align-items: flex-start;
-	justify-content: center;
-	.founder {
-		background-color: transparent;
-		border-color: transparent;
-		align-items: center;
-		gap: 2rem;
-		display: flex;
-		flex-direction: row;
-		flex-wrap: wrap;
-		justify-content: space-evenly;
-		align-items: center;
-		padding-top: 50px;
-		position: relative;
-		.founder-image {
-			width: 150px !important;
-			height: 150px;
-			flex-shrink: 0;
-			flex-grow: 0;
-		}
-		.founder-info {
-			flex: 1;
-			min-width: min-content;
-			display: flex;
-			flex-direction: column;
-			gap: 0;
-			.founder-name {
-				font-size: 28px;
-				flex-shrink: 1; /* Allow the header to shrink and wrap as a last resort */
-				min-width: 100%; /* Make the header occupy full width to ensure it wraps last */
-				white-space: normal; /* Allow the header to wrap */
-			}
-			.founder-role {
-				font-weight: 300;
-				font-size: 20px;
-			}
-			.founder-bio {
-				font-size: 1.15rem;
-				margin-top: 15px;
-			}
-		}
-	}
-}
-.founders-background {
-	position: absolute;
-	top: 0;
-	left: -40px;
-	width: 105%;
-	height: 105%;
-	object-fit: fill;
-	z-index: -1;
-}
-
-#founder-section {
-	margin-top: 50px;
-	margin-left: 20px;
-}
-#founder-phrase {
-	margin-top: 20px;
-	margin-left: 20px;
-}
-
-// TESTIMONIALS
-#testimonial-section {
-	padding-top: 50px;
-	position: relative;
-}
-#testimonial-header {
-	text-align: center;
-	font-size: 28px;
-	margin-bottom: 20px;
-}
-
-.testimonials {
-	display: flex;
-	flex-direction: row;
-	justify-content: space-evenly;
-	gap: 20px;
-	margin-top: 50px;
-	margin-bottom: 200px;
-	flex-wrap: wrap;
-	.statement {
-		background-color: transparent;
-		border-color: transparent;
-		position: relative;
-		background-size: cover;
-		background-position: center;
-		height: 500px;
-		width: 350px;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		border-width: 0;
-		box-shadow: 0 10px 8px rgba(0, 0, 0, 0.1);
-	}
-}
-
-.test-grid {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	width: 70%;
-	height: auto;
-	gap: 10px;
-}
-
-.row-test {
-	text-align: center;
-	background-color: white;
-	padding: 20px;
-	font-size: 22px;
-	width: 120%;
-}
-
-.row2 {
-	align-items: center;
-	margin: auto;
-	border-radius: 50%;
-	width: 100px;
-	height: 100px;
-	z-index: 0;
-}
-
-.person1,
-.person2,
-.person3 {
-	width: 100%;
-	height: auto;
-}
-
-.testimonial-background {
-	position: absolute;
-	width: 105%;
-	height: 110%;
-	z-index: -1;
-	top: -30px;
-	left: -40px;
 }

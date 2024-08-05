@@ -657,4 +657,8 @@ function createFileManager() {
 	});
 }
 
+function handleFileUpload() {
+	// TODO: Handle file upload
+}
+
 export { createTextEditMenu };

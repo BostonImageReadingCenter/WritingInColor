@@ -3,20 +3,23 @@
         {
             "id": 0,
             "image": "/static/media/image/background/testimonial-bg.png",
-            "person_image": "/static/media/image/people/pfp1.png",
-            "content": "This is such a unique opportunity and I’m so grateful I was able to be part of it."
+            "person_image": "/static/media/image/people/pfp3.png",
+            "content": "This is such a unique opportunity and I’m so grateful I was able to be part of it.",
+            "person_name": "Jane Doe I"
         },
         {
             "id": 1,
             "image": "/static/media/image/background/testimonial-bg2.png",
             "person_image": "/static/media/image/people/pfp2.png",
-            "content": "The Writing in Color course was helpful in creating a space to improve my writing, connect with other writers, and provide me with thoughtful feedback and insights to writing OpEds."
+            "content": "The Writing in Color course was helpful in creating a space to improve my writing, connect with other writers, and provide me with thoughtful feedback and insights to writing OpEds.",
+            "person_name": "Jane Doe II"
         },
         {
             "id": 2,
             "image": "/static/media/image/background/testimonial-bg3.png",
             "person_image": "/static/media/image/people/pfp3.png",
-            "content": "I worried I might feel out of place because I hadn’t considered myself a writer before, but the workshop environment was very supportive and I learned even more than I expected."
+            "content": "I worried I might feel out of place because I hadn’t considered myself a writer before, but the workshop environment was very supportive and I learned even more than I expected.",
+            "person_name": "Jane Doe III"
         }
     ]
 }

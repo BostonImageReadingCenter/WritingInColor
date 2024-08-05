@@ -139,7 +139,7 @@
 				alt="Background Image"
 			/>
 			<h2 id="testimonial-header">Testimonials From Our Students</h2>
-			<div class="testimonials templated">
+			<div class="testimonial-grid templated">
 				{% for testimonial in TESTIMONIALS %}
 				<div
 					class="statement"
@@ -147,9 +147,9 @@
 						background-image: url('{{ testimonial.image }}');
 					"
 				>
-					<div class="test-grid">
-						<p class="row-test">“{{ testimonial.content }}”</p>
-						<img src="{{ testimonial.person_image }}" class="row2" />
+					<p class="testimonial-quote">“{{ testimonial.content }}”</p>
+					<div class="testimonial-person-wrapper">
+						<img src="{{ testimonial.person_image }}" />
 					</div>
 				</div>
 				{% endfor %}
