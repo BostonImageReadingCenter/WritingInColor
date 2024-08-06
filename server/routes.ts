@@ -19,13 +19,11 @@ import {
 } from "./login";
 import { v4 as uuidv4 } from "uuid";
 import {
-	COURSES,
-	FOUNDERS,
 	getFileType,
 	origin,
 	ROLES,
 	SVG,
-	TESTIMONIALS,
+	JSON_DATA as JSON_DATA_CONST,
 	uploadTags,
 } from "./constants.js";
 import {
@@ -42,9 +40,27 @@ const __dirname = dirname(__filename);
 const client_root = join(__dirname, "../client/");
 let auth_sessions = new Map();
 let pipelineAsync = promisify(pipeline);
+let JSON_DATA = JSON_DATA_CONST;
 
 // Configure Nunjucks to use the client_root directory.
-nunjucks.configure(client_root, { autoescape: true });
+let nunjucks_env = new nunjucks.Environment(
+	[new nunjucks.FileSystemLoader(client_root)],
+	{
+		autoescape: true,
+	}
+);
+
+nunjucks_env.addFilter("keys", function (obj: any) {
+	return Object.keys(obj);
+});
+
+nunjucks_env.addFilter("values", function (obj: any) {
+	return Object.values(obj);
+});
+
+nunjucks_env.addFilter("stringify", function (obj: any) {
+	return JSON.stringify(obj);
+});
 
 function cleanSessions() {
 	let now = Date.now() + 10;
@@ -102,15 +118,18 @@ async function routes(fastify: FastifyInstance, options) {
 	// Home
 	fastify.get("/", async (request: FastifyRequest, reply: FastifyReply) => {
 		let user = await getUser(request, reply);
-		reply.code(200).header("Content-Type", "text/html").send(
-			nunjucks.render("index.html", {
-				user,
-				COURSES,
-				SVG,
-				TESTIMONIALS,
-				FOUNDERS,
-			})
-		);
+		reply
+			.code(200)
+			.header("Content-Type", "text/html")
+			.send(
+				nunjucks_env.render("index.html", {
+					user,
+					COURSES: JSON_DATA.courses,
+					SVG,
+					TESTIMONIALS: JSON_DATA.testimonials,
+					FOUNDERS: JSON_DATA.founders,
+				})
+			);
 		return reply;
 	});
 
@@ -118,7 +137,7 @@ async function routes(fastify: FastifyInstance, options) {
 	fastify.get("/test", async (request: FastifyRequest, reply: FastifyReply) => {
 		let user = await getUser(request, reply);
 		reply.code(200).header("Content-Type", "text/html").send(
-			nunjucks.render("test.html", {
+			nunjucks_env.render("test.html", {
 				user,
 			})
 		);
@@ -134,7 +153,7 @@ async function routes(fastify: FastifyInstance, options) {
 			reply
 				.code(200)
 				.header("Content-Type", "text/html")
-				.send(nunjucks.render("login.html"));
+				.send(nunjucks_env.render("login.html"));
 		}
 	);
 
@@ -147,7 +166,7 @@ async function routes(fastify: FastifyInstance, options) {
 			reply
 				.code(200)
 				.header("Content-Type", "text/html")
-				.send(nunjucks.render("my-profile.html", { user }));
+				.send(nunjucks_env.render("my-profile.html", { user }));
 		}
 	);
 
@@ -180,6 +199,18 @@ async function routes(fastify: FastifyInstance, options) {
 				.redirect(origin + "/");
 		}
 	);
+
+	fastify.get("/admin/manage-db", async (request, reply) => {
+		let user = await getUser(request, reply);
+		if (!(user && user.roles.includes("admin")))
+			return reply.code(401).send("Unauthorized");
+		reply
+			.code(200)
+			.header("Content-Type", "text/html")
+			.send(
+				nunjucks_env.render("database-management.html", { user, JSON_DATA })
+			);
+	});
 
 	/*
 		API ENDPOINTS
@@ -297,6 +328,20 @@ async function routes(fastify: FastifyInstance, options) {
 			}
 
 			return reply.send(results);
+		}
+	);
+	fastify.post(
+		"/api/save-db",
+		async (request: FastifyRequest, reply: FastifyReply) => {
+			let user = await getUser(request, reply);
+			if (!(user && user.roles.includes("admin")))
+				return reply.code(401).send("Unauthorized");
+			let json: any = request.body;
+			JSON_DATA = json;
+			fs.writeFileSync(
+				path.resolve(__dirname, "../documents/db.json"),
+				JSON.stringify(json)
+			);
 		}
 	);
 }

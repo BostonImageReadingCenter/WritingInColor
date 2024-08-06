@@ -101,19 +101,9 @@ const passwordRequirements: PasswordRequirements = {
 	min_digits: 1,
 	min_non_alphanumeric: 1,
 };
-let COURSES = JSON.parse(
-	readFileSync(path.resolve(__dirname, "../documents/courses.json"), "utf8")
-).courses;
-
-let TESTIMONIALS = JSON.parse(
-	readFileSync(
-		path.resolve(__dirname, "../documents/testimonials.json"),
-		"utf8"
-	)
-).testimonials;
-let FOUNDERS = JSON.parse(
-	readFileSync(path.resolve(__dirname, "../documents/founders.json"), "utf8")
-).founders;
+let JSON_DATA = JSON.parse(
+	readFileSync(path.resolve(__dirname, "../documents/db.json"), "utf8")
+);
 
 let SVG = {
 	star: readFileSync(
@@ -223,10 +213,8 @@ export {
 	ROLES,
 	ToS,
 	passwordRequirements,
-	COURSES,
+	JSON_DATA,
 	SVG,
-	TESTIMONIALS,
-	FOUNDERS,
 	uploadTags,
 	getFileType,
 	MIMETYPES,

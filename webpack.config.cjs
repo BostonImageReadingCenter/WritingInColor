@@ -9,6 +9,7 @@ module.exports = {
 		test: "./client/static/javascript/test.ts",
 		"passive-authentication":
 			"./client/static/javascript/passive-authentication.ts",
+		"database-management": "./client/static/javascript/database-management.ts",
 	},
 	output: {
 		filename: "[name].js",

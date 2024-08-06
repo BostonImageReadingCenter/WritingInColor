@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<!-- Meta tags -->
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Writing in Color – Login</title>
+
+		<!-- CSS -->
+		<link rel="stylesheet" href="/static/css/core.css" />
+		<style>
+			main {
+				padding: 20px;
+			}
+			table {
+				width: 100%;
+				border-collapse: collapse;
+				margin-bottom: 20px;
+			}
+			th,
+			td {
+				border: 1px solid #ddd;
+				padding: 8px;
+			}
+			th {
+				background-color: #f2f2f2;
+			}
+		</style>
+
+		<!-- JavaScript -->
+		<script>
+			var JSON_DATA = {{ JSON_DATA|stringify|safe }}
+		</script>
+		<script type="module" src="/static/javascript/bundle/core.js"></script>
+		<script src="/static/javascript/bundle/database-management.js"></script>
+	</head>
+	<body>
+		<main>
+			<h1>Database Management</h1>
+			<button id="save-button" disabled>Save</button>
+			{% for table_name, rows in JSON_DATA %}
+			<h2>{{ table_name }}</h2>
+			<table class="db-table">
+				<thead>
+					<tr>
+						{% for column in rows[0]|keys %}
+						<th>{{ column }}</th>
+						{% endfor %}
+					</tr>
+				</thead>
+				<tbody>
+					{% for row in rows %} {% set row_id = loop.index %}
+					<tr>
+						{% for key, value in row %}
+						<td
+							contenteditable
+							data-table="{{ table_name }}"
+							data-row-id="{{ row_id - 1 }}"
+							data-key="{{ key }}"
+						>
+							{{ value }}
+						</td>
+						{% endfor %}
+					</tr>
+					{% endfor %}
+				</tbody>
+			</table>
+			{% endfor %}
+		</main>
+	</body>
+</html>
