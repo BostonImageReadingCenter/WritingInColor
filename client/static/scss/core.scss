@@ -68,7 +68,7 @@ body {
 //top header
 header {
 	position: sticky;
-	padding: 1 rem $header-padding;
+	padding: 1rem $header-padding;
 	width: 100%;
 	display: flex;
 	justify-content: space-between;
@@ -244,8 +244,8 @@ p {
 		left: -100px;
 	}
 }
-@media screen and (max-width: 350px) {
-	.donate-button {
+@media screen and (max-width: 400px) {
+	#donate-button {
 		display: none;
 	}
 }
@@ -282,33 +282,10 @@ footer {
 	justify-content: center;
 	gap: 10px;
 }
-#social-fb {
+.social-button {
 	cursor: pointer;
 	width: 35px;
 	height: 35px;
-}
-#social-X {
-	cursor: pointer;
-	width: 35px;
-	height: 35px;
-}
-#social-insta {
-	cursor: pointer;
-	width: 35px;
-	height: 35px;
-}
-
-#email-button {
-	background-color: black;
-	color: white;
-	padding: 10px 20px;
-	border: none;
-	border-radius: 5px;
-	font-size: 15px;
-	cursor: pointer;
-	align-items: center;
-	justify-content: center;
-	margin-top: 15px;
 }
 
 .seperate {
@@ -321,7 +298,8 @@ footer {
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	width: 40%;
+	width: 400px;
+	max-width: 100%;
 	padding-top: 10px;
 	font-size: 12px;
 }
@@ -331,8 +309,29 @@ footer {
 	margin: 5px 0;
 }
 
-.nonprofit {
+#nonprofit {
 	margin: 5px 0;
 	line-height: 1.5;
 	text-align: center;
+}
+.background {
+	position: absolute;
+	z-index: -5;
+}
+#footer-buttons {
+	display: flex;
+	justify-content: center;
+	gap: 10px;
+	margin-top: 15px;
+	* {
+		padding: 10px 20px;
+		border: none;
+		border-radius: 5px;
+		font-size: 15px;
+		cursor: pointer;
+	}
+	#email-button {
+		background-color: black;
+		color: white;
+	}
 }
