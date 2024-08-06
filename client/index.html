@@ -14,12 +14,13 @@
 		<h1 id="site-title">Writing in Color</h1>
 
 		<div class="donate-container">
-			<button id="donate-button" class="donate-button">Donate</button>
-			<script>
-				document.getElementById("donate-button").onclick = function () {
-					window.location.href = "https://givebutter.com/l6Qr7d";
-				};
-			</script>
+			<button
+				id="donate-button"
+				class="donate-button"
+				onclick="window.location.href = 'https://givebutter.com/l6Qr7d'"
+			>
+				Donate
+			</button>
 		</div>
 		<div class="login-container">
 			<div class="hover-menu">
@@ -214,7 +215,15 @@
 				onlcick="window.location.href = 'https://www.facebook.com/squarespace'"
 			/>
 		</div>
-		<button id="email-button" class="email-button">Email Us</button>
+		<div id="footer-buttons">
+			<button id="email-button" class="email-button">Email Us</button>
+			<button
+				class="donate-button"
+				onclick="window.location.href = 'https://givebutter.com/l6Qr7d'"
+			>
+				Donate
+			</button>
+		</div>
 		<!-- Personally, I would use a button here instead of an image -->
 		<img src="/static/media/image/icon/Line 1.png" class="seperate" />
 		<!-- You could just style up a hr for this as well. -->

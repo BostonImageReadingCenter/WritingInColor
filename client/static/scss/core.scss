@@ -245,7 +245,7 @@ p {
 	}
 }
 @media screen and (max-width: 400px) {
-	.donate-button {
+	#donate-button {
 		display: none;
 	}
 }
@@ -288,19 +288,6 @@ footer {
 	height: 35px;
 }
 
-#email-button {
-	background-color: black;
-	color: white;
-	padding: 10px 20px;
-	border: none;
-	border-radius: 5px;
-	font-size: 15px;
-	cursor: pointer;
-	align-items: center;
-	justify-content: center;
-	margin-top: 15px;
-}
-
 .seperate {
 	width: 70%;
 	height: auto;
@@ -330,4 +317,21 @@ footer {
 .background {
 	position: absolute;
 	z-index: -5;
+}
+#footer-buttons {
+	display: flex;
+	justify-content: center;
+	gap: 10px;
+	margin-top: 15px;
+	* {
+		padding: 10px 20px;
+		border: none;
+		border-radius: 5px;
+		font-size: 15px;
+		cursor: pointer;
+	}
+	#email-button {
+		background-color: black;
+		color: white;
+	}
 }
