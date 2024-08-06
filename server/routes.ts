@@ -61,7 +61,7 @@ function setCookies(cookies: SetCookieOptions[], reply: FastifyReply) {
 			signed: cookie.signed ?? false,
 			path: cookie.path ?? "/",
 			sameSite: cookie.sameSite ?? "strict",
-			secure: cookie.secure ?? false,
+			secure: cookie.secure ?? true,
 			expires:
 				cookie.expires ?? new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
 		});

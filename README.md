@@ -56,3 +56,34 @@ If you add a new JavaScript file that is used ON ITS OWN, then you will need to 
 - <https://github.com/corbado/passkey-tutorial/tree/main>
 - <https://www.corbado.com/blog/passkey-tutorial-how-to-implement-passkeys>
 - <https://medium.com/@ferrosful/-nodejs-security-unleashed-exploring-dos-ddos-attacks-cf089d5caff4>
+
+## Security Status:
+
+- **DDoS:**
+
+  - **Meaning:** Distributed Denial of Service
+  - **Our Solution:** Rate Limiting system
+  - **Protection Implemented:** Not Yet
+
+- **XSS:**
+
+  - **Meaning:** Cross-Site Scripting
+  - **Our Solution:** Strict Same Site Cookies
+  - **Protection Implemented:** Yes
+
+- **CSRF:**
+
+  - **Meaning:** Cross-Site Request Forgery
+  - **Our Solution:** Strict Same Site Cookies
+  - **Protection Implemented:** Yes
+
+- **SSRF:**
+
+  - **Meaning:** Server-Side Request Forgery
+  - **Our Solution:** Strict Same Site Cookies
+  - **Protection Implemented:** Yes
+
+- **Injection:**
+  - **Meaning:** Injection of code or values that may be malicious
+  - **Our Solution:** We don't run any user-provided code and we make sure to validate all input.
+    **Protection Implemented:** Yes
