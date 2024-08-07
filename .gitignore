@@ -7,3 +7,5 @@ client/.DS_Store
 .env.test
 client/static/javascript/bundle/*
 client/static/css/*
+bun.lockb
+bun.lockb2
