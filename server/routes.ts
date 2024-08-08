@@ -105,6 +105,7 @@ async function routes(fastify: FastifyInstance, options) {
 		let user: User;
 		if (login_status.valid) user = User.fromJWT(login_status.payload);
 		else user = null;
+		console.log(user);
 		return user;
 	}
 

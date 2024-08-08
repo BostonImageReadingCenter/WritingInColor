@@ -206,12 +206,12 @@ export class User {
 	setRoles(roles: (number | string)[]): void {
 		console.log(roles);
 		if (roles.length === 0) return;
-		this.roles = roles.map((role) => {
-			if (typeof role === "number") return ROLES[role];
-			return role;
-		});
 		this.role_ids = roles.map((role) => {
 			if (typeof role === "string") return ROLES.indexOf(role);
+			return role;
+		});
+		this.roles = this.role_ids.map((role) => {
+			if (typeof role === "number") return ROLES[role];
 			return role;
 		});
 	}
