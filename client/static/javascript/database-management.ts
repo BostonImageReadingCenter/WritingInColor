@@ -1,3 +1,9 @@
+declare var JSON_DATA: {
+	[key: string]: {
+		[key: string]: string;
+	}[];
+};
+
 window.addEventListener("load", async (event: Event) => {
 	let tables = document.querySelectorAll(".db-table");
 	let TDs = document.querySelectorAll(".db-table .row-data");
@@ -23,7 +29,12 @@ window.addEventListener("load", async (event: Event) => {
 		saveButton.removeAttribute("disabled");
 		document.querySelector("tr[data-row-id='" + rowId + "']").remove();
 	}
-	function editListener(element, table, rowId, key) {
+	function editListener(
+		element: Element,
+		table: string,
+		rowId: string | number,
+		key: string
+	) {
 		saveButton.removeAttribute("disabled");
 		JSON_DATA[table][rowId][key] = element.textContent;
 	}

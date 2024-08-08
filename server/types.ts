@@ -200,11 +200,9 @@ export class User {
 		this.created_at = created_at;
 		this.first_name = first_name;
 		this.last_name = last_name;
-		console.log(role_ids, roles);
 		this.setRoles(role_ids ?? roles ?? []);
 	}
 	setRoles(roles: (number | string)[]): void {
-		console.log(roles);
 		if (roles.length === 0) return;
 		this.role_ids = roles.map((role) => {
 			if (typeof role === "string") return ROLES.indexOf(role);
@@ -216,7 +214,6 @@ export class User {
 		});
 	}
 	static fromJWT(payload: JWT_REGISTERED_CLAIMS): User {
-		console.log(payload);
 		let user = new User({
 			id: payload.sub,
 			first_name: payload.fnm,

@@ -101,11 +101,11 @@ async function routes(fastify: FastifyInstance, options) {
 	 */
 	async function getUser(request: FastifyRequest, reply: FastifyReply) {
 		let login_status = await isLoggedIn(request, database);
+		console.log(login_status, request.cookies);
 		setCookies(login_status.setCookies, reply);
 		let user: User;
 		if (login_status.valid) user = User.fromJWT(login_status.payload);
 		else user = null;
-		console.log(user);
 		return user;
 	}
 
@@ -252,7 +252,7 @@ async function routes(fastify: FastifyInstance, options) {
 			}
 
 			session.expires += 1000 * 60 * 1; // Since the user has interacted with the page, give them another minute
-			console.log(json);
+			// console.log(json);
 			let result = await session.generator.next({
 				request,
 				reply,

@@ -45,7 +45,6 @@ import validator from "validator";
 
 // JWTs
 export async function CreateJWT(payload: JWT_REGISTERED_CLAIMS) {
-	console.log("create", payload);
 	const jwt: string = await sign(
 		{
 			iss: payload.iss || origin,
