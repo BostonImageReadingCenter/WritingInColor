@@ -103,15 +103,8 @@ async function routes(fastify: FastifyInstance, options) {
 		let login_status = await isLoggedIn(request, database);
 		setCookies(login_status.setCookies, reply);
 		let user: User;
-		if (login_status.valid) {
-			let user_data = login_status.payload;
-			user = {
-				roles: user_data.rls.map((r) => ROLES[r]),
-				id: user_data.sub as Buffer,
-			};
-		} else {
-			user = null;
-		}
+		if (login_status.valid) user = User.fromJWT(login_status.payload);
+		else user = null;
 		return user;
 	}
 
