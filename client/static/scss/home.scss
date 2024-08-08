@@ -1,4 +1,5 @@
 @import "./core.scss";
+$homepage-padding: 1.25rem;
 
 main {
 	width: 100%;
@@ -9,8 +10,8 @@ main {
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	gap: 15rem;
-	padding: 1.25rem;
+	gap: 10rem;
+	padding: $homepage-padding;
 	width: 100%;
 	position: relative;
 	& > * {
@@ -310,13 +311,12 @@ main {
 	max-width: 100%;
 	height: auto;
 }
-//may change the background image to linear gradient so we dont have sizing is
-.course-background,
-.testimonial-background {
+//may change the background image to linear gradient so we don't have sizing is
+.background {
 	position: absolute;
 	top: 0;
-	left: 0;
-	width: 100%;
+	left: -$homepage-padding;
+	width: 100vw;
 	height: 100%;
 	z-index: -1;
 	object-fit: fill;
