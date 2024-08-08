@@ -25,8 +25,20 @@ input[type="password"] {
 	// Styles for password input
 }
 
-input[type="text"] {
+input[type="message"] {
 	// Styles for text input
+}
+input[type="Passkey"]{
+	border-radius: 20px;
+	border: transparent;
+	font-size: 18px;
+	background-color: $light-background-color;
+	width: 20%;
+	padding: 10px;
+	font-weight: 300;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
 }
 
 .document-display-box {

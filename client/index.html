@@ -37,16 +37,61 @@
 				</script>
 			</div>
 		</div>
+			<div id="menu-bar">
+				<img src="/static/media/image/icon/menu-icon.svg" width="30" />
+				<img src="/static/media/image/icon/menu-lines.svg" width="30" />
+			</div>
 
-		<div id="menu-button">
-			<!-- Menu button content -->
-			<img src="/static/media/image/icon/menu-icon.svg" width="30" />
-			<img src="/static/media/image/icon/menu-lines.svg" width="30" />
-		</div>
-	</div>
 </header>
 <main>
 	<div id="homepage-content-wrapper">
+		<div id="menu-button">
+			<div>
+				<p id="welcome-phrase">Hello User</p>
+				<p id="profile-type">Student Profile</p>
+			</div>
+			<div class="main-menu">
+				<p>MAIN</p>
+				<p id="home"><img src="/static/media/image/icon/Home-simple-door.svg"/> Home</p>
+				<p id="course"><img src="/static/media/image/icon/Eduction Icon.svg"/> Courses & Workshops <span class="arrow">&#9662;</span></p>
+				<div class="submenu">
+					<p>Narrative Medicine</p>
+					<p>Poetry for</p>
+				</div>
+				<p id="mission"><img src="/static/media/image/icon/Knowledge.svg"/> Mission</p>
+				<p id="testimonials"><img src="/static/media/image/icon/testimonials-icon.svg"/> Testimonials</p>
+				<p id="founders"><img src="/static/media/image/icon/founders-icon.svg"/> Founders <span class="arrow">&#9662;</span></p>
+				<div class="submenu">
+					<p>Farah’s Story</p>
+					<p>Adaira’s Story</p>
+				</div>
+				<p id="contact"><img src="/static/media/image/icon/phone-icon.svg"/> Contact</p>
+			</div>
+			<div class="account-settings">
+				<p>ACCOUNT SETTINGS</p>
+				<p id="settings"><img src="/static/media/image/icon/Settings.svg"/> Settings</p>
+				<p id="sign-out"><img src="/static/media/image/icon/User 1.svg"/> Sign Out</p>
+			</div>
+		</div>
+	
+		<script>
+			document.addEventListener("DOMContentLoaded", function() {
+				const menuButton = document.getElementById("menu-button");
+				const menuBar = document.getElementById("menu-bar");
+				const subMenus = document.querySelectorAll('.main-menu p, .account-settings p');
+	
+				menuBar.addEventListener("click", function() {
+					menuButton.classList.toggle("show");
+				});
+	
+				subMenus.forEach(menu => {
+					menu.addEventListener("click", function() {
+						this.classList.toggle("active");
+					});
+				});
+			});
+		</script>
+	</div>
 		<section class="hero">
 			<div class="container">
 				<h1 class="text-section">
