@@ -1,10 +1,14 @@
 {% extends "layout.html" %} {% block head %}
-<link rel="stylesheet" href="/static/css/core.css" />
+<link rel="stylesheet" href="/static/css/user-profile.css" />
 {% endblock %} {% block body %}
 <main>
-	<h1>You are <span>logged</span> in.</h1>
+	<h1>Hello, {{ user.first_name }}!</h1>
 	<a href="/">Back to Home Page</a>
 	<br />
 	<a href="/logout">Logout</a>
+	<h2>Name</h2>
+	<input type="text" value="{{ user.first_name }}" disabled />
+	<input type="text" value="{{ user.last_name }}" disabled />
+	<img src="/static/media/image/icon/pencil.svg" />
 </main>
 {% endblock %}

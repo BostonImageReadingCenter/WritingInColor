@@ -45,6 +45,7 @@ import validator from "validator";
 
 // JWTs
 export async function CreateJWT(payload: JWT_REGISTERED_CLAIMS) {
+	console.log("create", payload);
 	const jwt: string = await sign(
 		{
 			iss: payload.iss || origin,
@@ -119,36 +120,41 @@ export async function revokeRefreshToken(
 		// Already revoked.
 	}
 }
-export async function createRefreshToken(userID: Buffer, roles: number[]) {
+export async function createRefreshToken(user: User) {
 	let refreshToken: JWT_REGISTERED_CLAIMS = {
 		iss: origin,
 		aud: origin,
-		sub: userID,
+		sub: user.id,
 		iat: Date.now(),
 		exp: Date.now() + REFRESH_TOKEN_EXPIRATION_TIME,
 		jti: uuidv4(),
-		rls: roles,
+		rls: user.role_ids,
+		fnm: user.first_name,
+		lnm: user.last_name,
 	};
 	return refreshToken;
 }
 export async function createAccessToken(
 	refreshToken: JWT_REGISTERED_CLAIMS,
 	database: Database,
-	rls?: number[]
+	user?: User
 ) {
-	if (!rls) {
+	if (!user) {
+		let user: User = await database.getUserById(refreshToken.sub);
 		// Get roles. Don't use cached value because roles may have been updated.
 		let roles: any = await database.getUserRoles(refreshToken.sub);
-		rls = roles.map((role: UserRole) => role.role_id);
+		user.setRoles(roles);
 	}
 	let accessToken: JWT_REGISTERED_CLAIMS = {
 		iss: refreshToken.iss,
 		aud: refreshToken.aud,
 		sub: refreshToken.sub,
-		rls: refreshToken.rls,
 		iat: Date.now(),
 		exp: Date.now() + ACCESS_TOKEN_EXPIRATION_TIME,
 		jti: uuidv4(),
+		rls: user.role_ids,
+		fnm: user.first_name,
+		lnm: user.last_name,
 	};
 
 	return accessToken;
@@ -173,9 +179,10 @@ export async function loginUser(
 	database: Database
 ): Promise<SetCookieOptions[]> {
 	let roles: any = await database.getUserRoles(userID);
-	let role_ids = roles.map((role: UserRole) => role.role_id);
-	let refreshToken = await createRefreshToken(userID, role_ids);
-	let accessToken = await createAccessToken(refreshToken, database, role_ids);
+	let user = await database.getUserById(userID);
+	user.setRoles(roles);
+	let refreshToken = await createRefreshToken(user);
+	let accessToken = await createAccessToken(refreshToken, database, user);
 
 	return [
 		{
@@ -431,11 +438,11 @@ export async function* login(
 			}
 			let passwordHash = hashPassword(passwordValue, salt);
 			await database.createUser({
-				user: {
+				user: new User({
 					id: userID,
 					salt: salt,
 					password: passwordHash,
-				},
+				}),
 				emails: [email],
 				passkeys,
 			});

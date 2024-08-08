@@ -5,6 +5,7 @@ import {
 	RegistrationResponseJSON,
 } from "@simplewebauthn/server/esm/deps";
 import { FastifyReply, FastifyRequest } from "fastify";
+import { ROLES } from "./constants.js";
 
 export interface JWT_REGISTERED_CLAIMS {
 	/**
@@ -43,6 +44,14 @@ export interface JWT_REGISTERED_CLAIMS {
 	 * Custom claim containing user roles (e.g. admin, moderator, etc...) by their role ids.
 	 */
 	rls?: number[];
+	/**
+	 * Custom claim representing the user's first name.
+	 */
+	fnm?: string;
+	/**
+	 * Custom claim representing the user's last name.
+	 */
+	lnm?: string;
 	/**
 	 * Custom claim. Recommended that the key length is 3 characters long.
 	 */
@@ -125,6 +134,10 @@ export class User {
 	 */
 	emails?: Email[];
 	/**
+	 * The user's roles as an array of role ids
+	 */
+	role_ids?: number[];
+	/**
 	 * The user's roles.
 	 */
 	roles?: string[];
@@ -148,11 +161,69 @@ export class User {
 	 * The date the user was created.
 	 */
 	created_at?: Date;
-	constructor(id: Buffer, salt: Buffer, password: Buffer, created_at: Date) {
+	/**
+	 * The users first name.
+	 */
+	first_name?: string;
+	/**
+	 * The users last name.
+	 */
+	last_name?: string;
+	constructor({
+		emails,
+		role_ids,
+		roles,
+		passkeys,
+		id,
+		salt,
+		password,
+		created_at,
+		first_name,
+		last_name,
+	}: {
+		emails?: Email[];
+		role_ids?: number[];
+		roles?: string[];
+		passkeys?: Passkey[];
+		id: Buffer;
+		salt?: Buffer | null;
+		password?: Buffer | null;
+		created_at?: Date;
+		first_name?: string;
+		last_name?: string;
+	}) {
+		this.emails = emails;
+		this.passkeys = passkeys;
 		this.id = id;
 		this.salt = salt;
 		this.password = password;
 		this.created_at = created_at;
+		this.first_name = first_name;
+		this.last_name = last_name;
+		console.log(role_ids, roles);
+		this.setRoles(role_ids ?? roles ?? []);
+	}
+	setRoles(roles: (number | string)[]): void {
+		console.log(roles);
+		if (roles.length === 0) return;
+		this.roles = roles.map((role) => {
+			if (typeof role === "number") return ROLES[role];
+			return role;
+		});
+		this.role_ids = roles.map((role) => {
+			if (typeof role === "string") return ROLES.indexOf(role);
+			return role;
+		});
+	}
+	static fromJWT(payload: JWT_REGISTERED_CLAIMS): User {
+		console.log(payload);
+		let user = new User({
+			id: payload.sub,
+			first_name: payload.fnm,
+			last_name: payload.lnm,
+			role_ids: payload.rls,
+		});
+		return user;
 	}
 }
 export interface UserRole {

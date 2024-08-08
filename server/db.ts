@@ -49,9 +49,11 @@ class Database {
 		return await this.pool.query(sql, values);
 	}
 	async getUserById(userID: Buffer, connection: Queryable = this.pool) {
-		const user: User = (
-			await connection.query("SELECT * FROM users WHERE id = ?", [userID])
-		)[0][0];
+		const user: User = new User({
+			...(
+				await connection.query("SELECT * FROM users WHERE id = ?", [userID])
+			)[0][0],
+		});
 		return user;
 	}
 	async getUserByEmail(email: string, connection: Queryable = this.pool) {
@@ -139,8 +141,14 @@ class Database {
 			await connection.beginTransaction();
 			// Create user
 			await connection.query(
-				"INSERT INTO users (id, salt, password) VALUES (?, ?, ?)",
-				[user.id, user.salt ?? null, user.password ?? null]
+				"INSERT INTO users (id, salt, password, first_name, last_name) VALUES (?, ?, ?, ?, ?)",
+				[
+					user.id,
+					user.salt ?? null,
+					user.password ?? null,
+					user.first_name ?? null,
+					user.last_name ?? null,
+				]
 			);
 
 			// Add emails
