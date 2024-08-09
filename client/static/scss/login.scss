@@ -8,9 +8,12 @@
 	flex-direction: column;
 	width: 100vw;
 	height: 100vh;
+	margin-bottom: -10px;
+
 	#form-container {
-		width: 50vw;
-		height: 50vh;
+		height: 55vh;
+		width: 40vw;
+		max-width: 500px;
 		display: flex;
 		flex-direction: column;
 		justify-content: center;
@@ -18,27 +21,98 @@
 		border: transparent;
 		border-radius: 40px;
 		background-color: #fff7ee;
-		padding: 2rem;
+		padding: 2rem 3rem;
+		
+
 		form {
 			display: flex;
 			flex-direction: column;
 			justify-content: center;
 			align-items: center;
 			width: 100%;
-			height: 100%;
+			height: auto;
+			input[type="email"] {
+				display: flex;
+				width: 350px;
+				padding: 12px;
+				margin: 12px 0;
+				box-sizing: border-box;
+				border: 1px solid #ccc;  
+				border-radius: 8px;
+				font-size: 16px;
+				background-color: $light-background-color;
+				color: #333;
+			}
+
+			.other-login-options {
+				display: flex;
+				flex-direction: row;
+				font-size: 12px;
+				text-decoration: underline;
+				justify-content: space-between;  
+				width: 100%; 
+				margin-top: 40px;
+				#forget-password {
+					margin-right: auto;  
+					cursor: pointer;
+				}
+
+				#create-account {
+					cursor: pointer;
+					margin-left: auto;
+				}
+			}
 		}
 	}
 }
+#collection-header,
+#collection-inputs{ 
+	margin-top: 20px;
+}
+#collection-message {
+	font-size: 12px;
+	padding:10px;
+}
+#after-form {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+	width: 100%;  // Full width to ensure centering
+	height: auto;  // Adjust height to fit content
 
+	#or-passkey {
+		font-size: 14px;  // Slightly increase font size to match mockup
+		color: #000;  // Ensure the color matches the mockup
+		margin-bottom: 1rem;  // Add some space before the button below
+		text-align: center;
+	}
+
+	#use-passkey {
+		border-radius: 50px;  // Make it more rounded
+		border: none;  // Remove border for a cleaner look
+		font-size: 14px;  // Consistent font size
+		background-color: #fff7ee;  // Match mockup background color
+		width: 200px;  
+		padding: 15px 0; 
+		align-items: center;
+		justify-content: center;
+		cursor: pointer;
+		text-align: center;
+	}
+}
 #collection-form-next-button {
-	border-radius: 20px;
-	border: transparent;
-	font-size: 18px;
-	background-color: $light-background-color;
-	width: 20%;
+	border-radius: 50px;  // Match the rounded corners in mockup
+	border: none;  // No border
+	font-size: 15px;  // Consistent font size
+	background-color: #ffecd2;  // Match mockup background color
+	width: 100px;  // Match mockup width
 	padding: 10px;
-	font-weight: 300;
+	margin-top: 10px;
+	margin-bottom: 10px;
 	align-items: center;
 	justify-content: center;
 	cursor: pointer;
+	text-align: center;
 }
+

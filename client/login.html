@@ -17,7 +17,7 @@
 		<main>
 			<div id="login-container">
 				<div id="form-container">
-					<h4 id="collection-message"></h4>
+					
 					<h2 id="collection-header"></h2>
 					<div
 						id="document-display-box"
@@ -27,14 +27,21 @@
 					<form onsubmit="return false;" id="collection-form">
 						<div id="hidden-data"></div>
 						<div id="collection-inputs"></div>
+						
 						<input
 							type="submit"
 							value="Next"
 							id="collection-form-next-button"
 						/>
+						<p id="collection-message"></p>
+						<div class="other-login-options">
+						<p id="forget-password">Forget your password?</p>
+						<p id="create-account">Create an account</p>
+					</div>
 					</form>
 				</div>
-				<div id="after-form"></div>
+				<div id="after-form"><p id="or-passkey">Or</p></div>
+
 			</div>
 		</main>
 	</body>

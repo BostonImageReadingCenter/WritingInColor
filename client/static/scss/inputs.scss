@@ -7,11 +7,27 @@ body {
 	font-style: normal;
 }
 
-input[type="email"] {
+
+// input[type="email"] {
+// 	display: flex;
+// 	width: 350px;
+// 	height: auto;
+// 	padding: 10px;
+// 	justify-content: flex-start;
+// 	margin: 8px 0;
+// 	box-sizing: border-box;
+// 	border: 1px solid $border-input-color;
+// 	border-radius: 10px;
+// 	font-size: 16px;
+// 	background-color: $light-background-color;
+// 	color: #333;
+// }
+
+input[type="password"] {
 	width: 400px;
 	height: auto;
 	padding: 10px;
-	justify-content: flex-start;
+	justify-content: center;
 	margin: 8px 0;
 	box-sizing: border-box;
 	border: 1px solid $border-input-color;
@@ -19,26 +35,14 @@ input[type="email"] {
 	font-size: 16px;
 	background-color: $light-background-color;
 	color: #333;
+	flex-direction: row;
+	align-items: center;
+
 }
 
-input[type="password"] {
-	// Styles for password input
-}
 
 input[type="message"] {
 	// Styles for text input
-}
-input[type="Passkey"]{
-	border-radius: 20px;
-	border: transparent;
-	font-size: 18px;
-	background-color: $light-background-color;
-	width: 20%;
-	padding: 10px;
-	font-weight: 300;
-	align-items: center;
-	justify-content: center;
-	cursor: pointer;
 }
 
 .document-display-box {
