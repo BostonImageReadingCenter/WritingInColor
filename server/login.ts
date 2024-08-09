@@ -45,7 +45,6 @@ import validator from "validator";
 
 // JWTs
 export async function CreateJWT(payload: JWT_REGISTERED_CLAIMS) {
-	console.log("create", payload);
 	const jwt: string = await sign(
 		{
 			iss: payload.iss || origin,
@@ -143,7 +142,7 @@ export async function createAccessToken(
 		let user: User = await database.getUserById(refreshToken.sub);
 		// Get roles. Don't use cached value because roles may have been updated.
 		let roles: any = await database.getUserRoles(refreshToken.sub);
-		user.setRoles(roles);
+		user.setRoles(roles.map((role) => role.role_id));
 	}
 	let accessToken: JWT_REGISTERED_CLAIMS = {
 		iss: refreshToken.iss,
@@ -180,7 +179,7 @@ export async function loginUser(
 ): Promise<SetCookieOptions[]> {
 	let roles: any = await database.getUserRoles(userID);
 	let user = await database.getUserById(userID);
-	user.setRoles(roles);
+	user.setRoles(roles.map((role) => role.role_id));
 	let refreshToken = await createRefreshToken(user);
 	let accessToken = await createAccessToken(refreshToken, database, user);
 

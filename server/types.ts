@@ -185,7 +185,12 @@ export class User {
 		role_ids?: number[];
 		roles?: string[];
 		passkeys?: Passkey[];
-		id: Buffer;
+		id:
+			| Buffer
+			| {
+					type: "Buffer";
+					data: number[];
+			  };
 		salt?: Buffer | null;
 		password?: Buffer | null;
 		created_at?: Date;
@@ -194,29 +199,29 @@ export class User {
 	}) {
 		this.emails = emails;
 		this.passkeys = passkeys;
+		if (!(id instanceof Buffer)) {
+			id = Buffer.from(id.data);
+		}
 		this.id = id;
 		this.salt = salt;
 		this.password = password;
 		this.created_at = created_at;
 		this.first_name = first_name;
 		this.last_name = last_name;
-		console.log(role_ids, roles);
 		this.setRoles(role_ids ?? roles ?? []);
 	}
 	setRoles(roles: (number | string)[]): void {
-		console.log(roles);
 		if (roles.length === 0) return;
-		this.roles = roles.map((role) => {
-			if (typeof role === "number") return ROLES[role];
-			return role;
-		});
 		this.role_ids = roles.map((role) => {
 			if (typeof role === "string") return ROLES.indexOf(role);
 			return role;
 		});
+		this.roles = this.role_ids.map((role) => {
+			if (typeof role === "number") return ROLES[role];
+			return role;
+		});
 	}
 	static fromJWT(payload: JWT_REGISTERED_CLAIMS): User {
-		console.log(payload);
 		let user = new User({
 			id: payload.sub,
 			first_name: payload.fnm,

@@ -2,7 +2,7 @@ import mysql, { Pool, PoolConnection } from "mysql2/promise";
 
 import { MySQLConfig } from "./constants";
 import { parse as uuidParse } from "uuid-parse";
-import { Passkey, User } from "./types";
+import { Email, Passkey, User } from "./types";
 import { v4 as uuidv4 } from "uuid";
 import { spawn } from "child_process";
 
@@ -65,10 +65,13 @@ class Database {
 		)[0][0];
 		return user;
 	}
-	async getEmailsByUserID(userID: Buffer, connection: Queryable = this.pool) {
+	async getEmailsByUserID(
+		userID: Buffer,
+		connection: Queryable = this.pool
+	): Promise<Email[]> {
 		return (
 			await connection.query("SELECT * FROM emails WHERE user_id = ?", [userID])
-		)[0];
+		)[0] as Email[];
 	}
 	async addEmailToUser(
 		userID: Buffer,

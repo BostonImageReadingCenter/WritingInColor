@@ -16,6 +16,7 @@ import {
 	revokeRefreshToken,
 	VerifyJWT,
 	DecodeJWT,
+	loginUser,
 } from "./login";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -156,6 +157,11 @@ async function routes(fastify: FastifyInstance, options) {
 		async (request: FastifyRequest, reply: FastifyReply) => {
 			let user = await getUser(request, reply);
 			if (!user) return reply.redirect("/login");
+			let emails = await database.getEmailsByUserID(user.id);
+			user.emails = emails;
+			let passkeys = await database.getPasskeysByUserID(user.id);
+			user.passkeys = passkeys;
+			console.log(passkeys);
 			reply
 				.code(200)
 				.header("Content-Type", "text/html")
@@ -251,7 +257,7 @@ async function routes(fastify: FastifyInstance, options) {
 			}
 
 			session.expires += 1000 * 60 * 1; // Since the user has interacted with the page, give them another minute
-			console.log(json);
+			// console.log(json);
 			let result = await session.generator.next({
 				request,
 				reply,
@@ -337,5 +343,25 @@ async function routes(fastify: FastifyInstance, options) {
 			);
 		}
 	);
+	fastify.post("/api/update-user-information", async (request, reply) => {
+		let user = await getUser(request, reply);
+		if (!user) return reply.redirect("/login");
+
+		let json: any = request.body;
+		for (const [key, value] of Object.entries(json)) {
+			if (key === "first-name") {
+				database.query("UPDATE users SET first_name = ? WHERE id = ?", [
+					value,
+					user.id,
+				]);
+			} else if (key === "last-name") {
+				database.query("UPDATE users SET last_name = ? WHERE id = ?", [
+					value,
+					user.id,
+				]);
+			}
+		}
+		setCookies(await loginUser(user.id, database), reply);
+	});
 }
 export default routes;

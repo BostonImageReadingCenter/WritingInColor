@@ -40,9 +40,15 @@
 			<button id="save-button" disabled>Save</button>
 			{% for table_name, rows in JSON_DATA %}
 			<h2>{{ table_name }}</h2>
-			<table class="db-table">
+			<button class="add-row-button" data-table="{{ table_name }}">
+				Add Row
+			</button>
+			<br />
+			<br />
+			<table class="db-table" data-table="{{ table_name }}">
 				<thead>
 					<tr>
+						<th>&nbsp;</th>
 						{% for column in rows[0]|keys %}
 						<th>{{ column }}</th>
 						{% endfor %}
@@ -50,13 +56,23 @@
 				</thead>
 				<tbody>
 					{% for row in rows %} {% set row_id = loop.index %}
-					<tr>
+					<tr data-row-id="{{ row_id - 1 }}">
+						<td>
+							<button
+								class="delete-row-button"
+								data-table="{{ table_name }}"
+								data-row-id="{{ row_id - 1 }}"
+							>
+								Delete
+							</button>
+						</td>
 						{% for key, value in row %}
 						<td
 							contenteditable
 							data-table="{{ table_name }}"
 							data-row-id="{{ row_id - 1 }}"
 							data-key="{{ key }}"
+							class="row-data"
 						>
 							{{ value }}
 						</td>
