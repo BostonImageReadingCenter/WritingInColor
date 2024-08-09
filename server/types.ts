@@ -185,7 +185,12 @@ export class User {
 		role_ids?: number[];
 		roles?: string[];
 		passkeys?: Passkey[];
-		id: Buffer;
+		id:
+			| Buffer
+			| {
+					type: "Buffer";
+					data: number[];
+			  };
 		salt?: Buffer | null;
 		password?: Buffer | null;
 		created_at?: Date;
@@ -194,6 +199,9 @@ export class User {
 	}) {
 		this.emails = emails;
 		this.passkeys = passkeys;
+		if (!(id instanceof Buffer)) {
+			id = Buffer.from(id.data);
+		}
 		this.id = id;
 		this.salt = salt;
 		this.password = password;

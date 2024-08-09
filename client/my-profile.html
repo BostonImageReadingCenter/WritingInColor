@@ -1,14 +1,34 @@
 {% extends "layout.html" %} {% block head %}
 <link rel="stylesheet" href="/static/css/user-profile.css" />
+<script>
+	var user = {{user|stringify|safe}}
+</script>
+<script src="/static/javascript/bundle/userProfile.js"></script>
 {% endblock %} {% block body %}
 <main>
 	<h1>Hello, {{ user.first_name }}!</h1>
 	<a href="/">Back to Home Page</a>
+	<button id="save-button" disabled>Save</button>
 	<br />
 	<a href="/logout">Logout</a>
 	<h2>Name</h2>
-	<input type="text" value="{{ user.first_name }}" disabled />
-	<input type="text" value="{{ user.last_name }}" disabled />
-	<img src="/static/media/image/icon/pencil.svg" />
+	<input type="text" value="{{ user.first_name }}" id="first-name" />
+	<input type="text" value="{{ user.last_name }}" id="last-name" />
+	<h2>Email</h2>
+	{% for email in user.emails %}
+	<div clas="email-data">
+		<span class="email">{{email.email}}</span>
+		<span class="is-primary">Primary</span>
+		<span class="created-at">{{email.created_at}}</span>
+	</div>
+	{% endfor %}
+	<button id="add-email-button">Add Email</button>
+	<h2>Passkeys</h2>
+	{% for passkey in user.passkeys %}
+	<div class="passkey-data">
+		<span class="passkey">Passkey #{{loop.index}}</span>
+	</div>
+	<button id="add-passkey-button">Add Passkey</button>
+	{% endfor %}
 </main>
 {% endblock %}
