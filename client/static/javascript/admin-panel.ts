@@ -77,6 +77,17 @@ function isLink(element: Element) {
 	return element.nodeName === "A" && element.hasAttribute("href");
 }
 
+function getStyleState(element: HTMLElement, style: string) {
+	switch (style) {
+		case "color":
+			return convertToHex(window.getComputedStyle(currentlyEditing).color);
+		case "font-size":
+			return window.getComputedStyle(currentlyEditing).fontSize;
+		case "font-weight":
+			return window.getComputedStyle(currentlyEditing).fontWeight;
+	}
+}
+
 // The EDITABLE object containing the above functions
 const EDITABLE = {
 	text: isOnlyTextNode,
@@ -122,6 +133,60 @@ function getScrollableAncestors(element: HTMLElement) {
 	}
 	return scrollableAncestors;
 }
+function openTextEditMenu(element: HTMLElement) {
+	currentlyEditing = element;
+	textEditMenu.style.display = "flex";
+	let updateEditMenuPosition = () => {
+		requestAnimationFrame(() => {
+			let menuBoundingRect = getBoundingPageRect(textEditMenu);
+			let elementBoundingRect = getBoundingPageRect(element);
+			textEditMenu.style.left =
+				String(
+					Math.min(
+						Math.max(
+							elementBoundingRect.left +
+								elementBoundingRect.width / 2 -
+								menuBoundingRect.width / 2,
+							0
+						),
+						document.documentElement.scrollWidth - menuBoundingRect.width
+					)
+				) + "px";
+			textEditMenu.style.top =
+				String(
+					Math.min(
+						document.documentElement.scrollHeight - menuBoundingRect.height,
+						Math.max(0, elementBoundingRect.bottom + 10)
+					)
+				) + "px";
+		});
+	};
+	updateEditMenuPosition();
+	const resizeObserver = new ResizeObserver((entries) => {
+		updateEditMenuPosition();
+	});
+	resizeObserver.observe(element);
+
+	// Attach scroll listeners to scrollable ancestors
+	const scrollableAncestors = getScrollableAncestors(element);
+	scrollableAncestors.forEach((ancestor) =>
+		ancestor.addEventListener("scroll", updateEditMenuPosition)
+	);
+	(
+		document.getElementById("text-edit-menu-color-picker") as HTMLInputElement
+	).value = getStyleState(element, "color");
+	console.log(
+		(document.getElementById("text-edit-menu-color-picker") as HTMLInputElement)
+			.value
+	);
+	(
+		document.getElementById(
+			"text-edit-menu-font-size-selector"
+		) as HTMLInputElement
+	).value = parseFloat(getStyleState(element, "font-size")).toString(); // TODO: Support other units??
+
+	return { resizeObserver, scrollableAncestors };
+}
 
 const HANDLERS = {
 	/**
@@ -131,34 +196,8 @@ const HANDLERS = {
 		element.setAttribute("contenteditable", "true");
 		element.focus();
 		element.style.outline = "1px solid blue";
-		currentlyEditing = element;
-		textEditMenu.style.display = "flex";
 		element.focus();
-		let updateEditMenuPosition = () => {
-			requestAnimationFrame(() => {
-				let menuBoundingRect = getBoundingPageRect(textEditMenu);
-				let elementBoundingRect = getBoundingPageRect(element);
-				textEditMenu.style.left =
-					String(
-						Math.min(
-							Math.max(
-								elementBoundingRect.left +
-									elementBoundingRect.width / 2 -
-									menuBoundingRect.width / 2,
-								0
-							),
-							document.documentElement.scrollWidth - menuBoundingRect.width
-						)
-					) + "px";
-				textEditMenu.style.top =
-					String(
-						Math.min(
-							document.documentElement.scrollHeight - menuBoundingRect.height,
-							Math.max(0, elementBoundingRect.bottom + 10)
-						)
-					) + "px";
-			});
-		};
+		let { resizeObserver } = openTextEditMenu(element);
 		let previousText = element.innerText;
 		let inputHandler = (event: InputEvent) => {
 			commandStack.push({
@@ -170,18 +209,7 @@ const HANDLERS = {
 			});
 			previousText = element.innerText;
 		};
-		updateEditMenuPosition();
-		const resizeObserver = new ResizeObserver((entries) => {
-			updateEditMenuPosition();
-		});
-		resizeObserver.observe(element);
 		element.addEventListener("input", inputHandler);
-
-		// Attach scroll listeners to scrollable ancestors
-		const scrollableAncestors = getScrollableAncestors(element);
-		scrollableAncestors.forEach((ancestor) =>
-			ancestor.addEventListener("scroll", updateEditMenuPosition)
-		);
 		element.addEventListener(
 			"inactive",
 			() => {
@@ -201,12 +229,20 @@ const HANDLERS = {
 	audio: (element) => {},
 	link: (element) => {},
 };
+function hasAncestorWithClass(element: Element, className: string) {
+	return element.closest(`.${className}`) !== null;
+}
 window.addEventListener("load", () => {
 	textEditMenu = createTextEditMenu();
 	textEditMenu.style.display = "none";
 
 	// Add event listeners to elements
 	document.body.querySelectorAll("*").forEach((element) => {
+		if (
+			hasAncestorWithClass(element, "edit-mode-exempt") ||
+			hasAncestorWithClass(element, "templated")
+		)
+			return;
 		for (let type in EDITABLE) {
 			if (EDITABLE[type](element)) {
 				element.addEventListener(
@@ -359,11 +395,10 @@ function createTextEditMenu() {
 						tag: "input",
 						attributes: { type: "color" },
 						classes: ["color-picker"],
+						id: "text-edit-menu-color-picker",
 						eventHandlers: {
 							input(event) {
-								let previousState = convertToHex(
-									window.getComputedStyle(currentlyEditing).color
-								);
+								let previousState = getStyleState(currentlyEditing, "color");
 								let newValue = event.target.value;
 								currentlyEditing.style.color = newValue;
 								let command_target = currentlyEditing;
@@ -410,12 +445,12 @@ function createTextEditMenu() {
 						},
 						classes: ["font-size-selector", "menu-item", "edit-mode-exempt"],
 						text: "20",
+						id: "text-edit-menu-font-size-selector",
 					},
 				],
 				eventHandlers: {
 					input(event) {
-						let previousState =
-							window.getComputedStyle(currentlyEditing).fontSize;
+						let previousState = getStyleState(currentlyEditing, "font-size");
 						currentlyEditing.style.fontSize = event.target.value + "px";
 						commandStack.push({
 							command_type: "change-font-size",
@@ -439,8 +474,10 @@ function createTextEditMenu() {
 				],
 				eventHandlers: {
 					click(event) {
-						let previousFontWeight =
-							window.getComputedStyle(currentlyEditing).fontWeight;
+						let previousFontWeight = getStyleState(
+							currentlyEditing,
+							"font-weight"
+						);
 						currentlyEditing.style.fontWeight =
 							previousFontWeight == "700" ? "400" : "700";
 						commandStack.push({
