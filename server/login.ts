@@ -321,7 +321,7 @@ export async function* login(
 					{
 						action: "collect",
 						types: [{ type: "binary", submits: true }],
-						header: "Create an Account?",
+						header: "Sign Up",
 						message: `No account found for ${email}. Do you want to create one?`,
 					},
 				],
@@ -425,8 +425,8 @@ export async function* login(
 							types: [
 								{ type: "create-password", requirements: passwordRequirements },
 							],
-							header: "Create Password",
-							message: "Create a password for your account.",
+							header: "Sign Up",
+							message: "By continuing, you agree to the Terms of Use and Privacy Policy.",
 						},
 					],
 				};

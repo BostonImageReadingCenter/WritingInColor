@@ -131,12 +131,6 @@ header {
 	gap: -1px;
 	cursor: pointer;
 }
-// #menu-bar {
-// 	display: flex;
-// 	align-items: center;
-// 	justify-content: space-between;
-// 	cursor: pointer;
-// }
 
 #menu-button {
 	position: fixed;
@@ -156,6 +150,8 @@ header {
 	transform: translateX(-300px);
 	transition: transform 0.3s ease-in-out;
 	z-index:100;
+	border-color:#333;
+	border-width: 1px;
 }
 
 #menu-button.show {
@@ -170,7 +166,6 @@ header {
 #menu-button p {
 	margin: 10px 0;
 	display: flex;
-	align-items: center;
 }
 
 #welcome-phrase {
@@ -183,6 +178,7 @@ header {
 	font-size: 14px;
 	color: #666;
 	margin-bottom: 20px;
+	align-items: center;
 }
 
 .main-menu, .account-settings {
@@ -228,11 +224,11 @@ header {
 
 .arrow {
 	margin-left: auto;
-	transform: rotate(90deg);
+	transform: rotate(360deg);
 }
 
 .active .arrow {
-	transform: rotate(-90deg);
+	transform: rotate(-180deg);
 }
 
 
