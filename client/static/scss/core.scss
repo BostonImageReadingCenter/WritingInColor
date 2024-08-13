@@ -146,11 +146,11 @@ header {
 	flex-direction: column;
 	justify-content: space-between;
 	border-left: 1px solid #e0e0e0;
-	box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+	box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
 	transform: translateX(-300px);
 	transition: transform 0.3s ease-in-out;
-	z-index:100;
-	border-color:#333;
+	z-index: 100;
+	border-color: #333;
 	border-width: 1px;
 }
 
@@ -181,24 +181,27 @@ header {
 	align-items: center;
 }
 
-.main-menu, .account-settings {
+.main-menu,
+.account-settings {
 	display: flex;
 	flex-direction: column;
 }
 
-.main-menu p, .account-settings p {
+.main-menu p,
+.account-settings p {
 	margin: 10px 0;
 	cursor: pointer;
 	display: flex;
 	align-items: center;
 }
 
-
-.main-menu img, .account-settings img {
+.main-menu img,
+.account-settings img {
 	margin-right: 10px;
 }
 
-.main-menu > p:first-child, .account-settings > p:first-child {
+.main-menu > p:first-child,
+.account-settings > p:first-child {
 	font-size: 12px;
 	font-weight: bold;
 	color: #999;
@@ -206,19 +209,22 @@ header {
 	margin-bottom: 10px;
 }
 
-.main-menu p:hover, .account-settings p:hover {
+.main-menu p:hover,
+.account-settings p:hover {
 	background-color: #f0f0f0;
 	border-radius: 5px;
 }
 
-.main-menu .submenu, .account-settings .submenu {
+.main-menu .submenu,
+.account-settings .submenu {
 	display: none;
 	padding-left: 20px;
 	font-size: 14px;
 	color: #666;
 }
 
-.main-menu p.active .submenu, .account-settings p.active .submenu {
+.main-menu p.active .submenu,
+.account-settings p.active .submenu {
 	display: block;
 }
 
@@ -230,7 +236,6 @@ header {
 .active .arrow {
 	transform: rotate(-180deg);
 }
-
 
 //background image for the courses section
 .background-image1 {
@@ -307,12 +312,7 @@ p {
 	z-index: 1;
 }
 
-
 @media (max-width: 1000px) {
-	main {
-		padding: 1rem;
-	}
-
 	.hero .text-section,
 	.mission .text-section {
 		font-size: large;

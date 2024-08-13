@@ -464,3 +464,10 @@ export interface FileFields {
 		tag: string;
 	};
 }
+export interface UpdateUserInformationParameters {
+	"set-first-name"?: string;
+	"set-last-name"?: string;
+	"add-email"?: string;
+	"remove-emails"?: string[];
+	"set-primary-email"?: string;
+}

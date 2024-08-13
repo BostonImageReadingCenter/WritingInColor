@@ -21,6 +21,7 @@ import {
 } from "@simplewebauthn/browser";
 import { PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/typescript-types";
 import validator from "validator";
+import { RegistrationResponseJSON } from "@simplewebauthn/server/esm/deps";
 
 var collectionMessageEl: HTMLElement,
 	collectionHeaderEl: HTMLElement,
@@ -62,7 +63,8 @@ window.addEventListener("load", async (event: Event) => {
 /**
  * Handles actions from LoginData returned from the server
  */
-async function handleAction(data: LoginData) {
+export async function handleAction(data: LoginData, new_sessionID?: string) {
+	if (new_sessionID) sessionID = new_sessionID;
 	let actions = data.actions;
 	for (let item of actions) {
 		if (item.action === "reset-form") {
@@ -134,8 +136,8 @@ async function handleAction(data: LoginData) {
 /**
  * Returns data to the server
  */
-async function returnData(data: LoginDataReturn[] = []) {
-	fetch("/api/login/return", {
+export async function returnData(data: LoginDataReturn[] = []) {
+	fetch("/api/session/return", {
 		method: "POST",
 		headers: {
 			"Content-Type": "application/json",
@@ -154,7 +156,7 @@ async function returnData(data: LoginDataReturn[] = []) {
 /**
  * For collecting values from the user.
  */
-async function collect(data: CollectionType) {
+export async function collect(data: CollectionType) {
 	if (data.type === "email") {
 		hiddentDataEl.querySelectorAll("input[name=email]").forEach((input) => {
 			input.remove(); // Remove old inputs
@@ -471,32 +473,44 @@ async function collect(data: CollectionType) {
 	}
 }
 
-async function registerPasskey(data: RegisterPasskeyAction) {
-	const attestationResponse = await startRegistration(data.WebAuthnOptions);
-	const verificationResponse = await fetch("/api/login/return", {
-		method: "POST",
-		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({
-			id: sessionID,
-			return: [
-				{
-					type: "attestation-response",
-					attestationResponse,
-				} as AttestationResponseLoginDataReturn,
-			],
-		}),
-	});
-	let json = await verificationResponse.json();
-	handleAction(json.value);
-	if (json.value.data.success) {
-		if (!json.done) returnData();
-		// TODO: handle success
-	} else {
-		alert("Registration Failed.");
-		// TODO: handle failure
+export async function registerPasskey(data: RegisterPasskeyAction) {
+	async function handleAttestationResponse(
+		attestationResponse: RegistrationResponseJSON | null
+	) {
+		const verificationResponse = await fetch("/api/session/return", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({
+				id: sessionID,
+				return: [
+					{
+						type: "attestation-response",
+						attestationResponse,
+					} as AttestationResponseLoginDataReturn,
+				],
+			}),
+		});
+		let json = await verificationResponse.json();
+		handleAction(json.value);
+		if (json.value.data.success) {
+			if (!json.done) returnData();
+			// TODO: handle success
+		} else {
+			// Passkey registration failed
+			// Just keep going on with the registration
+			if (!json.done) returnData();
+			// TODO: handle failure
+		}
 	}
+	startRegistration(data.WebAuthnOptions)
+		.then((attestationResponse) => {
+			handleAttestationResponse(attestationResponse);
+		})
+		.catch((error) => {
+			handleAttestationResponse(null);
+		});
 }
-async function authenticatePasskey(
+export async function authenticatePasskey(
 	data: AuthenticatePasskeyAction = {
 		action: "authenticate-passkey",
 		WebAuthnOptions: null,
@@ -505,7 +519,7 @@ async function authenticatePasskey(
 	let WebAuthnOptions = authenticationOptions;
 	if (data.WebAuthnOptions) WebAuthnOptions = data.WebAuthnOptions;
 	const assertionResponse = await startAuthentication(WebAuthnOptions);
-	const verificationResponse = await fetch("/api/login/return", {
+	const verificationResponse = await fetch("/api/session/return", {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify({
@@ -543,7 +557,7 @@ async function initConditionalUI(data: OtherAction) {
 		}
 		startAuthentication(authenticationOptions, true)
 			.then(async (assertionResponse) => {
-				const verificationResponse = await fetch("/api/login/return", {
+				const verificationResponse = await fetch("/api/session/return", {
 					method: "POST",
 					headers: { "Content-Type": "application/json" },
 					body: JSON.stringify({

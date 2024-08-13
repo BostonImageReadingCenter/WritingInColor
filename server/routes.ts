@@ -17,6 +17,7 @@ import {
 	VerifyJWT,
 	DecodeJWT,
 	loginUser,
+	addPasskey,
 } from "./login";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -33,13 +34,14 @@ import {
 	SetCookieOptions,
 	User,
 	FileFields,
+	UpdateUserInformationParameters,
 } from "./types.js";
 import { Multipart, MultipartFields } from "@fastify/multipart";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const client_root = join(__dirname, "../client/");
-let auth_sessions = new Map();
+let auth_sessions = {};
 let pipelineAsync = promisify(pipeline);
 let JSON_DATA = JSON_DATA_CONST;
 
@@ -225,11 +227,12 @@ async function routes(fastify: FastifyInstance, options) {
 				database,
 				request.body as LoginInitializationOptions
 			);
-			auth_sessions.set(id, {
+			auth_sessions[id] = {
+				sessionType: "login",
 				id,
 				expires: Date.now() + 1000 * 60 * 1, // Give the user 1 minute to interact with the login page before it expires
 				generator,
-			});
+			};
 			cleanSessions();
 			let result = await generator.next();
 			setCookies((result.value as LoginData).setCookies || [], reply);
@@ -240,11 +243,11 @@ async function routes(fastify: FastifyInstance, options) {
 
 	// This one is for when the client returns data back to the server.
 	fastify.post(
-		"/api/login/return",
+		"/api/session/return",
 		async (request: FastifyRequest, reply: FastifyReply) => {
 			let json: any = request.body;
 			let id = json.id;
-			let session = auth_sessions.get(id);
+			let session = auth_sessions[id];
 
 			if (!session)
 				return reply
@@ -253,7 +256,7 @@ async function routes(fastify: FastifyInstance, options) {
 
 			if (Date.now() > session.expires) {
 				delete auth_sessions[id];
-				return reply.code(410).send({ error: "Login session has expired." });
+				return reply.code(410).send({ error: "Session has expired." });
 			}
 
 			session.expires += 1000 * 60 * 1; // Since the user has interacted with the page, give them another minute
@@ -347,21 +350,58 @@ async function routes(fastify: FastifyInstance, options) {
 		let user = await getUser(request, reply);
 		if (!user) return reply.redirect("/login");
 
-		let json: any = request.body;
+		let json = request.body as UpdateUserInformationParameters;
 		for (const [key, value] of Object.entries(json)) {
-			if (key === "first-name") {
+			if (key === "set-first-name") {
 				database.query("UPDATE users SET first_name = ? WHERE id = ?", [
 					value,
 					user.id,
 				]);
-			} else if (key === "last-name") {
+			} else if (key === "set-last-name") {
 				database.query("UPDATE users SET last_name = ? WHERE id = ?", [
 					value,
 					user.id,
 				]);
+			} else if (key === "add-email") {
+				database.addEmailToUser(user.id, {
+					email: value,
+					is_primary: false,
+				});
+			} else if (key === "remove-emails") {
+				for (const email of value) {
+					database.query("DELETE FROM emails WHERE user_id = ? AND email = ?", [
+						user.id,
+						email,
+					]);
+				}
+			} else if (key === "set-primary-email") {
+				database.query("UPDATE emails SET is_primary = 0 WHERE user_id = ?", [
+					user.id,
+				]);
+				database.query(
+					"UPDATE emails SET is_primary = 1 WHERE user_id = ? AND email = ?",
+					[user.id, value]
+				);
 			}
 		}
 		setCookies(await loginUser(user.id, database), reply);
+	});
+	fastify.post("/api/begin-add-passkey", async (request, reply) => {
+		let user = await getUser(request, reply);
+		if (!user) return reply.send(401);
+		let id = uuidv4();
+		let generator = addPasskey(database, user.id);
+		auth_sessions[id] = {
+			sessionType: "add-passkey",
+			id,
+			expires: Date.now() + 1000 * 60 * 1, // Give the user 1 minute to interact with the login page before it expires
+			generator,
+		};
+		cleanSessions();
+		let result = await generator.next();
+		setCookies((result.value as LoginData).setCookies || [], reply);
+		if (result.done) delete auth_sessions[id];
+		return reply.send({ id, done: result.done, value: result.value });
 	});
 }
 export default routes;

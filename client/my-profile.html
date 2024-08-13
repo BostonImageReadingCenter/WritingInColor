@@ -18,11 +18,18 @@
 	<div id="email-container" class="templated">
 		{% for email in user.emails %}
 		<div clas="email-data">
-			<span class="email">{{email.email}}</span>
-			{%if email.is_primary%}
+			<span class="email">{{ email.email }}</span>
+			{% if email.is_primary %}
 			<span class="is-primary">Primary</span>
-			{%endif%}
-			<span class="created-at">{{email.created_at}}</span>
+			{% else %}
+			<button class="make-primary-button" data-email="{{ email.email }}">
+				Make Primary
+			</button>
+			{% endif %}
+			<span class="created-at">{{ email.created_at }}</span>
+			<button class="remove-email-button" data-email="{{ email.email }}">
+				Remove
+			</button>
 		</div>
 		{% endfor %}
 	</div>

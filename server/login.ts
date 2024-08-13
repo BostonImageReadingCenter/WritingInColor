@@ -373,8 +373,14 @@ export async function* login(
 				let attestationResponse: RegistrationResponseJSON =
 					result.return.filter((x) => x.type === "attestation-response")?.[0]
 						.attestationResponse;
-				const verification = await verify(attestationResponse);
-				if (verification.verified && verification.registrationInfo) {
+				const verification = attestationResponse
+					? await verify(attestationResponse)
+					: undefined;
+				if (
+					verification &&
+					verification.verified &&
+					verification.registrationInfo
+				) {
 					passkeyRegistrationSucceeded = true;
 					const { credentialPublicKey, credentialID, counter } =
 						verification.registrationInfo;
@@ -388,20 +394,6 @@ export async function* login(
 						counter: counter,
 						transports: transportsString,
 					});
-				} else {
-					yield {
-						actions: [
-							{
-								action: "error",
-								errors: [
-									"Passkey registration failed. Please try again later.",
-								],
-							},
-							{
-								action: "reload",
-							},
-						],
-					};
 				}
 				yield {
 					actions: [],
@@ -425,8 +417,8 @@ export async function* login(
 							types: [
 								{ type: "create-password", requirements: passwordRequirements },
 							],
-							header: "Sign Up",
-							message: "By continuing, you agree to the Terms of Use and Privacy Policy.",
+							header: "Create a Password",
+							message: "",
 						},
 					],
 				};
@@ -442,7 +434,7 @@ export async function* login(
 					salt: salt,
 					password: passwordHash,
 				}),
-				emails: [email],
+				emails: [{ email, is_primary: true }],
 				passkeys,
 			});
 			let setCookies = await loginUser(userID, database);
@@ -552,6 +544,58 @@ export async function* login(
 			errors.push("Invalid password");
 		}
 	}
+}
+export async function* addPasskey(database: Database, userID: Buffer) {
+	let result: LoginDataReturnPacket;
+	let user: User = await database.getUserById(userID);
+	let passkeys: Passkey[] = await database.getPasskeysByUserID(user.id);
+	let emails = await database.getEmailsByUserID(user.id);
+	user.passkeys = passkeys;
+	user.emails = emails;
+	let primaryEmail =
+		user.emails.find((email) => email.is_primary) ?? user.emails[0];
+	let passkeyRegistrationSucceeded = false;
+	const { WebAuthnOptions, verify } = await beginPasskeyRegistration(
+		primaryEmail.email,
+		userID
+	);
+	result = yield {
+		actions: [
+			{
+				action: "register-passkey",
+				WebAuthnOptions,
+			},
+		],
+	};
+	let attestationResponse: RegistrationResponseJSON = result.return.filter(
+		(x) => x.type === "attestation-response"
+	)?.[0].attestationResponse;
+	const verification = attestationResponse
+		? await verify(attestationResponse)
+		: undefined;
+	if (verification && verification.verified && verification.registrationInfo) {
+		passkeyRegistrationSucceeded = true;
+		const { credentialPublicKey, credentialID, counter } =
+			verification.registrationInfo;
+		const transportsString = JSON.stringify(
+			attestationResponse.response.transports
+		);
+		let passkey = {
+			id: Buffer.from(uuidParse(uuidv4())),
+			credential_id: credentialID,
+			public_key: uint8ArrayToBase64(credentialPublicKey),
+			counter: counter,
+			transports: transportsString,
+		};
+		user.passkeys.push(passkey);
+		await database.addPasskeyToUser(user.id, passkey);
+	}
+	return {
+		actions: [],
+		data: {
+			success: passkeyRegistrationSucceeded,
+		},
+	};
 }
 
 export async function isLoggedIn(

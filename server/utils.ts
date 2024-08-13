@@ -54,3 +54,7 @@ export function checkPassword(
 	}
 	return errors;
 }
+
+export function measureMemoryUsage() {
+	return process.memoryUsage().heapUsed / 1024 / 1024; // Convert to MB
+}

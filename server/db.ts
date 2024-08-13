@@ -75,12 +75,15 @@ class Database {
 	}
 	async addEmailToUser(
 		userID: Buffer,
-		email: string,
+		email: {
+			email: string;
+			is_primary: boolean;
+		},
 		connection: Queryable = this.pool
 	) {
 		await connection.query(
-			"INSERT INTO emails (user_id, email) VALUES (?, ?)",
-			[userID, email]
+			"INSERT INTO emails (user_id, email, is_primary) VALUES (?, ?)",
+			[userID, email.email, email.is_primary]
 		);
 	}
 	async getPasskeysByUserID(
@@ -134,7 +137,7 @@ class Database {
 			passkeys,
 		}: {
 			user: User;
-			emails: string[];
+			emails: { email: string; is_primary: boolean }[];
 			passkeys: Passkey[];
 		},
 		connection?: PoolConnection
