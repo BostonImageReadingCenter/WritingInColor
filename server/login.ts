@@ -109,15 +109,15 @@ export async function revokeRefreshToken(
 	refresh_token_expiration_time: Date,
 	database: Database
 ) {
-	try {
-		// Add to revoked_refresh_tokens table
-		database.query(
+	// Add to revoked_refresh_tokens table
+	database
+		.query(
 			"INSERT IGNORE INTO revoked_refresh_tokens (token_id, expires_at) VALUES (?, ?)",
 			[refresh_token_id, refresh_token_expiration_time]
-		);
-	} catch (e) {
-		// Already revoked.
-	}
+		)
+		.catch((e) => {
+			// Already revoked.
+		});
 }
 export async function createRefreshToken(user: User) {
 	let refreshToken: JWT_REGISTERED_CLAIMS = {
@@ -173,6 +173,9 @@ export async function createAccessTokenIfNotRevoked(
 
 	return createAccessToken(decoded_refresh_token, database);
 }
+/**
+ * Signs the user in by generating refresh tokens and access tokens.
+ */
 export async function loginUser(
 	userID: Buffer,
 	database: Database
@@ -196,6 +199,9 @@ export async function loginUser(
 		},
 	];
 }
+/**
+ * Takes the assertation response, verifies it, and logins the user if it is valid.
+ */
 export async function loginUserWithPasskey(
 	database: Database,
 	assertionResponse: AuthenticationResponseJSON,
