@@ -5,6 +5,7 @@ let edit_mode_toggle = document.getElementById(
 ) as HTMLInputElement;
 let textEditMenu: HTMLElement;
 let currentlyEditing: HTMLElement;
+let wrapTextButton: HTMLElement;
 
 interface Command {
 	command_type: string;
@@ -173,6 +174,7 @@ function openTextEditMenu(element: HTMLElement) {
 		requestAnimationFrame(() => {
 			let menuBoundingRect = getBoundingPageRect(textEditMenu);
 			let elementBoundingRect = getBoundingPageRect(element);
+			let padding = 15;
 			textEditMenu.style.left =
 				String(
 					Math.min(
@@ -188,8 +190,10 @@ function openTextEditMenu(element: HTMLElement) {
 			textEditMenu.style.top =
 				String(
 					Math.min(
-						document.documentElement.scrollHeight - menuBoundingRect.height,
-						Math.max(0, elementBoundingRect.bottom + 10)
+						document.documentElement.scrollHeight -
+							menuBoundingRect.height -
+							padding,
+						Math.max(0, elementBoundingRect.bottom + padding)
 					)
 				) + "px";
 		});
@@ -208,7 +212,6 @@ function openTextEditMenu(element: HTMLElement) {
 	(
 		document.getElementById("text-edit-menu-color-picker") as HTMLInputElement
 	).value = getStyleState(element, "color");
-	console.log(getStyleState(element, "font-size"));
 	(
 		document.getElementById(
 			"text-edit-menu-font-size-selector"
@@ -223,6 +226,7 @@ const HANDLERS = {
 	 * Handles editing text elements
 	 */
 	text: (element: HTMLElement) => {
+		console.log("active");
 		element.setAttribute("contenteditable", "true");
 		element.focus();
 		element.style.outline = "1px solid blue";
@@ -242,13 +246,16 @@ const HANDLERS = {
 		element.addEventListener("input", inputHandler);
 		element.addEventListener(
 			"inactive",
-			() => {
+			(event) => {
+				console.log("is Inactive", event);
 				resizeObserver.unobserve(element);
 				resizeObserver.disconnect();
 				element.removeEventListener("input", inputHandler);
 				element.style.outline = "none";
 				textEditMenu.style.display = "none";
 				element.setAttribute("contenteditable", "false");
+				wrapTextButton.classList.remove("show");
+				wrapTextButton.classList.add("hide");
 			},
 			{ once: true }
 		);
@@ -262,13 +269,103 @@ const HANDLERS = {
 function hasAncestorWithClass(element: Element, className: string) {
 	return element.closest(`.${className}`) !== null;
 }
+function flashText(element: HTMLElement, onComplete?: () => void) {
+	element.classList.add("flash");
+	setTimeout(() => {
+		element.classList.remove("flash");
+		if (onComplete) onComplete();
+	}, 2000);
+}
+function editableClickHandler(
+	event: PointerEvent,
+	type: string,
+	element: Element
+) {
+	// Run the handlers if edit mode is on
+	if (edit_mode_toggle.checked) {
+		event.preventDefault();
+		event.stopImmediatePropagation();
+		if (currentlyEditing === element) return;
+		if (currentlyEditing) {
+			console.log("Old:", currentlyEditing, "New:", element);
+			currentlyEditing.dispatchEvent(new CustomEvent("inactive"));
+		}
+		HANDLERS[type](element);
+	}
+}
 window.addEventListener("DOMContentLoaded", () => {
 	textEditMenu = createTextEditMenu();
 	textEditMenu.style.display = "none";
+	wrapTextButton = createElement("button", {
+		id: "wrap-text-button",
+		classes: ["hide", "edit-mode-exempt"],
+		html: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-in-down" viewBox="0 0 16 16">
+  <path fill-rule="evenodd" d="M3.5 6a.5.5 0 0 0-.5.5v8a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5v-8a.5.5 0 0 0-.5-.5h-2a.5.5 0 0 1 0-1h2A1.5 1.5 0 0 1 14 6.5v8a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 14.5v-8A1.5 1.5 0 0 1 3.5 5h2a.5.5 0 0 1 0 1z"/>
+  <path fill-rule="evenodd" d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/>
+</svg>`,
+	});
+	document.body.appendChild(wrapTextButton);
+	document.addEventListener("selectionchange", () => {
+		if (!currentlyEditing) {
+			wrapTextButton.classList.remove("show");
+			wrapTextButton.classList.add("hide");
+			return;
+		}
+		const selection = window.getSelection();
+		const range = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+		const isWithinElement =
+			range && currentlyEditing.contains(range.commonAncestorContainer);
+		console.log("selectionchange", isWithinElement, selection.isCollapsed);
+		if (isWithinElement && !selection.isCollapsed) {
+			const rect = range.getBoundingClientRect();
 
+			// Calculate the button position
+			let top = window.scrollY + rect.top - wrapTextButton.offsetHeight - 10; // 10px above the selection
+			let left =
+				window.scrollX +
+				rect.left +
+				rect.width / 2 -
+				wrapTextButton.offsetWidth / 2;
+
+			// Ensure the button doesn't go off-screen
+			if (left < 0) left = 10; // 10px from the left edge
+			if (left + wrapTextButton.offsetWidth > window.innerWidth)
+				left = window.innerWidth - wrapTextButton.offsetWidth - 10; // 10px from the right edge
+			if (top < 0) top = rect.bottom + 10; // If there's no space above, place it below the selection
+
+			wrapTextButton.style.top = `${top}px`;
+			wrapTextButton.style.left = `${left}px`;
+
+			wrapTextButton.classList.add("show");
+			wrapTextButton.classList.remove("hide");
+		} else {
+			wrapTextButton.classList.remove("show");
+			wrapTextButton.classList.add("hide");
+		}
+	});
+	wrapTextButton.addEventListener("click", function () {
+		const selection = window.getSelection();
+		const range = selection.getRangeAt(0);
+		if (range && !range.collapsed) {
+			const span = document.createElement("span");
+			range.surroundContents(span);
+			span.addEventListener("click", (event: PointerEvent) =>
+				editableClickHandler(event, "text", span)
+			);
+			selection.removeAllRanges();
+			currentlyEditing.dispatchEvent(new CustomEvent("inactive"));
+			flashText(span, () => {
+				editableClickHandler(new PointerEvent("click"), "text", span);
+			});
+			wrapTextButton.classList.remove("show");
+			wrapTextButton.classList.add("hide");
+		}
+	});
 	// Add event listeners to elements
 	document.body.querySelectorAll("*").forEach((element) => {
 		if (
+			element.classList.contains("templated") ||
+			element.classList.contains("edit-mode-exempt") ||
 			hasAncestorWithClass(element, "edit-mode-exempt") ||
 			hasAncestorWithClass(element, "templated")
 		)
@@ -277,16 +374,7 @@ window.addEventListener("DOMContentLoaded", () => {
 			if (EDITABLE[type](element)) {
 				element.addEventListener(
 					"click",
-					(event: PointerEvent) => {
-						// Run the handlers if edit mode is on
-						if (edit_mode_toggle.checked) {
-							event.preventDefault();
-							event.stopImmediatePropagation();
-							if (currentlyEditing)
-								currentlyEditing.dispatchEvent(new CustomEvent("inactive"));
-							HANDLERS[type](element);
-						}
-					},
+					(event: PointerEvent) => editableClickHandler(event, type, element),
 					{
 						capture: false,
 					}
@@ -299,6 +387,7 @@ window.addEventListener("DOMContentLoaded", () => {
 		if (currentlyEditing) {
 			let currentlyEditingBoundingRect =
 				currentlyEditing.getBoundingClientRect();
+			let wrapTextButtonBoundingRect = wrapTextButton.getBoundingClientRect();
 			let textEditMenuBoundingRect = textEditMenu.getBoundingClientRect();
 			if (
 				!isPointInRect(
@@ -308,8 +397,13 @@ window.addEventListener("DOMContentLoaded", () => {
 				!isPointInRect(
 					{ x: event.clientX, y: event.clientY },
 					textEditMenuBoundingRect
+				) &&
+				!isPointInRect(
+					{ x: event.clientX, y: event.clientY },
+					wrapTextButtonBoundingRect
 				)
 			) {
+				console.log("Click out.");
 				currentlyEditing.dispatchEvent(new CustomEvent("inactive"));
 				currentlyEditing = null;
 			}
