@@ -260,7 +260,6 @@ async function routes(fastify: FastifyInstance, options) {
 			}
 
 			session.expires += 1000 * 60 * 1; // Since the user has interacted with the page, give them another minute
-			// console.log(json);
 			let result = await session.generator.next({
 				request,
 				reply,
@@ -394,7 +393,7 @@ async function routes(fastify: FastifyInstance, options) {
 		auth_sessions[id] = {
 			sessionType: "add-passkey",
 			id,
-			expires: Date.now() + 1000 * 60 * 1, // Give the user 1 minute to interact with the login page before it expires
+			expires: Date.now() + 1000 * 60 * 1, // Give the user 1 minute to add the passkey before it expires
 			generator,
 		};
 		cleanSessions();

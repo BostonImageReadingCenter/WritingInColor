@@ -6,6 +6,7 @@ import { Email, Passkey, User } from "./types";
 import { v4 as uuidv4 } from "uuid";
 import { spawn } from "child_process";
 
+type Queryable = Pool | PoolConnection;
 async function testConnection(pool: Pool, tries = 0) {
 	if (tries > 5) {
 		throw new Error("Too many tries, aborting");
@@ -34,7 +35,6 @@ async function initDatabase(): Promise<Pool> {
 	return pool;
 }
 
-type Queryable = Pool | PoolConnection;
 class Database {
 	pool: mysql.Pool;
 	constructor() {

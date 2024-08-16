@@ -20,7 +20,6 @@ window.addEventListener("load", (event: Event) => {
 		if (email) {
 			updateUserInformationParameters["add-email"] = email;
 		}
-		// TODO
 	});
 	addPasskeyButton.addEventListener("click", (event: Event) => {
 		event.preventDefault();
@@ -32,7 +31,6 @@ window.addEventListener("load", (event: Event) => {
 			console.log(json);
 			handleAction(json.value, json.id);
 		});
-		// TODO
 	});
 	firstNameEl.addEventListener("input", (event: Event) => {
 		event.preventDefault();

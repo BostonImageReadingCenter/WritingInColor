@@ -9,6 +9,7 @@ import {
 	base64ToUint8Array,
 } from "./utils";
 import { PasswordRequirements } from "./types";
+import { PoolOptions } from "mysql2";
 // Load environment variables from .env file
 config();
 
@@ -79,14 +80,14 @@ if (
 		publicKey: base64ToUint8Array(SECRET_PUBLIC_KEY_BASE64),
 	};
 }
-const MySQLConfig = {
+const MySQLConfig: PoolOptions = {
 	host: process.env.DB_HOST,
 	user: process.env.DB_USERNAME,
 	password: process.env.DB_PASSWORD,
 	database: process.env.DB_NAME,
 	waitForConnections: true,
-	connectionLimit: 10,
-	queueLimit: 0,
+	connectionLimit: 50,
+	queueLimit: 0, // No limit
 };
 const ToS = readFileSync(
 	path.resolve(__dirname, "../documents/tos.html"),
@@ -148,7 +149,7 @@ let uploadTags = {
 		other: "/media/other/",
 	},
 };
-// Helper function to determine file type
+
 const MIMETYPES = {
 	image: [/^image\/.*/],
 	video: [/^video\/.*/],
@@ -188,11 +189,9 @@ const MIMETYPES = {
 };
 
 function getFileType(mimetype: string): string {
-	for (let key in MIMETYPES) {
-		if (MIMETYPES[key].some((regex: RegExp) => regex.test(mimetype))) {
+	for (let key in MIMETYPES)
+		if (MIMETYPES[key].some((regex: RegExp) => regex.test(mimetype)))
 			return key;
-		}
-	}
 	return "other";
 }
 

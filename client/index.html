@@ -1,6 +1,29 @@
 {% extends "layout.html" %} {% block title %}Writing in Color – Home{% endblock
 %} {% block head %}
 <link rel="stylesheet" href="/static/css/home.css" />
+<script defer>
+	window.addEventListener("load", () => {
+		Array.from(document.getElementsByClassName("donate-button")).forEach(
+			(element) => {
+				element.addEventListener("click", () => {
+					window.location.href = "https://givebutter.com/l6Qr7d";
+				});
+			}
+		);
+		document.getElementById("social-fb").addEventListener("click", () => {
+			window.location.href = "https://www.facebook.com/squarespace";
+		});
+		document.getElementById("social-X").addEventListener("click", () => {
+			window.location.href = "https://x.com/squarespace";
+		});
+		document.getElementById("social-insta").addEventListener("click", () => {
+			window.location.href = "https://www.instagram.com/squarespace/";
+		});
+		document.getElementById("login-icon").addEventListener("click", () => {
+			window.location.href = "/login";
+		});
+	});
+</script>
 {% endblock %} {% block body %}
 <header id="header">
 	<div class="header-container">
@@ -14,13 +37,7 @@
 		<h1 id="site-title">Writing in Color</h1>
 
 		<div class="donate-container">
-			<button
-				id="donate-button"
-				class="donate-button"
-				onclick="window.location.href = 'https://givebutter.com/l6Qr7d'"
-			>
-				Donate
-			</button>
+			<button id="donate-button" class="donate-button">Donate</button>
 		</div>
 		<div class="login-container">
 			<div class="hover-menu">
@@ -29,12 +46,6 @@
 					id="login-icon"
 					width="30"
 				/>
-				<!-- Login icon click handler -->
-				<script>
-					document.getElementById("login-icon").onclick = function () {
-						window.location.href = "/login";
-					};
-				</script>
 			</div>
 		</div>
 		<div id="menu-bar">
