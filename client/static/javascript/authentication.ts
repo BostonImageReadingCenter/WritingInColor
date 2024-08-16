@@ -126,7 +126,7 @@ export async function handleAction(data: LoginData, new_sessionID?: string) {
 		} else if (item.action === "set-authentication-options") {
 			authenticationOptions = item.authenticationOptions;
 		} else if (item.action === "redirect") {
-			window.location.href = item.path;
+			// window.location.href = item.path;
 		} else if (item.action === "error" && item.errors.length > 0) {
 			alert(item.errors.join("\n"));
 		}

@@ -479,6 +479,7 @@ export async function* login(
 				let assertionResponse = result.return.filter(
 					(x) => x.type === "assertion-response"
 				)?.[0].assertionResponse;
+				console.log(assertionResponse);
 				let success = await loginUserWithPasskey(
 					database,
 					assertionResponse,

@@ -276,11 +276,12 @@ function editableClickHandler(
 	if (edit_mode_toggle.checked) {
 		event.preventDefault();
 		event.stopImmediatePropagation();
-		if (currentlyEditing === element) return;
+		if (currentlyEditing === element) return false;
 		if (currentlyEditing) {
 			currentlyEditing.dispatchEvent(new CustomEvent("inactive"));
 		}
 		HANDLERS[type](element);
+		return true;
 	}
 }
 window.addEventListener("DOMContentLoaded", () => {
@@ -345,7 +346,12 @@ window.addEventListener("DOMContentLoaded", () => {
 			selection.removeAllRanges();
 			currentlyEditing.dispatchEvent(new CustomEvent("inactive"));
 			flashText(span, () => {
-				editableClickHandler(new PointerEvent("click"), "text", span);
+				if (
+					editableClickHandler(new PointerEvent("click"), "text", span) ===
+					false
+				) {
+					openTextEditMenu(span);
+				}
 			});
 			wrapTextButton.classList.remove("show");
 			wrapTextButton.classList.add("hide");
