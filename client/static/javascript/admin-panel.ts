@@ -45,8 +45,9 @@ function isOnlyTextNode(element: Element) {
 		)
 			return false;
 		for (let child of Array.from(element.children))
-			if (!isOnlyTextNode(child)) return false;
-
+			if (!isOnlyTextNode(child)) {
+				return false;
+			}
 		return true; // All child nodes are text nodes
 	}
 	return false; // Not an element node
@@ -76,13 +77,45 @@ function isIframe(element: Element) {
 function isLink(element: Element) {
 	return element.nodeName === "A" && element.hasAttribute("href");
 }
+/**
+ * Retrieves the raw CSS value (including unit) for a given property of an element.
+ * @param element - The element to get the CSS value from.
+ * @param property - The CSS property to retrieve (e.g., 'font-size', 'margin-top').
+ * @returns - The raw CSS value including the unit, or null if not applicable.
+ */
+function getRawCssValue(element: HTMLElement, property: string): string | null {
+	// Check inline styles first
+	if (element.style[property]) {
+		return element.style[property];
+	}
 
+	const styleSheets = document.styleSheets;
+
+	// Check all style sheets
+	for (let i = 0; i < styleSheets.length; i++) {
+		const rules = styleSheets[i].cssRules || styleSheets[i].rules;
+		if (rules) {
+			for (let j = 0; j < rules.length; j++) {
+				const rule = rules[j];
+				if (rule instanceof CSSStyleRule && rule.style[property]) {
+					// Check if the rule applies to the element
+					if (element.matches(rule.selectorText)) {
+						return rule.style[property];
+					}
+				}
+			}
+		}
+	}
+
+	// If no value found
+	return null;
+}
 function getStyleState(element: HTMLElement, style: string) {
 	switch (style) {
 		case "color":
 			return convertToHex(window.getComputedStyle(currentlyEditing).color);
 		case "font-size":
-			return window.getComputedStyle(currentlyEditing).fontSize;
+			return getRawCssValue(currentlyEditing, "font-size") || "1em";
 		case "font-weight":
 			return window.getComputedStyle(currentlyEditing).fontWeight;
 	}
@@ -175,15 +208,12 @@ function openTextEditMenu(element: HTMLElement) {
 	(
 		document.getElementById("text-edit-menu-color-picker") as HTMLInputElement
 	).value = getStyleState(element, "color");
-	console.log(
-		(document.getElementById("text-edit-menu-color-picker") as HTMLInputElement)
-			.value
-	);
+	console.log(getStyleState(element, "font-size"));
 	(
 		document.getElementById(
 			"text-edit-menu-font-size-selector"
 		) as HTMLInputElement
-	).value = parseFloat(getStyleState(element, "font-size")).toString(); // TODO: Support other units??
+	).value = getStyleState(element, "font-size");
 
 	return { resizeObserver, scrollableAncestors };
 }
@@ -223,16 +253,16 @@ const HANDLERS = {
 			{ once: true }
 		);
 	},
-	image: (element) => {},
-	video: (element) => {},
-	iframe: (element) => {},
-	audio: (element) => {},
-	link: (element) => {},
+	image: (element: HTMLElement) => {},
+	video: (element: HTMLElement) => {},
+	iframe: (element: HTMLElement) => {},
+	audio: (element: HTMLElement) => {},
+	link: (element: HTMLElement) => {},
 };
 function hasAncestorWithClass(element: Element, className: string) {
 	return element.closest(`.${className}`) !== null;
 }
-window.addEventListener("load", () => {
+window.addEventListener("DOMContentLoaded", () => {
 	textEditMenu = createTextEditMenu();
 	textEditMenu.style.display = "none";
 
@@ -258,7 +288,7 @@ window.addEventListener("load", () => {
 						}
 					},
 					{
-						capture: true,
+						capture: false,
 					}
 				);
 			}
@@ -436,12 +466,8 @@ function createTextEditMenu() {
 					{
 						tag: "input",
 						attributes: {
-							type: "number",
-							min: "1",
-							max: "1000",
-							value: "32",
-							step: "0.5",
-							inputmode: "numeric",
+							type: "text",
+							value: "32px",
 						},
 						classes: ["font-size-selector", "menu-item", "edit-mode-exempt"],
 						text: "20",
@@ -451,7 +477,7 @@ function createTextEditMenu() {
 				eventHandlers: {
 					input(event) {
 						let previousState = getStyleState(currentlyEditing, "font-size");
-						currentlyEditing.style.fontSize = event.target.value + "px";
+						currentlyEditing.style.fontSize = event.target.value;
 						commandStack.push({
 							command_type: "change-font-size",
 							command_target: currentlyEditing,
