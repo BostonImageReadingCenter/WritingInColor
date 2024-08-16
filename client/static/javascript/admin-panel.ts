@@ -175,27 +175,20 @@ function openTextEditMenu(element: HTMLElement) {
 			let menuBoundingRect = getBoundingPageRect(textEditMenu);
 			let elementBoundingRect = getBoundingPageRect(element);
 			let padding = 15;
-			textEditMenu.style.left =
-				String(
-					Math.min(
-						Math.max(
-							elementBoundingRect.left +
-								elementBoundingRect.width / 2 -
-								menuBoundingRect.width / 2,
-							0
-						),
-						document.documentElement.scrollWidth - menuBoundingRect.width
-					)
-				) + "px";
-			textEditMenu.style.top =
-				String(
-					Math.min(
-						document.documentElement.scrollHeight -
-							menuBoundingRect.height -
-							padding,
-						Math.max(0, elementBoundingRect.bottom + padding)
-					)
-				) + "px";
+			let left =
+				elementBoundingRect.left +
+				elementBoundingRect.width / 2 -
+				menuBoundingRect.width / 2;
+			let top = elementBoundingRect.bottom + padding;
+			// Ensure the menu doesn't go off-screen
+			if (left < 0) left = padding;
+			if (left + menuBoundingRect.width + padding > window.innerWidth)
+				left = window.innerWidth - menuBoundingRect.width - padding;
+			if (top < 0) top = elementBoundingRect.bottom + padding;
+			if (top + menuBoundingRect.height + padding > window.innerHeight)
+				top = window.innerHeight - menuBoundingRect.height - padding;
+			textEditMenu.style.left = String(left) + "px";
+			textEditMenu.style.top = String(top) + "px";
 		});
 	};
 	updateEditMenuPosition();
@@ -226,7 +219,6 @@ const HANDLERS = {
 	 * Handles editing text elements
 	 */
 	text: (element: HTMLElement) => {
-		console.log("active");
 		element.setAttribute("contenteditable", "true");
 		element.focus();
 		element.style.outline = "1px solid blue";
@@ -247,7 +239,6 @@ const HANDLERS = {
 		element.addEventListener(
 			"inactive",
 			(event) => {
-				console.log("is Inactive", event);
 				resizeObserver.unobserve(element);
 				resizeObserver.disconnect();
 				element.removeEventListener("input", inputHandler);
@@ -287,7 +278,6 @@ function editableClickHandler(
 		event.stopImmediatePropagation();
 		if (currentlyEditing === element) return;
 		if (currentlyEditing) {
-			console.log("Old:", currentlyEditing, "New:", element);
 			currentlyEditing.dispatchEvent(new CustomEvent("inactive"));
 		}
 		HANDLERS[type](element);
@@ -315,23 +305,23 @@ window.addEventListener("DOMContentLoaded", () => {
 		const range = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
 		const isWithinElement =
 			range && currentlyEditing.contains(range.commonAncestorContainer);
-		console.log("selectionchange", isWithinElement, selection.isCollapsed);
 		if (isWithinElement && !selection.isCollapsed) {
 			const rect = range.getBoundingClientRect();
-
+			const padding = 15;
 			// Calculate the button position
-			let top = window.scrollY + rect.top - wrapTextButton.offsetHeight - 10; // 10px above the selection
+			let top =
+				window.scrollY + rect.top - wrapTextButton.offsetHeight - padding;
 			let left =
 				window.scrollX +
 				rect.left +
 				rect.width / 2 -
 				wrapTextButton.offsetWidth / 2;
-
+			console.log(rect.top, window.scrollY, wrapTextButton.offsetHeight);
 			// Ensure the button doesn't go off-screen
-			if (left < 0) left = 10; // 10px from the left edge
+			if (left < 0) left = padding;
 			if (left + wrapTextButton.offsetWidth > window.innerWidth)
-				left = window.innerWidth - wrapTextButton.offsetWidth - 10; // 10px from the right edge
-			if (top < 0) top = rect.bottom + 10; // If there's no space above, place it below the selection
+				left = window.innerWidth - wrapTextButton.offsetWidth - padding;
+			if (top < 0) top = rect.bottom + padding;
 
 			wrapTextButton.style.top = `${top}px`;
 			wrapTextButton.style.left = `${left}px`;
@@ -403,7 +393,6 @@ window.addEventListener("DOMContentLoaded", () => {
 					wrapTextButtonBoundingRect
 				)
 			) {
-				console.log("Click out.");
 				currentlyEditing.dispatchEvent(new CustomEvent("inactive"));
 				currentlyEditing = null;
 			}
