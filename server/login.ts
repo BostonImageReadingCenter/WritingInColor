@@ -455,6 +455,12 @@ export async function* login(
 				],
 			};
 		}
+		let collectPasswordAction: Action = {
+			action: "collect",
+			types: [{ type: "get-password" }],
+			header: "Enter Password",
+			message: "Enter your password.",
+		};
 		// User exists
 		if (options.supportsWebAuthn) {
 			const passkeys = await database.getPasskeysByUserID(user.id);
@@ -467,6 +473,7 @@ export async function* login(
 				}));
 				result = yield {
 					actions: [
+						collectPasswordAction,
 						{
 							action: "authenticate-passkey",
 							WebAuthnOptions: authenticationOptions,
@@ -476,56 +483,46 @@ export async function* login(
 						},
 					],
 				};
-				let assertionResponse = result.return.filter(
+				let assertionResponse = result?.return?.filter(
 					(x) => x.type === "assertion-response"
-				)?.[0].assertionResponse;
-				console.log(assertionResponse);
-				let success = await loginUserWithPasskey(
-					database,
-					assertionResponse,
-					verifyAuthentication
-				);
-				let actions = [];
-				if (success) {
-					actions.push({
-						action: "redirect",
-						path: "/my-profile",
-					});
-				} else {
-					actions = actions.concat([
-						{
-							action: "error",
-							errors: ["Invalid passkey"],
-						},
-						{
-							action: "reload",
-						},
-					]);
+				)?.[0]?.assertionResponse;
+				if (assertionResponse) {
+					let success = await loginUserWithPasskey(
+						database,
+						assertionResponse,
+						verifyAuthentication
+					);
+					let actions = [];
+					if (success) {
+						actions.push({
+							action: "redirect",
+							path: "/my-profile",
+						});
+					} else {
+						actions = actions.concat([
+							{
+								action: "error",
+								errors: ["Invalid passkey"],
+							},
+							{
+								action: "reload",
+							},
+						]);
+					}
+					return {
+						data: { success: success !== false },
+						setCookies: success || [],
+						actions,
+					};
 				}
-				return {
-					data: { success: success !== false },
-					setCookies: success || [],
-					actions,
-				};
 			}
-		}
-		let errors = [];
-		while (true) {
+		} else {
 			result = yield {
-				actions: [
-					{
-						action: "error",
-						errors,
-					},
-					{
-						action: "collect",
-						types: [{ type: "get-password" }],
-						header: "Enter Password",
-						message: "Enter your password.",
-					},
-				],
+				actions: [collectPasswordAction],
 			};
-			errors = [];
+		}
+		while (true) {
+			let errors = [];
 			let passwordHash = hashPassword(
 				result.return.filter((x) => x.type === "input")?.[0].values[
 					"get-password"
@@ -549,6 +546,15 @@ export async function* login(
 
 			// Password is incorrect
 			errors.push("Invalid password");
+			result = yield {
+				actions: [
+					{
+						action: "error",
+						errors,
+					},
+					collectPasswordAction,
+				],
+			};
 		}
 	}
 }
