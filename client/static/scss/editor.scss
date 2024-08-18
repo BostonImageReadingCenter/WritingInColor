@@ -30,6 +30,7 @@ $color-picker-input-size-ratio: math.div(8, 3);
 	border-radius: $text-edit-element-size + 2 * $editor-menu-padding; // Having the border radius set to the height gives it that nice rounding look.
 	box-sizing: border-box;
 	z-index: 99999;
+	visibility: hidden;
 
 	// Display options
 	position: absolute;
@@ -99,6 +100,10 @@ $color-picker-input-size-ratio: math.div(8, 3);
 		width: $text-edit-element-size + 2 * $round-element-padding;
 		padding: $round-element-padding;
 	}
+	&.show {
+		visibility: visible;
+		animation: fadeInSlideDown 0.3s ease-in-out forwards;
+	}
 }
 
 // To make the color picker round
@@ -145,12 +150,39 @@ $color-picker-input-size-ratio: math.div(8, 3);
 
 #wrap-text-button.show {
 	visibility: visible;
-	// transform: translateY(0);
+	animation: fadeInSlideUp 0.3s ease-in-out forwards;
 }
 
 #wrap-text-button.hide {
 	visibility: hidden;
-	// transform: translateX(-99999px);
+}
+@keyframes fadeInSlideUp {
+	0% {
+		opacity: 0;
+		transform: translateY(25px);
+	}
+	75% {
+		opacity: 1;
+		transform: translateY(-7px);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+@keyframes fadeInSlideDown {
+	0% {
+		opacity: 0;
+		transform: translateY(-25px);
+	}
+	75% {
+		opacity: 1;
+		transform: translateY(7px);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0);
+	}
 }
 /* Define the flashing animation */
 @keyframes flashText {
@@ -170,5 +202,5 @@ $color-picker-input-size-ratio: math.div(8, 3);
 
 /* Apply the animation to the text */
 .flash {
-	animation: flashText 2s ease-in-out;
+	animation: flashText 1.5s ease-in-out;
 }

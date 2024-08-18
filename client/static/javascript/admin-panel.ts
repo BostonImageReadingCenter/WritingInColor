@@ -169,6 +169,7 @@ function getScrollableAncestors(element: HTMLElement) {
 }
 function openTextEditMenu(element: HTMLElement) {
 	currentlyEditing = element;
+	textEditMenu.classList.add("show");
 	textEditMenu.style.display = "flex";
 	let updateEditMenuPosition = () => {
 		requestAnimationFrame(() => {
@@ -243,7 +244,7 @@ const HANDLERS = {
 				resizeObserver.disconnect();
 				element.removeEventListener("input", inputHandler);
 				element.style.outline = "none";
-				textEditMenu.style.display = "none";
+				textEditMenu.classList.remove("show");
 				element.setAttribute("contenteditable", "false");
 				wrapTextButton.classList.remove("show");
 				wrapTextButton.classList.add("hide");
@@ -265,7 +266,7 @@ function flashText(element: HTMLElement, onComplete?: () => void) {
 	setTimeout(() => {
 		element.classList.remove("flash");
 		if (onComplete) onComplete();
-	}, 2000);
+	}, 1400);
 }
 function editableClickHandler(
 	event: PointerEvent,

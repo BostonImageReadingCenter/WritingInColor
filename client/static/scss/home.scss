@@ -261,10 +261,12 @@ main {
 	.text-section {
 		flex: 1;
 		min-width: 45%;
+		letter-spacing: 0.05em;
 		width: 50%;
 		max-width: 100%;
 		display: flex;
 		flex-direction: column;
+		line-height: 1.25;
 		h2 {
 			font-size: 1.75rem;
 			font-weight: bold;
