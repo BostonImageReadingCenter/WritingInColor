@@ -52,6 +52,36 @@ $color-picker-input-size-ratio: math.div(8, 3);
 		// These are longer and rectangular.
 		width: 3.33em;
 	}
+	.font-selector {
+		position: relative;
+		& > .font-selector-menu {
+			position: absolute;
+			top: 100%;
+			left: 0;
+			display: none;
+			visibility: hidden;
+			width: 200px;
+			&.show {
+				display: block;
+				visibility: visible;
+				animation: fadeInSlideDown 0.3s ease-in-out forwards;
+			}
+			ul {
+				list-style: none;
+				background-color: white;
+				height: 300px;
+				overflow-y: scroll;
+				padding: 0;
+				.font-item {
+					cursor: pointer;
+					margin: 0;
+					&.selected {
+						background-color: $light-background-color;
+					}
+				}
+			}
+		}
+	}
 	.font-size-selector-wrapper {
 		.font-size-selector {
 			border: none;
