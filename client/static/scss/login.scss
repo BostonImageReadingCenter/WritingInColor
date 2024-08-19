@@ -65,6 +65,36 @@
 		}
 	}
 }
+.yes-button {
+	border-radius: 20px; // Match the rounded corners in mockup
+	border: none; // No border
+	font-size: 15px; // Consistent font size
+	background-color: #ffecd2; // Match mockup background color
+	width: 100px; // Match mockup width
+	padding: 10px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	margin-right: 10px;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	text-align: center;
+}
+.no-button {
+	border-radius: 20px; // Match the rounded corners in mockup
+	border: none; // No border
+	font-size: 15px; // Consistent font size
+	background-color: #ffecd2; // Match mockup background color
+	width: 100px; // Match mockup width
+	padding: 10px;
+	margin-left: 10px;
+	margin-top: 10px;
+	margin-bottom: 10px;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	text-align: center;
+}
 #collection-header,
 #collection-inputs {
 	margin-top: 20px;
