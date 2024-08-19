@@ -508,6 +508,16 @@ function undo(command: Command) {
 				return family[0].toLowerCase() === command.previousState;
 			})
 			.join(", ");
+	} else if (command.command_type === "change-link") {
+		if (command.previousState === null) {
+			let anchor = command.command_target.querySelector("a");
+			while (anchor.firstChild) {
+				command.command_target.appendChild(anchor.firstChild);
+			}
+			anchor.remove();
+		} else {
+			command.command_target.setAttribute("href", command.previousState);
+		}
 	}
 }
 function redo(command: Command) {
@@ -529,6 +539,21 @@ function redo(command: Command) {
 				return family[0].toLowerCase() === command.value;
 			})
 			.join(", ");
+	} else if (command.command_type === "change-link") {
+		if (
+			command.previousState == null &&
+			command.command_target.tagName.toLowerCase() !== "a"
+		) {
+			const anchor = document.createElement("a");
+			anchor.href = command.value;
+
+			while (command.command_target.firstChild) {
+				anchor.appendChild(command.command_target.firstChild);
+			}
+
+			command.command_target.appendChild(anchor);
+		}
+		command.command_target.setAttribute("href", command.value);
 	}
 }
 function isPointInRect(point: { x: number; y: number }, rect: DOMRect) {
@@ -680,7 +705,7 @@ let createTextEditMenu = () =>
 								.replaceAll(/["']+/g, "");
 							document
 								.getElementById("font-selector-menu")
-								.classList.add("show");
+								.classList.toggle("show");
 							document
 								.getElementById(`font-${previousState}`)
 								.classList.add("selected");
@@ -858,26 +883,84 @@ let createTextEditMenu = () =>
 				},
 				{
 					tag: "div",
-					classes: ["menu-item-wrapper", "menu-item-round"],
+					classes: [
+						"menu-item-wrapper",
+						"menu-item-round",
+						"link-button-wrapper",
+					],
 					children: [
 						{
 							tag: "img",
 							attributes: { src: "/static/media/image/icon/link.svg" },
-							classes: ["link-button", "menu-item"],
+							classes: ["menu-item"],
 						},
-					],
-				},
-				{
-					tag: "div",
-					classes: ["menu-item-wrapper", "menu-item-round"],
-					children: [
 						{
-							tag: "img",
-							attributes: { src: "/static/media/image/icon/Copy.svg" },
-							classes: ["copy-button", "menu-item"],
+							tag: "div",
+							id: "link-manager",
+							classes: ["editor-item-selector"],
+							children: [
+								{
+									tag: "input",
+									id: "link-url-input",
+									attributes: {
+										type: "url",
+										placeholder: "https://example.com",
+									},
+									eventHandlers: {
+										click(event) {
+											event.stopImmediatePropagation();
+										},
+									},
+								},
+								{
+									tag: "button",
+									id: "link-apply-button",
+									text: "Apply",
+									eventHandlers: {
+										click(event) {
+											let previousValue = currentlyEditing.getAttribute("href");
+											let value = (
+												document.getElementById(
+													"link-url-input"
+												) as HTMLInputElement
+											).value;
+											currentlyEditing.setAttribute("href", value);
+											commandStack.push({
+												command_type: "change-link",
+												command_target: currentlyEditing,
+												value: value,
+												previousState: previousValue,
+												input: event.target,
+											});
+											redo(commandStack[commandStack.length - 1]);
+											event.stopImmediatePropagation();
+										},
+									},
+								},
+							],
 						},
 					],
+					eventHandlers: {
+						click(event) {
+							let previousValue = currentlyEditing.getAttribute("href");
+							(
+								document.getElementById("link-url-input") as HTMLInputElement
+							).value = previousValue;
+							document.getElementById("link-manager").classList.toggle("show");
+						},
+					},
 				},
+				// {
+				// 	tag: "div",
+				// 	classes: ["menu-item-wrapper", "menu-item-round"],
+				// 	children: [
+				// 		{
+				// 			tag: "img",
+				// 			attributes: { src: "/static/media/image/icon/Copy.svg" },
+				// 			classes: ["copy-button", "menu-item"],
+				// 		},
+				// 	],
+				// },
 				{
 					tag: "div",
 					classes: ["menu-item-wrapper", "menu-item-round"],

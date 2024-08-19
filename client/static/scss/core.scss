@@ -23,12 +23,9 @@ $standard-shadow: 0 7px 7px rgba(0, 0, 0, 0.25);
 
 html,
 body {
-	height: 100%;
+	min-height: 100vh;
 	width: 100%;
 	overflow-x: hidden;
-}
-html {
-	overflow-y: hidden;
 }
 body {
 	background-color: $light-background-color;

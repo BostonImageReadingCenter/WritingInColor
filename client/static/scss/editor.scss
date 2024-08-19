@@ -10,7 +10,6 @@ $color-picker-input-size-ratio: math.div(8, 3);
 
 @mixin round {
 	border-radius: 50%;
-	overflow: hidden;
 }
 @mixin text-edit-element {
 	aspect-ratio: 1 / 1;
@@ -82,6 +81,23 @@ $color-picker-input-size-ratio: math.div(8, 3);
 			}
 		}
 	}
+	.link-button-wrapper {
+		position: relative;
+		#link-manager {
+			position: absolute;
+			top: 100%;
+			left: 0;
+			display: none;
+			visibility: hidden;
+			background-color: white;
+			padding: 10px;
+			&.show {
+				display: block;
+				visibility: visible;
+				animation: fadeInSlideDown 0.3s ease-in-out forwards;
+			}
+		}
+	}
 	.font-size-selector-wrapper {
 		.font-size-selector {
 			border: none;
@@ -144,6 +160,7 @@ $color-picker-input-size-ratio: math.div(8, 3);
 	height: $text-edit-element-size;
 	width: $text-edit-element-size;
 	padding: 0;
+	overflow: hidden;
 }
 .color-picker-wrapper input[type="color"] {
 	position: absolute;
