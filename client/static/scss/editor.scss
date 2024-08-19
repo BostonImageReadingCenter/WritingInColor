@@ -218,19 +218,19 @@ $color-picker-input-size-ratio: math.div(8, 3);
 @keyframes flashText {
 	0% {
 		background-color: transparent;
-		color: black;
+		color: inherit;
 	}
 	50% {
-		background-color: #007aff;
+		background-color: rgba(0, 122, 255, 0.8);
 		color: white;
 	}
 	100% {
 		background-color: transparent;
-		color: black;
+		color: inherit;
 	}
 }
 
 /* Apply the animation to the text */
 .flash {
-	animation: flashText 1.5s ease-in-out;
+	animation: flashText 1s ease-in-out;
 }

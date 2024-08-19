@@ -152,13 +152,18 @@ function getRawCssValue(element: HTMLElement, property: string): string | null {
 function getStyleState(element: HTMLElement, style: string) {
 	switch (style) {
 		case "color":
-			return convertToHex(window.getComputedStyle(currentlyEditing).color);
+			return convertToHex(window.getComputedStyle(element).color);
 		case "font-size":
-			return getRawCssValue(currentlyEditing, "font-size") || "1em";
+			return getRawCssValue(element, "font-size") || "1em";
 		case "font-weight":
-			return window.getComputedStyle(currentlyEditing).fontWeight;
+			return window.getComputedStyle(element).fontWeight;
 		case "font-family":
-			return getRawCssValue(currentlyEditing, "font-family") || "sans-serif";
+			return (
+				getRawCssValue(element, "font-family") ||
+				(element.parentElement
+					? getStyleState(element.parentElement, "font-family")
+					: "sans-serif")
+			);
 	}
 }
 
@@ -312,7 +317,7 @@ function flashText(element: HTMLElement, onComplete?: () => void) {
 	setTimeout(() => {
 		element.classList.remove("flash");
 		if (onComplete) onComplete();
-	}, 1400);
+	}, 800);
 }
 function editableClickHandler(
 	event: PointerEvent,
@@ -364,7 +369,6 @@ window.addEventListener("DOMContentLoaded", () => {
 				rect.left +
 				rect.width / 2 -
 				wrapTextButton.offsetWidth / 2;
-			console.log(rect.top, window.scrollY, wrapTextButton.offsetHeight);
 			// Ensure the button doesn't go off-screen
 			if (left < 0) left = padding;
 			if (left + wrapTextButton.offsetWidth > window.innerWidth)
@@ -383,10 +387,16 @@ window.addEventListener("DOMContentLoaded", () => {
 	});
 	wrapTextButton.addEventListener("click", function () {
 		const selection = window.getSelection();
-		const range = selection.getRangeAt(0);
+		let range = selection.getRangeAt(0);
 		if (range && !range.collapsed) {
 			const span = document.createElement("span");
-			range.surroundContents(span);
+			try {
+				range.surroundContents(span);
+			} catch (e) {
+				alert(
+					`Error: Failed to wrap due to partial selection.\nHelp: You accidentally selected part of another element. Try again.`
+				);
+			}
 			span.addEventListener("click", (event: PointerEvent) =>
 				editableClickHandler(event, "text", span)
 			);
