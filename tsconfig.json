@@ -9,6 +9,7 @@
 		"esModuleInterop": true,
 		"moduleResolution": "node",
 		"allowImportingTsExtensions": true,
-		"noEmit": true
+		"noEmit": true,
+		"lib": ["es2023", "dom"]
 	}
 }

@@ -5,6 +5,7 @@ let edit_mode_toggle = document.getElementById(
 ) as HTMLInputElement;
 let textEditMenu: HTMLElement;
 let currentlyEditing: HTMLElement;
+let wrapTextButton: HTMLElement;
 
 interface Command {
 	command_type: string;
@@ -33,6 +34,44 @@ const selfClosingTags = [
 	"source",
 	"track",
 	"wbr",
+];
+const fontFamilies = [
+	["Arial", "Helvetica", "sans-serif"],
+	["Verdana", "Geneva", "sans-serif"],
+	["Times New Roman", "Times", "serif"],
+	["Courier New", "Courier", "monospace"],
+	["Georgia", "serif"],
+	["Palatino Linotype", "Book Antiqua", "Palatino", "serif"],
+	["Trebuchet MS", "Helvetica", "sans-serif"],
+	["Impact", "Charcoal", "sans-serif"],
+	["Comic Sans MS", "cursive", "sans-serif"],
+	["Lucida Sans Unicode", "Lucida Grande", "sans-serif"],
+	["Tahoma", "Geneva", "sans-serif"],
+	["Lucida Console", "Monaco", "monospace"],
+	["Garamond", "serif"],
+	["Bookman", "serif"],
+	["Arial Black", "Gadget", "sans-serif"],
+	["Helvetica", "Arial", "sans-serif"],
+	["Gill Sans", "Gill Sans MT", "sans-serif"],
+	["Century Gothic", "sans-serif"],
+	["Candara", "sans-serif"],
+	["Calibri", "Candara", "Segoe", "sans-serif"],
+	["Cambria", "Georgia", "serif"],
+	["Franklin Gothic Medium", "Arial Narrow", "Arial", "sans-serif"],
+	["Copperplate", "Copperplate Gothic Light", "fantasy"],
+	["Didot", "serif"],
+	["Rockwell", "serif"],
+	["Consolas", "monospace"],
+	["Futura", "sans-serif"],
+	["Baskerville", "serif"],
+	["Lato", "Helvetica", "Arial", "sans-serif"],
+	["Inter", "Arial", "sans-serif"],
+	["Fraunces", "serif"],
+	["serif"],
+	["sans-serif"],
+	["monospace"],
+	["cursive"],
+	["fantasy"],
 ];
 
 function isOnlyTextNode(element: Element) {
@@ -118,6 +157,8 @@ function getStyleState(element: HTMLElement, style: string) {
 			return getRawCssValue(currentlyEditing, "font-size") || "1em";
 		case "font-weight":
 			return window.getComputedStyle(currentlyEditing).fontWeight;
+		case "font-family":
+			return getRawCssValue(currentlyEditing, "font-family") || "sans-serif";
 	}
 }
 
@@ -168,30 +209,27 @@ function getScrollableAncestors(element: HTMLElement) {
 }
 function openTextEditMenu(element: HTMLElement) {
 	currentlyEditing = element;
+	textEditMenu.classList.add("show");
 	textEditMenu.style.display = "flex";
 	let updateEditMenuPosition = () => {
 		requestAnimationFrame(() => {
 			let menuBoundingRect = getBoundingPageRect(textEditMenu);
 			let elementBoundingRect = getBoundingPageRect(element);
-			textEditMenu.style.left =
-				String(
-					Math.min(
-						Math.max(
-							elementBoundingRect.left +
-								elementBoundingRect.width / 2 -
-								menuBoundingRect.width / 2,
-							0
-						),
-						document.documentElement.scrollWidth - menuBoundingRect.width
-					)
-				) + "px";
-			textEditMenu.style.top =
-				String(
-					Math.min(
-						document.documentElement.scrollHeight - menuBoundingRect.height,
-						Math.max(0, elementBoundingRect.bottom + 10)
-					)
-				) + "px";
+			let padding = 15;
+			let left =
+				elementBoundingRect.left +
+				elementBoundingRect.width / 2 -
+				menuBoundingRect.width / 2;
+			let top = elementBoundingRect.bottom + padding;
+			// Ensure the menu doesn't go off-screen
+			if (left < 0) left = padding;
+			if (left + menuBoundingRect.width + padding > window.innerWidth)
+				left = window.innerWidth - menuBoundingRect.width - padding;
+			if (top < 0) top = elementBoundingRect.bottom + padding;
+			if (top + menuBoundingRect.height + padding > window.innerHeight)
+				top = window.innerHeight - menuBoundingRect.height - padding;
+			textEditMenu.style.left = String(left) + "px";
+			textEditMenu.style.top = String(top) + "px";
 		});
 	};
 	updateEditMenuPosition();
@@ -208,12 +246,13 @@ function openTextEditMenu(element: HTMLElement) {
 	(
 		document.getElementById("text-edit-menu-color-picker") as HTMLInputElement
 	).value = getStyleState(element, "color");
-	console.log(getStyleState(element, "font-size"));
 	(
 		document.getElementById(
 			"text-edit-menu-font-size-selector"
 		) as HTMLInputElement
 	).value = getStyleState(element, "font-size");
+	document.getElementById("text-edit-menu-font-selector").style.fontFamily =
+		getStyleState(element, "font-family");
 
 	return { resizeObserver, scrollableAncestors };
 }
@@ -242,13 +281,19 @@ const HANDLERS = {
 		element.addEventListener("input", inputHandler);
 		element.addEventListener(
 			"inactive",
-			() => {
+			(event) => {
 				resizeObserver.unobserve(element);
 				resizeObserver.disconnect();
 				element.removeEventListener("input", inputHandler);
 				element.style.outline = "none";
+				textEditMenu.classList.remove("show");
 				textEditMenu.style.display = "none";
 				element.setAttribute("contenteditable", "false");
+				wrapTextButton.classList.remove("show");
+				wrapTextButton.classList.add("hide");
+				document
+					.querySelectorAll(".editor-menu .show")
+					.forEach((menu) => menu.classList.remove("show"));
 			},
 			{ once: true }
 		);
@@ -262,13 +307,108 @@ const HANDLERS = {
 function hasAncestorWithClass(element: Element, className: string) {
 	return element.closest(`.${className}`) !== null;
 }
+function flashText(element: HTMLElement, onComplete?: () => void) {
+	element.classList.add("flash");
+	setTimeout(() => {
+		element.classList.remove("flash");
+		if (onComplete) onComplete();
+	}, 1400);
+}
+function editableClickHandler(
+	event: PointerEvent,
+	type: string,
+	element: Element
+) {
+	// Run the handlers if edit mode is on
+	if (edit_mode_toggle.checked) {
+		event.preventDefault();
+		event.stopImmediatePropagation();
+		if (currentlyEditing === element) return false;
+		if (currentlyEditing) {
+			currentlyEditing.dispatchEvent(new CustomEvent("inactive"));
+		}
+		HANDLERS[type](element);
+		return true;
+	}
+}
 window.addEventListener("DOMContentLoaded", () => {
 	textEditMenu = createTextEditMenu();
 	textEditMenu.style.display = "none";
+	wrapTextButton = createElement("button", {
+		id: "wrap-text-button",
+		classes: ["hide", "edit-mode-exempt"],
+		html: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-in-down" viewBox="0 0 16 16">
+  <path fill-rule="evenodd" d="M3.5 6a.5.5 0 0 0-.5.5v8a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5v-8a.5.5 0 0 0-.5-.5h-2a.5.5 0 0 1 0-1h2A1.5 1.5 0 0 1 14 6.5v8a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 14.5v-8A1.5 1.5 0 0 1 3.5 5h2a.5.5 0 0 1 0 1z"/>
+  <path fill-rule="evenodd" d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/>
+</svg>`,
+	});
+	document.body.appendChild(wrapTextButton);
+	document.addEventListener("selectionchange", () => {
+		if (!currentlyEditing) {
+			wrapTextButton.classList.remove("show");
+			wrapTextButton.classList.add("hide");
+			return;
+		}
+		const selection = window.getSelection();
+		const range = selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+		const isWithinElement =
+			range && currentlyEditing.contains(range.commonAncestorContainer);
+		if (isWithinElement && !selection.isCollapsed) {
+			const rect = range.getBoundingClientRect();
+			const padding = 15;
+			// Calculate the button position
+			let top =
+				window.scrollY + rect.top - wrapTextButton.offsetHeight - padding;
+			let left =
+				window.scrollX +
+				rect.left +
+				rect.width / 2 -
+				wrapTextButton.offsetWidth / 2;
+			console.log(rect.top, window.scrollY, wrapTextButton.offsetHeight);
+			// Ensure the button doesn't go off-screen
+			if (left < 0) left = padding;
+			if (left + wrapTextButton.offsetWidth > window.innerWidth)
+				left = window.innerWidth - wrapTextButton.offsetWidth - padding;
+			if (top < 0) top = rect.bottom + padding;
 
+			wrapTextButton.style.top = `${top}px`;
+			wrapTextButton.style.left = `${left}px`;
+
+			wrapTextButton.classList.add("show");
+			wrapTextButton.classList.remove("hide");
+		} else {
+			wrapTextButton.classList.remove("show");
+			wrapTextButton.classList.add("hide");
+		}
+	});
+	wrapTextButton.addEventListener("click", function () {
+		const selection = window.getSelection();
+		const range = selection.getRangeAt(0);
+		if (range && !range.collapsed) {
+			const span = document.createElement("span");
+			range.surroundContents(span);
+			span.addEventListener("click", (event: PointerEvent) =>
+				editableClickHandler(event, "text", span)
+			);
+			selection.removeAllRanges();
+			currentlyEditing.dispatchEvent(new CustomEvent("inactive"));
+			flashText(span, () => {
+				if (
+					editableClickHandler(new PointerEvent("click"), "text", span) ===
+					false
+				) {
+					openTextEditMenu(span);
+				}
+			});
+			wrapTextButton.classList.remove("show");
+			wrapTextButton.classList.add("hide");
+		}
+	});
 	// Add event listeners to elements
 	document.body.querySelectorAll("*").forEach((element) => {
 		if (
+			element.classList.contains("templated") ||
+			element.classList.contains("edit-mode-exempt") ||
 			hasAncestorWithClass(element, "edit-mode-exempt") ||
 			hasAncestorWithClass(element, "templated")
 		)
@@ -277,16 +417,7 @@ window.addEventListener("DOMContentLoaded", () => {
 			if (EDITABLE[type](element)) {
 				element.addEventListener(
 					"click",
-					(event: PointerEvent) => {
-						// Run the handlers if edit mode is on
-						if (edit_mode_toggle.checked) {
-							event.preventDefault();
-							event.stopImmediatePropagation();
-							if (currentlyEditing)
-								currentlyEditing.dispatchEvent(new CustomEvent("inactive"));
-							HANDLERS[type](element);
-						}
-					},
+					(event: PointerEvent) => editableClickHandler(event, type, element),
 					{
 						capture: false,
 					}
@@ -299,6 +430,7 @@ window.addEventListener("DOMContentLoaded", () => {
 		if (currentlyEditing) {
 			let currentlyEditingBoundingRect =
 				currentlyEditing.getBoundingClientRect();
+			let wrapTextButtonBoundingRect = wrapTextButton.getBoundingClientRect();
 			let textEditMenuBoundingRect = textEditMenu.getBoundingClientRect();
 			if (
 				!isPointInRect(
@@ -308,6 +440,10 @@ window.addEventListener("DOMContentLoaded", () => {
 				!isPointInRect(
 					{ x: event.clientX, y: event.clientY },
 					textEditMenuBoundingRect
+				) &&
+				!isPointInRect(
+					{ x: event.clientX, y: event.clientY },
+					wrapTextButtonBoundingRect
 				)
 			) {
 				currentlyEditing.dispatchEvent(new CustomEvent("inactive"));
@@ -318,9 +454,9 @@ window.addEventListener("DOMContentLoaded", () => {
 	window.addEventListener("keydown", (event) => {
 		// Undo and redo
 		if (
-			event.key === "z" &&
+			event.key.toLowerCase() === "z" &&
 			(event.ctrlKey || event.metaKey) &&
-			commandStack.length > 0
+			(commandStack.length > 0 || (event.shiftKey && undid.length > 0))
 		) {
 			event.preventDefault();
 			let command: Command;
@@ -356,6 +492,12 @@ function undo(command: Command) {
 		command.command_target.style.textAlign = command.previousState;
 	} else if (command.command_type === "change-text") {
 		command.command_target.innerText = command.previousState;
+	} else if (command.command_type === "change-font-family") {
+		command.command_target.style.fontFamily = fontFamilies
+			.find((family) => {
+				return family[0].toLowerCase() === command.previousState;
+			})
+			.join(", ");
 	}
 }
 function redo(command: Command) {
@@ -371,6 +513,12 @@ function redo(command: Command) {
 		command.command_target.style.textAlign = command.value;
 	} else if (command.command_type === "change-text") {
 		command.command_target.innerText = command.value;
+	} else if (command.command_type === "change-font-family") {
+		command.command_target.style.fontFamily = fontFamilies
+			.find((family) => {
+				return family[0].toLowerCase() === command.value;
+			})
+			.join(", ");
 	}
 }
 function isPointInRect(point: { x: number; y: number }, rect: DOMRect) {
@@ -409,298 +557,374 @@ function rgbToHex(r: number, g: number, b: number) {
 	return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
 }
 
-function createTextEditMenu() {
-	let menu = createElement("menu", {
-		classes: ["editor-menu", "edit-mode-exempt"],
-		children: [
-			{
-				tag: "div",
-				classes: [
-					"color-picker-wrapper",
-					"menu-item-wrapper",
-					// "menu-item-round",
-				],
-				children: [
-					{
-						tag: "input",
-						attributes: { type: "color" },
-						classes: ["color-picker"],
-						id: "text-edit-menu-color-picker",
-						eventHandlers: {
-							input(event) {
-								let previousState = getStyleState(currentlyEditing, "color");
-								let newValue = event.target.value;
-								currentlyEditing.style.color = newValue;
-								let command_target = currentlyEditing;
-								commandStack.push({
-									command_type: "change-text-color",
-									command_target,
-									value: newValue,
-									previousState,
-									input: event.target,
-								});
+let createTextEditMenu = () =>
+	document.body.appendChild(
+		createElement("menu", {
+			classes: ["editor-menu", "edit-mode-exempt"],
+			children: [
+				{
+					tag: "div",
+					classes: [
+						"color-picker-wrapper",
+						"menu-item-wrapper",
+						// "menu-item-round",
+					],
+					children: [
+						{
+							tag: "input",
+							attributes: { type: "color" },
+							classes: ["color-picker"],
+							id: "text-edit-menu-color-picker",
+							eventHandlers: {
+								input(event) {
+									let previousState = getStyleState(currentlyEditing, "color");
+									let newValue = event.target.value;
+									currentlyEditing.style.color = newValue;
+									let command_target = currentlyEditing;
+									commandStack.push({
+										command_type: "change-text-color",
+										command_target,
+										value: newValue,
+										previousState,
+										input: event.target,
+									});
+								},
 							},
 						},
-					},
-				],
-			},
-			{
-				tag: "div",
-				classes: ["menu-item-wrapper", "menu-item-box"],
-				children: [
-					{
-						tag: "span",
-						classes: ["font-selector", "menu-item", "edit-mode-exempt"],
-						text: "Aa",
-					},
-				],
-			},
-			{
-				tag: "div",
-				classes: [
-					"menu-item-wrapper",
-					"menu-item-box",
-					"font-size-selector-wrapper",
-				],
-				children: [
-					{
-						tag: "input",
-						attributes: {
-							type: "text",
-							value: "32px",
+					],
+				},
+				{
+					tag: "div",
+					classes: ["menu-item-wrapper", "menu-item-box"],
+					children: [
+						{
+							tag: "span",
+							classes: ["font-selector", "menu-item", "edit-mode-exempt"],
+							text: "Aa",
+							id: "text-edit-menu-font-selector",
+							children: [
+								{
+									tag: "div",
+									classes: ["editor-item-selector", "font-selector-menu"],
+									id: "font-selector-menu",
+									children: [
+										{
+											tag: "ul",
+											classes: ["font-list"],
+											children: fontFamilies.map((family) => ({
+												tag: "li",
+												text: family[0],
+												id: `font-${family[0]
+													.toLowerCase()
+													.replaceAll(" ", "-")}`,
+												attributes: {
+													"data-font": family[0],
+													style: `font-family: ${family.join(", ")};`,
+												},
+												classes: ["font-item"],
+												eventHandlers: {
+													click(event) {
+														let previousState = getStyleState(
+															currentlyEditing,
+															"font-family"
+														)
+															.split(",")[0]
+															.trim()
+															.toLowerCase()
+															.replaceAll(/["']+/g, "");
+														document
+															.getElementById(
+																`font-${previousState.replaceAll(" ", "-")}`
+															)
+															.classList.remove("selected");
+														event.target.classList.add("selected");
+														currentlyEditing.style.fontFamily =
+															family.join(", ");
+														document.getElementById(
+															"text-edit-menu-font-selector"
+														).style.fontFamily = family.join(", ");
+														commandStack.push({
+															command_type: "change-font-family",
+															command_target: currentlyEditing,
+															value: family[0].toLowerCase(),
+															previousState,
+															input: event.target,
+														});
+														event.stopImmediatePropagation();
+													},
+												},
+											})),
+										},
+									],
+								},
+							],
 						},
-						classes: ["font-size-selector", "menu-item", "edit-mode-exempt"],
-						text: "20",
-						id: "text-edit-menu-font-size-selector",
-					},
-				],
-				eventHandlers: {
-					input(event) {
-						let previousState = getStyleState(currentlyEditing, "font-size");
-						currentlyEditing.style.fontSize = event.target.value;
-						commandStack.push({
-							command_type: "change-font-size",
-							command_target: currentlyEditing,
-							value: event.target.value,
-							previousState,
-							input: event.target,
-						});
-					},
-				},
-			},
-			{
-				tag: "div",
-				classes: ["menu-item-wrapper", "menu-item-round"],
-				children: [
-					{
-						tag: "span",
-						classes: ["bold-toggle", "menu-item", "edit-mode-exempt"],
-						text: "B",
-					},
-				],
-				eventHandlers: {
-					click(event) {
-						let previousFontWeight = getStyleState(
-							currentlyEditing,
-							"font-weight"
-						);
-						currentlyEditing.style.fontWeight =
-							previousFontWeight == "700" ? "400" : "700";
-						commandStack.push({
-							command_type: "change-font-weight",
-							command_target: currentlyEditing,
-							value: currentlyEditing.style.fontWeight,
-							previousState: previousFontWeight,
-							input: event.target,
-						});
+					], // Wow, look at all those levels of nesting! This is messy!
+					eventHandlers: {
+						click(event) {
+							let previousState = getStyleState(currentlyEditing, "font-family")
+								.split(",")[0]
+								.trim()
+								.toLowerCase()
+								.replaceAll(" ", "-")
+								.replaceAll(/["']+/g, "");
+							document
+								.getElementById("font-selector-menu")
+								.classList.add("show");
+							document
+								.getElementById(`font-${previousState}`)
+								.classList.add("selected");
+						},
 					},
 				},
-			},
-			{
-				tag: "div",
-				classes: ["menu-item-wrapper", "menu-item-round"],
-				children: [
-					{
-						tag: "span",
-						classes: ["strikethrough-toggle", "menu-item", "edit-mode-exempt"],
-						text: "S",
-					},
-				],
-				eventHandlers: {
-					click(event) {
-						let previousTextDecoration =
-							window.getComputedStyle(currentlyEditing).textDecoration;
-						let newValue = "";
-						if (previousTextDecoration.includes("underline"))
-							newValue += "underline";
-						if (!previousTextDecoration.includes("line-through"))
-							newValue += " line-through";
-						currentlyEditing.style.textDecoration = newValue;
-						commandStack.push({
-							command_type: "change-text-decoration",
-							command_target: currentlyEditing,
-							value: currentlyEditing.style.textDecoration,
-							previousState: previousTextDecoration,
-							input: event.target,
-						});
-					},
-				},
-			},
-			{
-				tag: "div",
-				classes: ["menu-item-wrapper", "menu-item-round"],
-				children: [
-					{
-						tag: "span",
-						classes: ["underline-toggle", "menu-item", "edit-mode-exempt"],
-						text: "U",
-					},
-				],
-				eventHandlers: {
-					click(event) {
-						let previousTextDecoration =
-							window.getComputedStyle(currentlyEditing).textDecoration;
-						let newValue = "";
-						if (!previousTextDecoration.includes("underline"))
-							newValue += "underline";
-						if (previousTextDecoration.includes("line-through"))
-							newValue += " line-through";
-						currentlyEditing.style.textDecoration = newValue;
-						commandStack.push({
-							command_type: "change-text-decoration",
-							command_target: currentlyEditing,
-							value: currentlyEditing.style.textDecoration,
-							previousState: previousTextDecoration,
-							input: event.target,
-						});
+				{
+					tag: "div",
+					classes: [
+						"menu-item-wrapper",
+						"menu-item-box",
+						"font-size-selector-wrapper",
+					],
+					children: [
+						{
+							tag: "input",
+							attributes: {
+								type: "text",
+								value: "32px",
+							},
+							classes: ["font-size-selector", "menu-item", "edit-mode-exempt"],
+							text: "20",
+							id: "text-edit-menu-font-size-selector",
+						},
+					],
+					eventHandlers: {
+						input(event) {
+							let previousState = getStyleState(currentlyEditing, "font-size");
+							currentlyEditing.style.fontSize = event.target.value;
+							commandStack.push({
+								command_type: "change-font-size",
+								command_target: currentlyEditing,
+								value: event.target.value,
+								previousState,
+								input: event.target,
+							});
+						},
 					},
 				},
-			},
-			{
-				tag: "div",
-				classes: ["menu-item-wrapper", "menu-item-round"],
-				children: [
-					{
-						tag: "img",
-						attributes: { src: "/static/media/image/icon/Align Icon.svg" },
-						classes: ["text-align-toggle", "menu-item"],
+				{
+					tag: "div",
+					classes: ["menu-item-wrapper", "menu-item-round"],
+					children: [
+						{
+							tag: "span",
+							classes: ["bold-toggle", "menu-item", "edit-mode-exempt"],
+							text: "B",
+						},
+					],
+					eventHandlers: {
+						click(event) {
+							let previousFontWeight = getStyleState(
+								currentlyEditing,
+								"font-weight"
+							);
+							currentlyEditing.style.fontWeight =
+								previousFontWeight == "700" ? "400" : "700";
+							commandStack.push({
+								command_type: "change-font-weight",
+								command_target: currentlyEditing,
+								value: currentlyEditing.style.fontWeight,
+								previousState: previousFontWeight,
+								input: event.target,
+							});
+						},
 					},
-				],
-				eventHandlers: {
-					click(event) {
-						//TODO: SHOW OPTIONS
-						let previousTextAlign =
-							window.getComputedStyle(currentlyEditing).textAlign;
-						if (previousTextAlign == "center") {
-							currentlyEditing.style.textAlign = "right";
-						} else if (previousTextAlign == "right") {
-							currentlyEditing.style.textAlign = "left";
-						} else currentlyEditing.style.textAlign = "center";
+				},
+				{
+					tag: "div",
+					classes: ["menu-item-wrapper", "menu-item-round"],
+					children: [
+						{
+							tag: "span",
+							classes: [
+								"strikethrough-toggle",
+								"menu-item",
+								"edit-mode-exempt",
+							],
+							text: "S",
+						},
+					],
+					eventHandlers: {
+						click(event) {
+							let previousTextDecoration =
+								window.getComputedStyle(currentlyEditing).textDecoration;
+							let newValue = "";
+							if (previousTextDecoration.includes("underline"))
+								newValue += "underline";
+							if (!previousTextDecoration.includes("line-through"))
+								newValue += " line-through";
+							currentlyEditing.style.textDecoration = newValue;
+							commandStack.push({
+								command_type: "change-text-decoration",
+								command_target: currentlyEditing,
+								value: currentlyEditing.style.textDecoration,
+								previousState: previousTextDecoration,
+								input: event.target,
+							});
+						},
+					},
+				},
+				{
+					tag: "div",
+					classes: ["menu-item-wrapper", "menu-item-round"],
+					children: [
+						{
+							tag: "span",
+							classes: ["underline-toggle", "menu-item", "edit-mode-exempt"],
+							text: "U",
+						},
+					],
+					eventHandlers: {
+						click(event) {
+							let previousTextDecoration =
+								window.getComputedStyle(currentlyEditing).textDecoration;
+							let newValue = "";
+							if (!previousTextDecoration.includes("underline"))
+								newValue += "underline";
+							if (previousTextDecoration.includes("line-through"))
+								newValue += " line-through";
+							currentlyEditing.style.textDecoration = newValue;
+							commandStack.push({
+								command_type: "change-text-decoration",
+								command_target: currentlyEditing,
+								value: currentlyEditing.style.textDecoration,
+								previousState: previousTextDecoration,
+								input: event.target,
+							});
+						},
+					},
+				},
+				{
+					tag: "div",
+					classes: ["menu-item-wrapper", "menu-item-round"],
+					children: [
+						{
+							tag: "img",
+							attributes: { src: "/static/media/image/icon/Align Icon.svg" },
+							classes: ["text-align-toggle", "menu-item"],
+						},
+					],
+					eventHandlers: {
+						click(event) {
+							//TODO: SHOW OPTIONS
+							let previousTextAlign =
+								window.getComputedStyle(currentlyEditing).textAlign;
+							if (previousTextAlign == "center") {
+								currentlyEditing.style.textAlign = "right";
+							} else if (previousTextAlign == "right") {
+								currentlyEditing.style.textAlign = "left";
+							} else currentlyEditing.style.textAlign = "center";
 
-						commandStack.push({
-							command_type: "change-text-align",
-							command_target: currentlyEditing,
-							value: currentlyEditing.style.textAlign,
-							previousState: previousTextAlign,
-							input: event.target,
-						});
-					},
-				},
-			},
-			{
-				tag: "div",
-				classes: ["menu-item-wrapper", "menu-item-round"],
-				children: [
-					{
-						tag: "img",
-						attributes: {
-							src: "/static/media/image/icon/Bullet Point Icon.svg",
+							commandStack.push({
+								command_type: "change-text-align",
+								command_target: currentlyEditing,
+								value: currentlyEditing.style.textAlign,
+								previousState: previousTextAlign,
+								input: event.target,
+							});
 						},
-						classes: ["bullet-point-toggle", "menu-item"],
-					},
-				],
-			},
-			{
-				tag: "div",
-				classes: ["menu-item-wrapper", "menu-item-round"],
-				children: [
-					{
-						tag: "img",
-						attributes: { src: "/static/media/image/icon/link.svg" },
-						classes: ["link-button", "menu-item"],
-					},
-				],
-			},
-			{
-				tag: "div",
-				classes: ["menu-item-wrapper", "menu-item-round"],
-				children: [
-					{
-						tag: "img",
-						attributes: { src: "/static/media/image/icon/Copy.svg" },
-						classes: ["copy-button", "menu-item"],
-					},
-				],
-			},
-			{
-				tag: "div",
-				classes: ["menu-item-wrapper", "menu-item-round"],
-				children: [
-					{
-						tag: "img",
-						attributes: { src: "/static/media/image/icon/trash.svg" },
-						classes: ["delete-button", "menu-item"],
-					},
-				],
-				eventHandlers: {
-					click(event) {
-						currentlyEditing.dispatchEvent(new Event("inactive"));
-						currentlyEditing.remove();
-						commandStack.push({
-							command_type: "delete-element",
-							command_target: currentlyEditing,
-							input: event.target,
-						});
 					},
 				},
-			},
-			{
-				tag: "div",
-				classes: ["menu-item-wrapper", "hover-menu", "menu-item-round"],
-				children: [
-					{
-						tag: "img",
-						attributes: { src: "/static/media/image/icon/ellipsis.svg" },
-						classes: ["options-button", "hover-menu__text"],
+				{
+					tag: "div",
+					classes: ["menu-item-wrapper", "menu-item-round"],
+					children: [
+						{
+							tag: "img",
+							attributes: {
+								src: "/static/media/image/icon/Bullet Point Icon.svg",
+							},
+							classes: ["bullet-point-toggle", "menu-item"],
+						},
+					],
+				},
+				{
+					tag: "div",
+					classes: ["menu-item-wrapper", "menu-item-round"],
+					children: [
+						{
+							tag: "img",
+							attributes: { src: "/static/media/image/icon/link.svg" },
+							classes: ["link-button", "menu-item"],
+						},
+					],
+				},
+				{
+					tag: "div",
+					classes: ["menu-item-wrapper", "menu-item-round"],
+					children: [
+						{
+							tag: "img",
+							attributes: { src: "/static/media/image/icon/Copy.svg" },
+							classes: ["copy-button", "menu-item"],
+						},
+					],
+				},
+				{
+					tag: "div",
+					classes: ["menu-item-wrapper", "menu-item-round"],
+					children: [
+						{
+							tag: "img",
+							attributes: { src: "/static/media/image/icon/trash.svg" },
+							classes: ["delete-button", "menu-item"],
+						},
+					],
+					eventHandlers: {
+						click(event) {
+							currentlyEditing.dispatchEvent(new Event("inactive"));
+							currentlyEditing.remove();
+							commandStack.push({
+								command_type: "delete-element",
+								command_target: currentlyEditing,
+								input: event.target,
+							});
+						},
 					},
-					{
-						tag: "menu",
-						classes: ["hover-menu__content", "right", "menu-bar", "vertical"],
-						children: [
-							{
-								tag: "li",
-								classes: ["hover-menu__item", "edit-mode-exempt"],
-								text: "Item 0",
-							},
-							{
-								tag: "li",
-								classes: ["hover-menu__item", "edit-mode-exempt"],
-								text: "Item 1",
-							},
-							{
-								tag: "li",
-								classes: ["hover-menu__item", "edit-mode-exempt"],
-								text: "Item 2",
-							},
-						],
-					},
-				],
-			},
-		],
-	});
-	document.body.appendChild(menu);
-	return menu;
-}
+				},
+				{
+					tag: "div",
+					classes: ["menu-item-wrapper", "hover-menu", "menu-item-round"],
+					children: [
+						{
+							tag: "img",
+							attributes: { src: "/static/media/image/icon/ellipsis.svg" },
+							classes: ["options-button", "hover-menu__text"],
+						},
+						{
+							tag: "menu",
+							classes: ["hover-menu__content", "right", "menu-bar", "vertical"],
+							children: [
+								{
+									tag: "li",
+									classes: ["hover-menu__item", "edit-mode-exempt"],
+									text: "Item 0",
+								},
+								{
+									tag: "li",
+									classes: ["hover-menu__item", "edit-mode-exempt"],
+									text: "Item 1",
+								},
+								{
+									tag: "li",
+									classes: ["hover-menu__item", "edit-mode-exempt"],
+									text: "Item 2",
+								},
+							],
+						},
+					],
+				},
+			],
+		})
+	);
 
 function createImageEditMenu() {
 	let menu = createElement({

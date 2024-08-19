@@ -360,196 +360,203 @@ export async function* login(
           actions: [{ action: "exit" }],
         };
 
-      let userID = Buffer.from(uuidParse(uuidv4()));
-      let passkeys: Passkey[] = [];
-      if (options.supportsWebAuthn) {
-        let passkeyRegistrationSucceeded = false;
-        const { WebAuthnOptions, verify } = await beginPasskeyRegistration(
-          email,
-          userID
-        );
-        result = yield {
-          actions: [
-            {
-              action: "register-passkey",
-              WebAuthnOptions,
-            },
-          ],
-        };
-        let attestationResponse: RegistrationResponseJSON =
-          result.return.filter((x) => x.type === "attestation-response")?.[0]
-            .attestationResponse;
-        const verification = attestationResponse
-          ? await verify(attestationResponse)
-          : undefined;
-        if (
-          verification &&
-          verification.verified &&
-          verification.registrationInfo
-        ) {
-          passkeyRegistrationSucceeded = true;
-          const { credentialPublicKey, credentialID, counter } =
-            verification.registrationInfo;
-          const transportsString = JSON.stringify(
-            attestationResponse.response.transports
-          );
-          passkeys.push({
-            id: Buffer.from(uuidParse(uuidv4())),
-            credential_id: credentialID,
-            public_key: uint8ArrayToBase64(credentialPublicKey),
-            counter: counter,
-            transports: transportsString,
-          });
-        }
-        yield {
-          actions: [],
-          data: {
-            success: passkeyRegistrationSucceeded,
-          },
-        };
-      }
-      let salt = generateSalt();
-      let passwordValue: string;
-      let errors = [];
-      while (true) {
-        result = yield {
-          actions: [
-            {
-              action: "error",
-              errors,
-            },
-            {
-              action: "collect",
-              types: [
-                { type: "create-password", requirements: passwordRequirements },
-              ],
-              header: "Create a Password",
-              message: "",
-            },
-          ],
-        };
-        passwordValue = result.return.filter((x) => x.type === "input")?.[0]
-          .values["create-password"];
-        errors = checkPassword(passwordValue, passwordRequirements);
-        if (errors.length === 0) break;
-      }
-      let passwordHash = hashPassword(passwordValue, salt);
-      await database.createUser({
-        user: new User({
-          id: userID,
-          salt: salt,
-          password: passwordHash,
-        }),
-        emails: [{ email, is_primary: true }],
-        passkeys,
-      });
-      let setCookies = await loginUser(userID, database);
-      return {
-        data: { success: true },
-        setCookies,
-        actions: [
-          {
-            action: "redirect",
-            path: "/my-profile",
-          },
-        ],
-      };
-    }
-    // User exists
-    if (options.supportsWebAuthn) {
-      const passkeys = await database.getPasskeysByUserID(user.id);
-      if (passkeys.length !== 0) {
-        // Make sure the user has a passkey
-        authenticationOptions.allowCredentials = passkeys.map((passkey) => ({
-          type: "public-key",
-          id: passkey.credential_id,
-          transports: JSON.parse(passkey.transports),
-        }));
-        result = yield {
-          actions: [
-            {
-              action: "authenticate-passkey",
-              WebAuthnOptions: authenticationOptions,
-            },
-            {
-              action: "show-use-password-button",
-            },
-          ],
-        };
-        let assertionResponse = result.return.filter(
-          (x) => x.type === "assertion-response"
-        )?.[0].assertionResponse;
-        let success = await loginUserWithPasskey(
-          database,
-          assertionResponse,
-          verifyAuthentication
-        );
-        let actions = [];
-        if (success) {
-          actions.push({
-            action: "redirect",
-            path: "/my-profile",
-          });
-        } else {
-          actions = actions.concat([
-            {
-              action: "error",
-              errors: ["Invalid passkey"],
-            },
-            {
-              action: "reload",
-            },
-          ]);
-        }
-        return {
-          data: { success: success !== false },
-          setCookies: success || [],
-          actions,
-        };
-      }
-    }
-    let errors = [];
-    while (true) {
-      result = yield {
-        actions: [
-          {
-            action: "error",
-            errors,
-          },
-          {
-            action: "collect",
-            types: [{ type: "get-password" }],
-            header: "Enter Password",
-            message: "Enter your password.",
-          },
-        ],
-      };
-      errors = [];
-      let passwordHash = hashPassword(
-        result.return.filter((x) => x.type === "input")?.[0].values[
-          "get-password"
-        ],
-        user.salt
-      );
-      if (passwordHash.equals(user.password)) {
-        // Password is correct
-        let setCookies = await loginUser(user.id, database);
-        return {
-          data: { success: true },
-          setCookies,
-          actions: [
-            {
-              action: "redirect",
-              path: "/my-profile",
-            },
-          ],
-        };
-      }
+			let userID = Buffer.from(uuidParse(uuidv4()));
+			let passkeys: Passkey[] = [];
+			if (options.supportsWebAuthn) {
+				let passkeyRegistrationSucceeded = false;
+				const { WebAuthnOptions, verify } = await beginPasskeyRegistration(
+					email,
+					userID
+				);
+				result = yield {
+					actions: [
+						{
+							action: "register-passkey",
+							WebAuthnOptions,
+						},
+					],
+				};
+				let attestationResponse: RegistrationResponseJSON =
+					result.return.filter((x) => x.type === "attestation-response")?.[0]
+						.attestationResponse;
+				const verification = attestationResponse
+					? await verify(attestationResponse)
+					: undefined;
+				if (
+					verification &&
+					verification.verified &&
+					verification.registrationInfo
+				) {
+					passkeyRegistrationSucceeded = true;
+					const { credentialPublicKey, credentialID, counter } =
+						verification.registrationInfo;
+					const transportsString = JSON.stringify(
+						attestationResponse.response.transports
+					);
+					passkeys.push({
+						id: Buffer.from(uuidParse(uuidv4())),
+						credential_id: credentialID,
+						public_key: uint8ArrayToBase64(credentialPublicKey),
+						counter: counter,
+						transports: transportsString,
+					});
+				}
+				yield {
+					actions: [],
+					data: {
+						success: passkeyRegistrationSucceeded,
+					},
+				};
+			}
+			let salt = generateSalt();
+			let passwordValue: string;
+			let errors = [];
+			while (true) {
+				result = yield {
+					actions: [
+						{
+							action: "error",
+							errors,
+						},
+						{
+							action: "collect",
+							types: [
+								{ type: "create-password", requirements: passwordRequirements },
+							],
+							header: "Create a Password",
+							message: "",
+						},
+					],
+				};
+				passwordValue = result.return.filter((x) => x.type === "input")?.[0]
+					.values["create-password"];
+				errors = checkPassword(passwordValue, passwordRequirements);
+				if (errors.length === 0) break;
+			}
+			let passwordHash = hashPassword(passwordValue, salt);
+			await database.createUser({
+				user: new User({
+					id: userID,
+					salt: salt,
+					password: passwordHash,
+				}),
+				emails: [{ email, is_primary: true }],
+				passkeys,
+			});
+			let setCookies = await loginUser(userID, database);
+			return {
+				data: { success: true },
+				setCookies,
+				actions: [
+					{
+						action: "redirect",
+						path: "/my-profile",
+					},
+				],
+			};
+		}
+		let collectPasswordAction: Action = {
+			action: "collect",
+			types: [{ type: "get-password" }],
+			header: "Enter Password",
+			message: "Enter your password.",
+		};
+		// User exists
+		if (options.supportsWebAuthn) {
+			const passkeys = await database.getPasskeysByUserID(user.id);
+			if (passkeys.length !== 0) {
+				// Make sure the user has a passkey
+				authenticationOptions.allowCredentials = passkeys.map((passkey) => ({
+					type: "public-key",
+					id: passkey.credential_id,
+					transports: JSON.parse(passkey.transports),
+				}));
+				result = yield {
+					actions: [
+						collectPasswordAction,
+						{
+							action: "authenticate-passkey",
+							WebAuthnOptions: authenticationOptions,
+						},
+						{
+							action: "show-use-password-button",
+						},
+					],
+				};
+				let assertionResponse = result?.return?.filter(
+					(x) => x.type === "assertion-response"
+				)?.[0]?.assertionResponse;
+				if (assertionResponse) {
+					let success = await loginUserWithPasskey(
+						database,
+						assertionResponse,
+						verifyAuthentication
+					);
+					let actions = [];
+					if (success) {
+						actions.push({
+							action: "redirect",
+							path: "/my-profile",
+						});
+					} else {
+						actions = actions.concat([
+							{
+								action: "error",
+								errors: ["Invalid passkey"],
+							},
+							{
+								action: "reload",
+							},
+						]);
+					}
+					return {
+						data: { success: success !== false },
+						setCookies: success || [],
+						actions,
+					};
+				}
+			}
+		} else {
+			result = yield {
+				actions: [collectPasswordAction],
+			};
+		}
+		while (true) {
+			let errors = [];
+			let passwordHash = hashPassword(
+				result.return.filter((x) => x.type === "input")?.[0].values[
+					"get-password"
+				],
+				user.salt
+			);
+			if (passwordHash.equals(user.password)) {
+				// Password is correct
+				let setCookies = await loginUser(user.id, database);
+				return {
+					data: { success: true },
+					setCookies,
+					actions: [
+						{
+							action: "redirect",
+							path: "/my-profile",
+						},
+					],
+				};
+			}
 
-      // Password is incorrect
-      errors.push("Invalid password");
-    }
-  }
+			// Password is incorrect
+			errors.push("Invalid password");
+			result = yield {
+				actions: [
+					{
+						action: "error",
+						errors,
+					},
+					collectPasswordAction,
+				],
+			};
+		}
+	}
 }
 export async function* addPasskey(database: Database, userID: Buffer) {
   let result: LoginDataReturnPacket;

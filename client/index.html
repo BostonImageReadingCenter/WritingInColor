@@ -14,14 +14,20 @@
 			window.location.href = "https://www.facebook.com/squarespace";
 		});
 		document.getElementById("social-X").addEventListener("click", () => {
-			window.location.href = "https://x.com/squarespace";
+			window.location.href = "https://x.com/WICnonprofit";
 		});
 		document.getElementById("social-insta").addEventListener("click", () => {
-			window.location.href = "https://www.instagram.com/squarespace/";
+			window.location.href =
+				"'https://www.instagram.com/writingincolorboston/?igsh=MWxzZ3A1OTF1aGxsOA%3D%3D'";
 		});
 		document.getElementById("login-icon").addEventListener("click", () => {
 			window.location.href = "/login";
 		});
+		document
+			.getElementById("contact-us-button")
+			.addEventListener("click", () => {
+				window.location.href = "https://forms.gle/rS6dqRQDqKGDYNRH6";
+			});
 	});
 </script>
 {% endblock %} {% block body %}
@@ -276,28 +282,20 @@
 				src="/static/media/image/icon/instagram.png"
 				id="social-insta"
 				class="social-button"
-				onclick="window.location.href = 'https://www.instagram.com/writingincolorboston/?igsh=MWxzZ3A1OTF1aGxsOA%3D%3D'"
 			/>
 			<img
 				src="/static/media/image/icon/X.png"
 				id="social-X"
 				class="social-button"
-				onclick="window.location.href = 'https://x.com/WICnonprofit'"
 			/>
 			<img
 				src="/static/media/image/icon/facebook.png"
 				id="social-fb"
 				class="social-button"
-				//onlcick="window.location.href = 'https://www.facebook.com/squarespace'"
 			/>
 		</div>
 		<div id="footer-buttons">
-			<button
-				id="email-button"
-				onclick="window.location.href = 'https://forms.gle/rS6dqRQDqKGDYNRH6'"
-				>
-				Contact Us
-			</button>
+			<button id="contact-us-button">Contact Us</button>
 
 			<button
 				class="donate-button"

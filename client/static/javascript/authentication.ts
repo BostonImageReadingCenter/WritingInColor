@@ -518,29 +518,32 @@ export async function authenticatePasskey(
 ) {
 	let WebAuthnOptions = authenticationOptions;
 	if (data.WebAuthnOptions) WebAuthnOptions = data.WebAuthnOptions;
-	const assertionResponse = await startAuthentication(WebAuthnOptions);
-	const verificationResponse = await fetch("/api/session/return", {
-		method: "POST",
-		headers: { "Content-Type": "application/json" },
-		body: JSON.stringify({
-			id: sessionID,
-			return: [
-				{
-					type: "assertion-response",
-					assertionResponse,
-				} as AssertionResponseLoginDataReturn,
-			],
-		}),
-	});
-	let json = await verificationResponse.json();
-	handleAction(json.value);
-	if (json.value.data.success) {
-		if (!json.done) returnData([]);
-		// TODO: handle success
-	} else {
-		alert("Authentication Failed.");
-		// TODO: handle failure
-	}
+	startAuthentication(WebAuthnOptions)
+		.then(async (assertionResponse) => {
+			const verificationResponse = await fetch("/api/session/return", {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					id: sessionID,
+					return: [
+						{
+							type: "assertion-response",
+							assertionResponse,
+						} as AssertionResponseLoginDataReturn,
+					],
+				}),
+			});
+			let json = await verificationResponse.json();
+			handleAction(json.value);
+			if (json.value.data.success) {
+				if (!json.done) returnData();
+				// TODO: handle success
+			} else {
+				alert("Authentication Failed.");
+				// TODO: handle failure
+			}
+		})
+		.catch(() => returnData());
 }
 async function initConditionalUI(data: OtherAction) {
 	if (!supportsWebAuthn) {

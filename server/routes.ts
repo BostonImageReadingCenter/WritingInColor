@@ -73,6 +73,7 @@ function cleanSessions() {
 }
 
 function setCookies(cookies: SetCookieOptions[], reply: FastifyReply) {
+	console.log("Cookies:", cookies);
 	for (let cookie of cookies) {
 		// SameSite strict
 		reply.setCookie(cookie.name, cookie.value, {
@@ -80,7 +81,7 @@ function setCookies(cookies: SetCookieOptions[], reply: FastifyReply) {
 			signed: cookie.signed ?? false,
 			path: cookie.path ?? "/",
 			sameSite: cookie.sameSite ?? "strict",
-			secure: cookie.secure ?? true,
+			secure: cookie.secure ?? false, // TODO: set to true in production
 			expires:
 				cookie.expires ?? new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
 		});
