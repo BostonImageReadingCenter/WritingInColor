@@ -40,14 +40,13 @@ input[type="password"] {
 
 }
 
-
 input[type="message"] {
 	// Styles for text input
 }
 
 .document-display-box {
 	width: 500px;
-	height: 500px;
+	height: 900px;
 	max-width: 100%;
 	max-height: calc(100% - 200px);
 	overflow-y: scroll;

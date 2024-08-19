@@ -204,13 +204,13 @@ export async function collect(data: CollectionType) {
 		}
 		let yesButtonEl = createElement("button", {
 			attributes: {},
-			classes: [],
+			classes: ['yes-button'],
 			id: "",
 			text: "yes",
 		});
 		let noButtonEl = createElement("button", {
 			attributes: {},
-			classes: [],
+			classes: ['no-button'],
 			id: "",
 			text: "no",
 		});

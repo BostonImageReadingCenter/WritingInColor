@@ -316,6 +316,9 @@ p {
 }
 
 @media (max-width: 1000px) {
+	.mission .image-section {
+		display: none; // Hide the image when screen width is 768px or smaller
+	}
 	.hero .text-section,
 	.mission .text-section {
 		font-size: large;

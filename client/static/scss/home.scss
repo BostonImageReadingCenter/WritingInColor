@@ -256,7 +256,8 @@ main {
 		flex: 1;
 		width: 50%;
 		max-width: 100%;
-		min-width: 45%;
+		//min-width: 45%;
+		display: block;
 	}
 	.text-section {
 		flex: 1;
@@ -280,6 +281,16 @@ main {
 		}
 	}
 }
+@media only screen and (max-width: 768px) {
+	.mission .image-section img {
+		display: none;
+	}
+	.mission .container {
+		flex-direction: column; // Stacks elements vertically on smaller screens
+	}
+	
+}
+
 
 .hero .container {
 	display: flex;
