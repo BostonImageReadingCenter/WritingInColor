@@ -10,6 +10,8 @@ let wrapTextButton: HTMLElement;
 interface Command {
 	command_type: string;
 	command_target: HTMLElement;
+	command_target_parent?: HTMLElement;
+	command_target_index?: number;
 	value?: any;
 	previousState?: any;
 	input?: HTMLElement;
@@ -518,6 +520,20 @@ function undo(command: Command) {
 		} else {
 			command.command_target.setAttribute("href", command.previousState);
 		}
+	} else if (command.command_type === "delete-element") {
+		// Reinsert the element at the stored index
+		if (
+			command.command_target_index <
+			command.command_target_parent.children.length
+		) {
+			command.command_target_parent.insertBefore(
+				command.command_target,
+				command.command_target_parent.children[command.command_target_index]
+			);
+		} else {
+			// If the index is out of bounds, append the element at the end
+			command.command_target_parent.appendChild(command.command_target);
+		}
 	}
 }
 function redo(command: Command) {
@@ -554,6 +570,8 @@ function redo(command: Command) {
 			command.command_target.appendChild(anchor);
 		}
 		command.command_target.setAttribute("href", command.value);
+	} else if (command.command_type === "delete-element") {
+		command.command_target.remove();
 	}
 }
 function isPointInRect(point: { x: number; y: number }, rect: DOMRect) {
@@ -974,12 +992,17 @@ let createTextEditMenu = () =>
 					eventHandlers: {
 						click(event) {
 							currentlyEditing.dispatchEvent(new Event("inactive"));
-							currentlyEditing.remove();
 							commandStack.push({
 								command_type: "delete-element",
 								command_target: currentlyEditing,
+								command_target_parent: currentlyEditing.parentElement,
+								command_target_index: Array.prototype.indexOf.call(
+									currentlyEditing.parentElement.children,
+									currentlyEditing
+								),
 								input: event.target,
 							});
+							currentlyEditing.remove();
 						},
 					},
 				},
