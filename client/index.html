@@ -28,6 +28,11 @@
 			.addEventListener("click", () => {
 				window.location.href = "https://forms.gle/rS6dqRQDqKGDYNRH6";
 			});
+			document
+			.getElementById("phrase")
+			.addEventListener("click", () => {
+				window.location.href = "https://forms.gle/rS6dqRQDqKGDYNRH6";
+			});
 	});
 </script>
 {% endblock %} {% block body %}
@@ -61,6 +66,9 @@
 	</div>
 </header>
 <main>
+
+
+	
 	<div id="homepage-content-wrapper">
 		<div id="menu-button">
 			<div id="top-menu">
@@ -111,6 +119,51 @@
 		</div>
 
 		<script>
+			document.addEventListener('DOMContentLoaded', function () {
+			// Function to scroll smoothly to a target element
+			function scrollToSection(target) {
+				if (target) {
+				window.scrollTo({
+					top: target.offsetTop,
+					behavior: 'smooth'
+				});
+				}
+			}
+
+			// Set event listeners for menu items
+			document.getElementById('course').addEventListener('click', function (e) {
+				e.preventDefault();
+				const courseSection = document.querySelector('.courses');
+				scrollToSection(courseSection);
+			});
+
+			document.getElementById('testimonials').addEventListener('click', function (e) {
+				e.preventDefault();
+				const testimonialsSection = document.getElementById('testimonial-section');
+				scrollToSection(testimonialsSection);
+			});
+
+			document.getElementById('mission').addEventListener('click', function (e) {
+				e.preventDefault();
+				const missionSection = document.querySelector('.mission');
+				scrollToSection(missionSection);
+			});
+
+			document.getElementById('founders').addEventListener('click', function (e) {
+				e.preventDefault();
+				const foundersSection = document.querySelector('.founders');
+				scrollToSection(foundersSection);
+			});
+			document.getElementById('icons').addEventListener('click', function (e) {
+				e.preventDefault();
+				const contactUs = document.querySelector('.icons');
+				scrollToSection(contactUs);
+			});
+			});
+	
+
+
+
 			document.addEventListener("DOMContentLoaded", function () {
 				const menuButton = document.getElementById("menu-button");
 				const menuBar = document.getElementById("menu-bar");
@@ -195,7 +248,7 @@
 		<section class="mission">
 			<div class="container">
 				<div class="image-section">
-					<img src="static/media/image/icon/mission.png" />
+					<img src="static/media/image/icon/new-mission.svg" />
 				</div>
 				<div class="text-section">
 					<h2>What We Stand For</h2>
@@ -270,6 +323,7 @@
 	</div>
 </main>
 <footer>
+	
 	<!-- TODO: put global footer content here. -->
 	<section class="icons">
 		<img
