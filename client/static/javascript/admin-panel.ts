@@ -119,12 +119,9 @@ function isLink(element: Element) {
 	return element.nodeName === "A" && element.hasAttribute("href");
 }
 /**
- * Retrieves the raw CSS value (including unit) for a given property of an element.
- * @param element - The element to get the CSS value from.
- * @param property - The CSS property to retrieve (e.g., 'font-size', 'margin-top').
- * @returns - The raw CSS value including the unit, or null if not applicable.
+ * Gets the raw value of a CSS property for an element, as defined in the element's style.
  */
-function getRawCssValue(element: HTMLElement, property: string): string | null {
+function getRawCSSValue(element: HTMLElement, property: string): string | null {
 	// Check inline styles first
 	if (element.style[property]) {
 		return element.style[property];
@@ -134,7 +131,13 @@ function getRawCssValue(element: HTMLElement, property: string): string | null {
 
 	// Check all style sheets
 	for (let i = 0; i < styleSheets.length; i++) {
-		const rules = styleSheets[i].cssRules || styleSheets[i].rules;
+		let rules: CSSRuleList | null = null;
+		try {
+			rules = styleSheets[i].cssRules || styleSheets[i].rules;
+		} catch (e) {
+			// The stylesheet cannot be accessed. It may be from another domain or restricted for some other reason.
+			continue;
+		}
 		if (rules) {
 			for (let j = 0; j < rules.length; j++) {
 				const rule = rules[j];
@@ -156,12 +159,12 @@ function getStyleState(element: HTMLElement, style: string) {
 		case "color":
 			return convertToHex(window.getComputedStyle(element).color);
 		case "font-size":
-			return getRawCssValue(element, "font-size") || "1em";
+			return getRawCSSValue(element, "font-size") || "1em";
 		case "font-weight":
 			return window.getComputedStyle(element).fontWeight;
 		case "font-family":
 			return (
-				getRawCssValue(element, "font-family") ||
+				getRawCSSValue(element, "font-family") ||
 				(element.parentElement
 					? getStyleState(element.parentElement, "font-family")
 					: "sans-serif")
