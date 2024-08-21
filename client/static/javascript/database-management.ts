@@ -86,11 +86,9 @@ window.addEventListener("load", async (event: Event) => {
 				td.addEventListener("input", () => editListener(td, table, rowId, key));
 				row.appendChild(td);
 			}
-			console.log(row);
 			let tbody = document.querySelector(
 				"table[data-table='" + table + "'] tbody"
 			);
-			console.log(tbody);
 			tbody.appendChild(row);
 		});
 		saveButton.removeAttribute("disabled");

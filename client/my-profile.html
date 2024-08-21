@@ -12,8 +12,18 @@
 	<br />
 	<a href="/logout">Logout</a>
 	<h2>Name</h2>
-	<input type="text" value="{{ user.first_name }}" id="first-name" />
-	<input type="text" value="{{ user.last_name }}" id="last-name" />
+	<input
+		type="text"
+		value="{{ user.first_name }}"
+		id="first-name"
+		placeholder="First Name"
+	/>
+	<input
+		type="text"
+		value="{{ user.last_name }}"
+		id="last-name"
+		placeholder="Last Name"
+	/>
 	<h2>Email</h2>
 	<div id="email-container" class="templated">
 		{% for email in user.emails %}

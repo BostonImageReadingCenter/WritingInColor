@@ -204,13 +204,13 @@ export async function collect(data: CollectionType) {
 		}
 		let yesButtonEl = createElement("button", {
 			attributes: {},
-			classes: ['yes-button'],
+			classes: ["yes-button"],
 			id: "",
 			text: "yes",
 		});
 		let noButtonEl = createElement("button", {
 			attributes: {},
-			classes: ['no-button'],
+			classes: ["no-button"],
 			id: "",
 			text: "no",
 		});
@@ -442,7 +442,6 @@ export async function collect(data: CollectionType) {
 			};
 		});
 	} else if (data.type === "show-document") {
-		console.log("show-document");
 		documentDisplayBoxEl.innerHTML = data.html;
 		if (data.required) {
 			collectionFormNextButton.disabled = true;

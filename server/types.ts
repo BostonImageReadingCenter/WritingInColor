@@ -211,7 +211,6 @@ export class User {
 		this.setRoles(role_ids ?? roles ?? []);
 	}
 	setRoles(roles: (number | string)[]): void {
-		if (roles.length === 0) return;
 		this.role_ids = roles.map((role) => {
 			if (typeof role === "string") return ROLES.indexOf(role);
 			return role;

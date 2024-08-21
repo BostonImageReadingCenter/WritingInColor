@@ -82,7 +82,7 @@ class Database {
 		connection: Queryable = this.pool
 	) {
 		await connection.query(
-			"INSERT INTO emails (user_id, email, is_primary) VALUES (?, ?)",
+			"INSERT INTO emails (user_id, email, is_primary) VALUES (?, ?, ?)",
 			[userID, email.email, email.is_primary]
 		);
 	}

@@ -73,7 +73,6 @@ function cleanSessions() {
 }
 
 function setCookies(cookies: SetCookieOptions[], reply: FastifyReply) {
-	console.log("Cookies:", cookies);
 	for (let cookie of cookies) {
 		// SameSite strict
 		reply.setCookie(cookie.name, cookie.value, {
@@ -164,7 +163,6 @@ async function routes(fastify: FastifyInstance, options) {
 			user.emails = emails;
 			let passkeys = await database.getPasskeysByUserID(user.id);
 			user.passkeys = passkeys;
-			console.log(passkeys);
 			reply
 				.code(200)
 				.header("Content-Type", "text/html")
