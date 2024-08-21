@@ -245,7 +245,7 @@ async function routes(fastify: FastifyInstance, options) {
 		"/api/session/return",
 		async (request: FastifyRequest, reply: FastifyReply) => {
 			let json: any = request.body;
-			let id = json.id;
+			let id = String(json.id);
 			let session = auth_sessions[id];
 
 			if (!session)

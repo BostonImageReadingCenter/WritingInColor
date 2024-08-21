@@ -1,4 +1,4 @@
-import { createElement } from "./utils.ts";
+import { createElement, isValidUrl } from "./utils.ts";
 
 let edit_mode_toggle = document.getElementById(
 	"edit-mode-toggle"
@@ -945,6 +945,10 @@ let createTextEditMenu = () =>
 													"link-url-input"
 												) as HTMLInputElement
 											).value;
+											if (!isValidUrl(value)) {
+												alert("Invalid URL");
+												return;
+											}
 											currentlyEditing.setAttribute("href", value);
 											commandStack.push({
 												command_type: "change-link",

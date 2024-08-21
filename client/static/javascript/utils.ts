@@ -87,5 +87,12 @@ function extendElementPrototype() {
 
 // Extend the prototype
 extendElementPrototype();
-
-export { createElement };
+function isValidUrl(url) {
+	try {
+		new URL(url);
+		return true;
+	} catch (_) {
+		return false;
+	}
+}
+export { createElement, isValidUrl };
