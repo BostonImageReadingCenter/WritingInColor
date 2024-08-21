@@ -36,7 +36,7 @@ window.addEventListener("load", async (event: Event) => {
 		key: string
 	) {
 		saveButton.removeAttribute("disabled");
-		JSON_DATA[table][rowId][key] = element.textContent;
+		JSON_DATA[table][rowId][key] = element.textContent.trim();
 	}
 
 	for (let td of Array.from(TDs)) {
