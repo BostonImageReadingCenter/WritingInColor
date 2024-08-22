@@ -86,4 +86,4 @@ If you add a new JavaScript file that is used ON ITS OWN, then you will need to 
 - **Injection:**
   - **Meaning:** Injection of code or values that may be malicious
   - **Our Solution:** We don't run any user-provided code and we make sure to validate all input.
-    **Protection Implemented:** Yes
+  - **Protection Implemented:** Yes
