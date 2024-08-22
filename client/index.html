@@ -28,11 +28,9 @@
 			.addEventListener("click", () => {
 				window.location.href = "https://forms.gle/rS6dqRQDqKGDYNRH6";
 			});
-			document
-			.getElementById("phrase")
-			.addEventListener("click", () => {
-				window.location.href = "https://forms.gle/rS6dqRQDqKGDYNRH6";
-			});
+		document.getElementById("phrase").addEventListener("click", () => {
+			window.location.href = "https://forms.gle/rS6dqRQDqKGDYNRH6";
+		});
 	});
 </script>
 {% endblock %} {% block body %}
@@ -59,22 +57,35 @@
 				/>
 			</div>
 		</div>
-		<div id="menu-bar">
+		<div id="menu-button">
 			<img src="/static/media/image/icon/menu-icon.svg" width="30" />
 			<img src="/static/media/image/icon/menu-lines.svg" width="30" />
 		</div>
 	</div>
 </header>
 <main>
-
-
-	
 	<div id="homepage-content-wrapper">
-		<div id="menu-button">
+		<div id="menu-bar">
+		{% if user %}
 			<div id="top-menu">
-				<p id="welcome-phrase">Hello User</p>
-				<p id="profile-type">Student Profile</p>
+				<p id="welcome-phrase">
+					Hello {{user.first_name | default("Unnamed User")}}!
+				</p>
+				<p id="profile-type">
+					{% if user.roles.includes("admin") %}
+					Admin Account 
+					{% elif user.roles.includes("moderator") %} 
+					Moderator Profile 
+					{% elif user.roles.includes("instructor") %} 
+					Instructor Profile 
+					{% elif user.roles.includes("developer") %} 
+					Developer Profile 
+					{% else %}
+					Student Profile 
+					{% endif %}
+				</p>
 			</div>
+			{% endif %}
 			<div class="main-menu">
 				<p>MAIN</p>
 				<p id="home">
@@ -107,6 +118,7 @@
 					<img src="/static/media/image/icon/phone-icon.svg" /> Contact
 				</p>
 			</div>
+			{% if user %}
 			<div class="account-settings">
 				<p>ACCOUNT SETTINGS</p>
 				<p id="settings">
@@ -116,53 +128,75 @@
 					<img src="/static/media/image/icon/User 1.svg" /> Sign Out
 				</p>
 			</div>
+			{% endif %}
 		</div>
 
 		<script>
-			document.addEventListener('DOMContentLoaded', function () {
-			// Function to scroll smoothly to a target element
-			function scrollToSection(target) {
-				if (target) {
-				window.scrollTo({
-					top: target.offsetTop,
-					behavior: 'smooth'
-				});
+			document.addEventListener("DOMContentLoaded", function () {
+				// Function to scroll smoothly to a target element
+				function scrollToSection(target) {
+					if (target) {
+						window.scrollTo({
+							top: target.offsetTop,
+							behavior: "smooth",
+						});
+					}
 				}
-			}
 
-			// Set event listeners for menu items
-			document.getElementById('course').addEventListener('click', function (e) {
-				e.preventDefault();
-				const courseSection = document.querySelector('.courses');
-				scrollToSection(courseSection);
-			});
+				// Set event listeners for menu items
+				document
+					.getElementById("course")
+					.addEventListener("click", function (e) {
+						e.preventDefault();
+						const courseSection = document.querySelector(".courses");
+						scrollToSection(courseSection);
+					});
 
-			document.getElementById('testimonials').addEventListener('click', function (e) {
-				e.preventDefault();
-				const testimonialsSection = document.getElementById('testimonial-section');
-				scrollToSection(testimonialsSection);
-			});
+				document
+					.getElementById("testimonials")
+					.addEventListener("click", function (e) {
+						e.preventDefault();
+						const testimonialsSection = document.getElementById(
+							"testimonial-section"
+						);
+						scrollToSection(testimonialsSection);
+					});
 
-			document.getElementById('mission').addEventListener('click', function (e) {
-				e.preventDefault();
-				const missionSection = document.querySelector('.mission');
-				scrollToSection(missionSection);
-			});
+				document
+					.getElementById("mission")
+					.addEventListener("click", function (e) {
+						e.preventDefault();
+						const missionSection = document.querySelector(".mission");
+						scrollToSection(missionSection);
+					});
 
-			document.getElementById('founders').addEventListener('click', function (e) {
-				e.preventDefault();
-				const foundersSection = document.querySelector('.founders');
-				scrollToSection(foundersSection);
+				document
+					.getElementById("founders")
+					.addEventListener("click", function (e) {
+						e.preventDefault();
+						const foundersSection = document.querySelector(".founders");
+						scrollToSection(foundersSection);
+					});
+				/*
+				document
+					.getElementById("icons")
+					.addEventListener("click", function (e) {
+						e.preventDefault();
+						const contactUs = document.querySelector(".icons");
+						scrollToSection(contactUs);
+					});
+				*/
+				document
+					.getElementById("sign-out")
+					.addEventListener("click", function () {
+						window.location.href = "/logout";
+					});
+				document
+					.getElementById("settings")
+					.addEventListener("click", function () {
+						window.location.href = "/my-profile";
+					});
 			});
-			document.getElementById('icons').addEventListener('click', function (e) {
-				e.preventDefault();
-				const contactUs = document.querySelector('.icons');
-				scrollToSection(contactUs);
-			});
-			});
-	
-
-
 
 			document.addEventListener("DOMContentLoaded", function () {
 				const menuButton = document.getElementById("menu-button");
@@ -171,8 +205,8 @@
 					".main-menu p, .account-settings p"
 				);
 
-				menuBar.addEventListener("click", function () {
-					menuButton.classList.toggle("show");
+				menuButton.addEventListener("click", function () {
+					menuBar.classList.toggle("show");
 				});
 
 				subMenus.forEach((menu) => {
@@ -323,7 +357,6 @@
 	</div>
 </main>
 <footer>
-	
 	<!-- TODO: put global footer content here. -->
 	<section class="icons">
 		<img
