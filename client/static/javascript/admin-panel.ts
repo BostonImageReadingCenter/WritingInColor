@@ -217,7 +217,7 @@ let updateEditMenuPosition = () => {
 	// Ensure the menu doesn't go off-screen
 	if (left < window.scrollX) left = window.scrollX + padding;
 	if (left + menuBoundingRect.width + padding > windowWidth + window.scrollX)
-		left = windowWidth - menuBoundingRect.width - padding;
+		left = windowWidth + window.scrollX - menuBoundingRect.width - padding;
 	if (top < window.scrollY) top = window.scrollY + padding;
 	if (top + menuBoundingRect.height + padding > windowHeight + window.scrollY)
 		top = windowHeight + window.scrollY - menuBoundingRect.height - padding;
