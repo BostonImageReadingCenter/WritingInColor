@@ -26,7 +26,7 @@ interface CreateElementOptions {
 	id?: string;
 	text?: string;
 	html?: string;
-	children?: HTMLElement[] | CreateElementOptions[];
+	children?: (HTMLElement | CreateElementOptions)[];
 	eventHandlers?: { [key: string]: (event) => void };
 	is?: string;
 }
@@ -87,7 +87,7 @@ function extendElementPrototype() {
 
 // Extend the prototype
 extendElementPrototype();
-function isValidUrl(url) {
+function isValidUrl(url: string) {
 	try {
 		new URL(url);
 		return true;
@@ -95,4 +95,34 @@ function isValidUrl(url) {
 		return false;
 	}
 }
-export { createElement, isValidUrl };
+function namedNodeMapToObject(namedNodeMap: NamedNodeMap) {
+	const obj = {};
+
+	for (let i = 0; i < namedNodeMap.length; i++) {
+		const attr = namedNodeMap[i];
+		obj[attr.name] = attr.value;
+	}
+
+	return obj;
+}
+function buildQuerySelector(attributes: { [key: string]: any }) {
+	let selector = "";
+
+	if (attributes.id) {
+		selector += `#${attributes.id}`;
+	}
+
+	if (attributes.class) {
+		const classes = attributes.class.split(" ").filter(Boolean);
+		selector += classes.map((cls: string) => `.${cls}`).join("");
+	}
+
+	Object.keys(attributes).forEach((attr) => {
+		if (attr !== "id" && attr !== "class") {
+			selector += `[${attr}="${attributes[attr]}"]`;
+		}
+	});
+
+	return selector;
+}
+export { createElement, isValidUrl, namedNodeMapToObject, buildQuerySelector };

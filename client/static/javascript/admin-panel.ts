@@ -1,4 +1,9 @@
-import { createElement, isValidUrl } from "./utils.ts";
+import {
+	buildQuerySelector,
+	createElement,
+	isValidUrl,
+	namedNodeMapToObject,
+} from "./utils.ts";
 
 let edit_mode_toggle = document.getElementById(
 	"edit-mode-toggle"
@@ -18,7 +23,7 @@ interface Command {
 }
 let commandStack: Command[] = []; // Commands performed. This list is used for undo and redo operations.
 let undid: Command[] = []; // Commands that were undone with ctrl+z
-
+let windowWidth: number, windowHeight: number;
 const selfClosingTags = [
 	"area",
 	"base",
@@ -199,60 +204,33 @@ function getBoundingPageRect(element: HTMLElement) {
 		right: rect.left + rect.width + scrollX,
 	};
 }
-function getScrollableAncestors(element: HTMLElement) {
-	const scrollableAncestors = [];
-	let parent = element.parentElement;
-	while (parent) {
-		const overflowY = window.getComputedStyle(parent).overflowY;
-		const overflowX = window.getComputedStyle(parent).overflowX;
-		if (
-			overflowY === "auto" ||
-			overflowY === "scroll" ||
-			overflowX === "auto" ||
-			overflowX === "scroll"
-		) {
-			scrollableAncestors.push(parent);
-		}
-		parent = parent.parentElement;
-	}
-	return scrollableAncestors;
-}
+let updateEditMenuPosition = () => {
+	if (!currentlyEditing) return requestAnimationFrame(updateEditMenuPosition);
+	let menuBoundingRect = getBoundingPageRect(textEditMenu);
+	let elementBoundingRect = getBoundingPageRect(currentlyEditing);
+	let padding = 15;
+	let left =
+		elementBoundingRect.left +
+		elementBoundingRect.width / 2 -
+		menuBoundingRect.width / 2;
+	let top = elementBoundingRect.bottom + padding;
+	// Ensure the menu doesn't go off-screen
+	if (left < window.scrollX) left = window.scrollX + padding;
+	if (left + menuBoundingRect.width + padding > windowWidth + window.scrollX)
+		left = windowWidth - menuBoundingRect.width - padding;
+	if (top < window.scrollY) top = window.scrollY + padding;
+	if (top + menuBoundingRect.height + padding > windowHeight + window.scrollY)
+		top = windowHeight + window.scrollY - menuBoundingRect.height - padding;
+	textEditMenu.style.left = String(left) + "px";
+	textEditMenu.style.top = String(top) + "px";
+	requestAnimationFrame(updateEditMenuPosition);
+};
 function openTextEditMenu(element: HTMLElement) {
 	currentlyEditing = element;
 	textEditMenu.classList.add("show");
 	textEditMenu.style.display = "flex";
-	let updateEditMenuPosition = () => {
-		requestAnimationFrame(() => {
-			let menuBoundingRect = getBoundingPageRect(textEditMenu);
-			let elementBoundingRect = getBoundingPageRect(element);
-			let padding = 15;
-			let left =
-				elementBoundingRect.left +
-				elementBoundingRect.width / 2 -
-				menuBoundingRect.width / 2;
-			let top = elementBoundingRect.bottom + padding;
-			// Ensure the menu doesn't go off-screen
-			if (left < 0) left = padding;
-			if (left + menuBoundingRect.width + padding > window.innerWidth)
-				left = window.innerWidth - menuBoundingRect.width - padding;
-			if (top < 0) top = elementBoundingRect.bottom + padding;
-			if (top + menuBoundingRect.height + padding > window.innerHeight)
-				top = window.innerHeight - menuBoundingRect.height - padding;
-			textEditMenu.style.left = String(left) + "px";
-			textEditMenu.style.top = String(top) + "px";
-		});
-	};
-	updateEditMenuPosition();
-	const resizeObserver = new ResizeObserver((entries) => {
-		updateEditMenuPosition();
-	});
-	resizeObserver.observe(element);
 
 	// Attach scroll listeners to scrollable ancestors
-	const scrollableAncestors = getScrollableAncestors(element);
-	scrollableAncestors.forEach((ancestor) =>
-		ancestor.addEventListener("scroll", updateEditMenuPosition)
-	);
 	(
 		document.getElementById("text-edit-menu-color-picker") as HTMLInputElement
 	).value = getStyleState(element, "color");
@@ -263,8 +241,6 @@ function openTextEditMenu(element: HTMLElement) {
 	).value = getStyleState(element, "font-size");
 	document.getElementById("text-edit-menu-font-selector").style.fontFamily =
 		getStyleState(element, "font-family");
-
-	return { resizeObserver, scrollableAncestors };
 }
 
 const HANDLERS = {
@@ -273,10 +249,9 @@ const HANDLERS = {
 	 */
 	text: (element: HTMLElement) => {
 		element.setAttribute("contenteditable", "true");
-		element.focus();
 		element.style.outline = "1px solid blue";
 		element.focus();
-		let { resizeObserver } = openTextEditMenu(element);
+		openTextEditMenu(element);
 		let previousText = element.innerText;
 		let inputHandler = (event: InputEvent) => {
 			commandStack.push({
@@ -292,8 +267,6 @@ const HANDLERS = {
 		element.addEventListener(
 			"inactive",
 			(event) => {
-				resizeObserver.unobserve(element);
-				resizeObserver.disconnect();
 				element.removeEventListener("input", inputHandler);
 				element.style.outline = "none";
 				textEditMenu.classList.remove("show");
@@ -342,7 +315,14 @@ function editableClickHandler(
 	}
 }
 window.addEventListener("DOMContentLoaded", () => {
+	windowHeight = window.innerHeight;
+	windowWidth = window.innerWidth;
+	window.addEventListener("resize", () => {
+		windowHeight = window.innerHeight;
+		windowWidth = window.innerWidth;
+	});
 	textEditMenu = createTextEditMenu();
+	updateEditMenuPosition();
 	textEditMenu.style.display = "none";
 	wrapTextButton = createElement("button", {
 		id: "wrap-text-button",
@@ -494,6 +474,12 @@ window.addEventListener("DOMContentLoaded", () => {
 		}
 	});
 });
+function copyAttributes(source: Element, target: HTMLElement) {
+	for (let i = 0; i < source.attributes.length; i++) {
+		const attr = source.attributes[i];
+		target.setAttribute(attr.name, attr.value);
+	}
+}
 function undo(command: Command) {
 	if (command.command_type === "change-text-color") {
 		command.command_target.style.color = command.previousState;
@@ -537,6 +523,8 @@ function undo(command: Command) {
 			// If the index is out of bounds, append the element at the end
 			command.command_target_parent.appendChild(command.command_target);
 		}
+	} else if (command.command_type === "change-bullet-point") {
+		command.command_target.innerHTML = command.previousState.html;
 	}
 }
 function redo(command: Command) {
@@ -575,6 +563,30 @@ function redo(command: Command) {
 		command.command_target.setAttribute("href", command.value);
 	} else if (command.command_type === "delete-element") {
 		command.command_target.remove();
+	} else if (command.command_type === "change-bullet-point") {
+		let list = command.previousState.list;
+		if (!list) {
+			let listItems = command.command_target.innerText.split("\n");
+			command.command_target.innerHTML = "";
+			let ul = document.createElement("ul");
+			listItems.forEach((item) => {
+				let li = document.createElement("li");
+				li.innerText = item;
+				ul.appendChild(li);
+			});
+			command.command_target.appendChild(ul);
+		} else {
+			const newTagName = list.tagName.toLowerCase() === "ul" ? "ol" : "ul";
+			const newList = document.createElement(newTagName);
+
+			copyAttributes(list, newList);
+
+			// Copy the content
+			newList.innerHTML = list.innerHTML;
+
+			// Replace old element with the new one
+			list.replaceWith(newList);
+		}
 	}
 }
 function isPointInRect(point: { x: number; y: number }, rect: DOMRect) {
@@ -612,439 +624,473 @@ function componentToHex(c: number) {
 function rgbToHex(r: number, g: number, b: number) {
 	return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
 }
+let createColorPicker = () =>
+	createElement({
+		tag: "div",
+		classes: [
+			"color-picker-wrapper",
+			"menu-item-wrapper",
+			// "menu-item-round",
+		],
+		children: [
+			{
+				tag: "input",
+				attributes: { type: "color" },
+				classes: ["color-picker"],
+				id: "text-edit-menu-color-picker",
+				eventHandlers: {
+					input(event) {
+						let previousState = getStyleState(currentlyEditing, "color");
+						let newValue = event.target.value;
+						currentlyEditing.style.color = newValue;
+						let command_target = currentlyEditing;
+						commandStack.push({
+							command_type: "change-text-color",
+							command_target,
+							value: newValue,
+							previousState,
+							input: event.target,
+						});
+					},
+				},
+			},
+		],
+	});
+let createFontSelector = () =>
+	createElement({
+		tag: "div",
+		classes: ["menu-item-wrapper", "menu-item-box"],
+		children: [
+			{
+				tag: "span",
+				classes: ["font-selector", "menu-item", "edit-mode-exempt"],
+				text: "Aa",
+				id: "text-edit-menu-font-selector",
+				children: [
+					{
+						tag: "div",
+						classes: ["editor-item-selector", "font-selector-menu"],
+						id: "font-selector-menu",
+						children: [
+							{
+								tag: "ul",
+								classes: ["font-list"],
+								children: fontFamilies.map((family) => ({
+									tag: "li",
+									text: family[0],
+									id: `font-${family[0].toLowerCase().replaceAll(" ", "-")}`,
+									attributes: {
+										"data-font": family[0],
+										style: `font-family: ${family.join(", ")};`,
+									},
+									classes: ["font-item"],
+									eventHandlers: {
+										click(event) {
+											let previousState = getStyleState(
+												currentlyEditing,
+												"font-family"
+											)
+												.split(",")[0]
+												.trim()
+												.toLowerCase()
+												.replaceAll(/["']+/g, "");
+											document
+												.getElementById(
+													`font-${previousState.replaceAll(" ", "-")}`
+												)
+												.classList.remove("selected");
+											event.target.classList.add("selected");
+											currentlyEditing.style.fontFamily = family.join(", ");
+											document.getElementById(
+												"text-edit-menu-font-selector"
+											).style.fontFamily = family.join(", ");
+											commandStack.push({
+												command_type: "change-font-family",
+												command_target: currentlyEditing,
+												value: family[0].toLowerCase(),
+												previousState,
+												input: event.target,
+											});
+											event.stopImmediatePropagation();
+										},
+									},
+								})),
+							},
+						],
+					},
+				],
+			},
+		], // Wow, look at all those levels of nesting! This is messy!
+		eventHandlers: {
+			click(event) {
+				let previousState = getStyleState(currentlyEditing, "font-family")
+					.split(",")[0]
+					.trim()
+					.toLowerCase()
+					.replaceAll(" ", "-")
+					.replaceAll(/["']+/g, "");
+				document.getElementById("font-selector-menu").classList.toggle("show");
+				document
+					.getElementById(`font-${previousState}`)
+					.classList.add("selected");
+			},
+		},
+	});
+let createFontSizeSelector = () =>
+	createElement({
+		tag: "div",
+		classes: [
+			"menu-item-wrapper",
+			"menu-item-box",
+			"font-size-selector-wrapper",
+		],
+		children: [
+			{
+				tag: "input",
+				attributes: {
+					type: "text",
+					value: "32px",
+				},
+				classes: ["font-size-selector", "menu-item", "edit-mode-exempt"],
+				text: "20",
+				id: "text-edit-menu-font-size-selector",
+			},
+		],
+		eventHandlers: {
+			input(event) {
+				let previousState = getStyleState(currentlyEditing, "font-size");
+				currentlyEditing.style.fontSize = event.target.value;
+				commandStack.push({
+					command_type: "change-font-size",
+					command_target: currentlyEditing,
+					value: event.target.value,
+					previousState,
+					input: event.target,
+				});
+			},
+		},
+	});
+let createBoldToggle = () =>
+	createElement({
+		tag: "div",
+		classes: ["menu-item-wrapper", "menu-item-round"],
+		children: [
+			{
+				tag: "span",
+				classes: ["bold-toggle", "menu-item", "edit-mode-exempt"],
+				text: "B",
+			},
+		],
+		eventHandlers: {
+			click(event) {
+				let previousFontWeight = getStyleState(currentlyEditing, "font-weight");
+				currentlyEditing.style.fontWeight =
+					previousFontWeight == "700" ? "400" : "700";
+				commandStack.push({
+					command_type: "change-font-weight",
+					command_target: currentlyEditing,
+					value: currentlyEditing.style.fontWeight,
+					previousState: previousFontWeight,
+					input: event.target,
+				});
+			},
+		},
+	});
+let createStrikeThroughToggle = () =>
+	createElement({
+		tag: "div",
+		classes: ["menu-item-wrapper", "menu-item-round"],
+		children: [
+			{
+				tag: "span",
+				classes: ["strikethrough-toggle", "menu-item", "edit-mode-exempt"],
+				text: "S",
+			},
+		],
+		eventHandlers: {
+			click(event) {
+				let previousTextDecoration =
+					window.getComputedStyle(currentlyEditing).textDecoration;
+				let newValue = "";
+				if (previousTextDecoration.includes("underline"))
+					newValue += "underline";
+				if (!previousTextDecoration.includes("line-through"))
+					newValue += " line-through";
+				currentlyEditing.style.textDecoration = newValue;
+				commandStack.push({
+					command_type: "change-text-decoration",
+					command_target: currentlyEditing,
+					value: currentlyEditing.style.textDecoration,
+					previousState: previousTextDecoration,
+					input: event.target,
+				});
+			},
+		},
+	});
 
+let createUnderlineToggle = () =>
+	createElement({
+		tag: "div",
+		classes: ["menu-item-wrapper", "menu-item-round"],
+		children: [
+			{
+				tag: "span",
+				classes: ["underline-toggle", "menu-item", "edit-mode-exempt"],
+				text: "U",
+			},
+		],
+		eventHandlers: {
+			click(event) {
+				let previousTextDecoration =
+					window.getComputedStyle(currentlyEditing).textDecoration;
+				let newValue = "";
+				if (!previousTextDecoration.includes("underline"))
+					newValue += "underline";
+				if (previousTextDecoration.includes("line-through"))
+					newValue += " line-through";
+				currentlyEditing.style.textDecoration = newValue;
+				commandStack.push({
+					command_type: "change-text-decoration",
+					command_target: currentlyEditing,
+					value: currentlyEditing.style.textDecoration,
+					previousState: previousTextDecoration,
+					input: event.target,
+				});
+			},
+		},
+	});
+
+let createTextAlignButton = () =>
+	createElement({
+		tag: "div",
+		classes: ["menu-item-wrapper", "menu-item-round"],
+		children: [
+			{
+				tag: "img",
+				attributes: { src: "/static/media/image/icon/Align Icon.svg" },
+				classes: ["text-align-toggle", "menu-item"],
+			},
+		],
+		eventHandlers: {
+			click(event) {
+				//TODO: SHOW OPTIONS
+				let previousTextAlign =
+					window.getComputedStyle(currentlyEditing).textAlign;
+				if (previousTextAlign == "center") {
+					currentlyEditing.style.textAlign = "right";
+				} else if (previousTextAlign == "right") {
+					currentlyEditing.style.textAlign = "left";
+				} else currentlyEditing.style.textAlign = "center";
+
+				commandStack.push({
+					command_type: "change-text-align",
+					command_target: currentlyEditing,
+					value: currentlyEditing.style.textAlign,
+					previousState: previousTextAlign,
+					input: event.target,
+				});
+			},
+		},
+	});
+let createBulletPointToggle = () =>
+	createElement({
+		tag: "div",
+		classes: ["menu-item-wrapper", "menu-item-round"],
+		children: [
+			{
+				tag: "img",
+				attributes: {
+					src: "/static/media/image/icon/Bullet Point Icon.svg",
+				},
+				classes: ["bullet-point-toggle", "menu-item"],
+			},
+		],
+		eventHandlers: {
+			click(event) {
+				let list = currentlyEditing.querySelector("ul, ol");
+				let html = currentlyEditing.innerHTML;
+				let command = {
+					command_type: "change-bullet-point",
+					command_target: currentlyEditing,
+					value: currentlyEditing.innerText,
+					previousState: {
+						list,
+						html,
+					},
+					input: event.target,
+				};
+				commandStack.push(command);
+				redo(command);
+			},
+		},
+	});
+let createLinkManager = () =>
+	createElement({
+		tag: "div",
+		classes: ["menu-item-wrapper", "menu-item-round", "link-button-wrapper"],
+		children: [
+			{
+				tag: "img",
+				attributes: { src: "/static/media/image/icon/link.svg" },
+				classes: ["menu-item"],
+			},
+			{
+				tag: "div",
+				id: "link-manager",
+				classes: ["editor-item-selector"],
+				children: [
+					{
+						tag: "input",
+						id: "link-url-input",
+						attributes: {
+							type: "url",
+							placeholder: "https://example.com",
+						},
+						eventHandlers: {
+							click(event) {
+								event.stopImmediatePropagation();
+							},
+						},
+					},
+					{
+						tag: "button",
+						id: "link-apply-button",
+						text: "Apply",
+						eventHandlers: {
+							click(event) {
+								let previousValue = currentlyEditing.getAttribute("href");
+								let value = (
+									document.getElementById("link-url-input") as HTMLInputElement
+								).value;
+								if (!isValidUrl(value)) {
+									alert("Invalid URL");
+									return;
+								}
+								currentlyEditing.setAttribute("href", value);
+								commandStack.push({
+									command_type: "change-link",
+									command_target: currentlyEditing,
+									value: value,
+									previousState: previousValue,
+									input: event.target,
+								});
+								redo(commandStack[commandStack.length - 1]);
+								event.stopImmediatePropagation();
+							},
+						},
+					},
+				],
+			},
+		],
+		eventHandlers: {
+			click(event) {
+				let previousValue = currentlyEditing.getAttribute("href");
+				(document.getElementById("link-url-input") as HTMLInputElement).value =
+					previousValue;
+				document.getElementById("link-manager").classList.toggle("show");
+			},
+		},
+	});
+
+let createCopyButton = () =>
+	createElement({
+		tag: "div",
+		classes: ["menu-item-wrapper", "menu-item-round"],
+		children: [
+			{
+				tag: "img",
+				attributes: { src: "/static/media/image/icon/Copy.svg" },
+				classes: ["copy-button", "menu-item"],
+			},
+		],
+		eventHandlers: {
+			click(event) {
+				let text = currentlyEditing.innerText;
+				navigator.clipboard.writeText(text);
+				alert("Text copied to clipboard");
+			},
+		},
+	});
+
+let createDeleteButton = () =>
+	createElement({
+		tag: "div",
+		classes: ["menu-item-wrapper", "menu-item-round"],
+		children: [
+			{
+				tag: "img",
+				attributes: { src: "/static/media/image/icon/trash.svg" },
+				classes: ["delete-button", "menu-item"],
+			},
+		],
+		eventHandlers: {
+			click(event) {
+				currentlyEditing.dispatchEvent(new Event("inactive"));
+				commandStack.push({
+					command_type: "delete-element",
+					command_target: currentlyEditing,
+					command_target_parent: currentlyEditing.parentElement,
+					command_target_index: Array.prototype.indexOf.call(
+						currentlyEditing.parentElement.children,
+						currentlyEditing
+					),
+					input: event.target,
+				});
+				currentlyEditing.remove();
+			},
+		},
+	});
+
+let createTextEditThreeDotsMenu = () =>
+	createElement({
+		tag: "div",
+		classes: ["menu-item-wrapper", "hover-menu", "menu-item-round"],
+		children: [
+			{
+				tag: "img",
+				attributes: { src: "/static/media/image/icon/ellipsis.svg" },
+				classes: ["options-button", "hover-menu__text"],
+			},
+			{
+				tag: "menu",
+				classes: ["hover-menu__content", "right", "menu-bar", "vertical"],
+				children: [
+					{
+						tag: "li",
+						classes: ["hover-menu__item", "edit-mode-exempt"],
+						text: "Item 0",
+					},
+					{
+						tag: "li",
+						classes: ["hover-menu__item", "edit-mode-exempt"],
+						text: "Item 1",
+					},
+					{
+						tag: "li",
+						classes: ["hover-menu__item", "edit-mode-exempt"],
+						text: "Item 2",
+					},
+				],
+			},
+		],
+	});
 let createTextEditMenu = () =>
 	document.body.appendChild(
 		createElement("menu", {
 			classes: ["editor-menu", "edit-mode-exempt"],
 			children: [
-				{
-					tag: "div",
-					classes: [
-						"color-picker-wrapper",
-						"menu-item-wrapper",
-						// "menu-item-round",
-					],
-					children: [
-						{
-							tag: "input",
-							attributes: { type: "color" },
-							classes: ["color-picker"],
-							id: "text-edit-menu-color-picker",
-							eventHandlers: {
-								input(event) {
-									let previousState = getStyleState(currentlyEditing, "color");
-									let newValue = event.target.value;
-									currentlyEditing.style.color = newValue;
-									let command_target = currentlyEditing;
-									commandStack.push({
-										command_type: "change-text-color",
-										command_target,
-										value: newValue,
-										previousState,
-										input: event.target,
-									});
-								},
-							},
-						},
-					],
-				},
-				{
-					tag: "div",
-					classes: ["menu-item-wrapper", "menu-item-box"],
-					children: [
-						{
-							tag: "span",
-							classes: ["font-selector", "menu-item", "edit-mode-exempt"],
-							text: "Aa",
-							id: "text-edit-menu-font-selector",
-							children: [
-								{
-									tag: "div",
-									classes: ["editor-item-selector", "font-selector-menu"],
-									id: "font-selector-menu",
-									children: [
-										{
-											tag: "ul",
-											classes: ["font-list"],
-											children: fontFamilies.map((family) => ({
-												tag: "li",
-												text: family[0],
-												id: `font-${family[0]
-													.toLowerCase()
-													.replaceAll(" ", "-")}`,
-												attributes: {
-													"data-font": family[0],
-													style: `font-family: ${family.join(", ")};`,
-												},
-												classes: ["font-item"],
-												eventHandlers: {
-													click(event) {
-														let previousState = getStyleState(
-															currentlyEditing,
-															"font-family"
-														)
-															.split(",")[0]
-															.trim()
-															.toLowerCase()
-															.replaceAll(/["']+/g, "");
-														document
-															.getElementById(
-																`font-${previousState.replaceAll(" ", "-")}`
-															)
-															.classList.remove("selected");
-														event.target.classList.add("selected");
-														currentlyEditing.style.fontFamily =
-															family.join(", ");
-														document.getElementById(
-															"text-edit-menu-font-selector"
-														).style.fontFamily = family.join(", ");
-														commandStack.push({
-															command_type: "change-font-family",
-															command_target: currentlyEditing,
-															value: family[0].toLowerCase(),
-															previousState,
-															input: event.target,
-														});
-														event.stopImmediatePropagation();
-													},
-												},
-											})),
-										},
-									],
-								},
-							],
-						},
-					], // Wow, look at all those levels of nesting! This is messy!
-					eventHandlers: {
-						click(event) {
-							let previousState = getStyleState(currentlyEditing, "font-family")
-								.split(",")[0]
-								.trim()
-								.toLowerCase()
-								.replaceAll(" ", "-")
-								.replaceAll(/["']+/g, "");
-							document
-								.getElementById("font-selector-menu")
-								.classList.toggle("show");
-							document
-								.getElementById(`font-${previousState}`)
-								.classList.add("selected");
-						},
-					},
-				},
-				{
-					tag: "div",
-					classes: [
-						"menu-item-wrapper",
-						"menu-item-box",
-						"font-size-selector-wrapper",
-					],
-					children: [
-						{
-							tag: "input",
-							attributes: {
-								type: "text",
-								value: "32px",
-							},
-							classes: ["font-size-selector", "menu-item", "edit-mode-exempt"],
-							text: "20",
-							id: "text-edit-menu-font-size-selector",
-						},
-					],
-					eventHandlers: {
-						input(event) {
-							let previousState = getStyleState(currentlyEditing, "font-size");
-							currentlyEditing.style.fontSize = event.target.value;
-							commandStack.push({
-								command_type: "change-font-size",
-								command_target: currentlyEditing,
-								value: event.target.value,
-								previousState,
-								input: event.target,
-							});
-						},
-					},
-				},
-				{
-					tag: "div",
-					classes: ["menu-item-wrapper", "menu-item-round"],
-					children: [
-						{
-							tag: "span",
-							classes: ["bold-toggle", "menu-item", "edit-mode-exempt"],
-							text: "B",
-						},
-					],
-					eventHandlers: {
-						click(event) {
-							let previousFontWeight = getStyleState(
-								currentlyEditing,
-								"font-weight"
-							);
-							currentlyEditing.style.fontWeight =
-								previousFontWeight == "700" ? "400" : "700";
-							commandStack.push({
-								command_type: "change-font-weight",
-								command_target: currentlyEditing,
-								value: currentlyEditing.style.fontWeight,
-								previousState: previousFontWeight,
-								input: event.target,
-							});
-						},
-					},
-				},
-				{
-					tag: "div",
-					classes: ["menu-item-wrapper", "menu-item-round"],
-					children: [
-						{
-							tag: "span",
-							classes: [
-								"strikethrough-toggle",
-								"menu-item",
-								"edit-mode-exempt",
-							],
-							text: "S",
-						},
-					],
-					eventHandlers: {
-						click(event) {
-							let previousTextDecoration =
-								window.getComputedStyle(currentlyEditing).textDecoration;
-							let newValue = "";
-							if (previousTextDecoration.includes("underline"))
-								newValue += "underline";
-							if (!previousTextDecoration.includes("line-through"))
-								newValue += " line-through";
-							currentlyEditing.style.textDecoration = newValue;
-							commandStack.push({
-								command_type: "change-text-decoration",
-								command_target: currentlyEditing,
-								value: currentlyEditing.style.textDecoration,
-								previousState: previousTextDecoration,
-								input: event.target,
-							});
-						},
-					},
-				},
-				{
-					tag: "div",
-					classes: ["menu-item-wrapper", "menu-item-round"],
-					children: [
-						{
-							tag: "span",
-							classes: ["underline-toggle", "menu-item", "edit-mode-exempt"],
-							text: "U",
-						},
-					],
-					eventHandlers: {
-						click(event) {
-							let previousTextDecoration =
-								window.getComputedStyle(currentlyEditing).textDecoration;
-							let newValue = "";
-							if (!previousTextDecoration.includes("underline"))
-								newValue += "underline";
-							if (previousTextDecoration.includes("line-through"))
-								newValue += " line-through";
-							currentlyEditing.style.textDecoration = newValue;
-							commandStack.push({
-								command_type: "change-text-decoration",
-								command_target: currentlyEditing,
-								value: currentlyEditing.style.textDecoration,
-								previousState: previousTextDecoration,
-								input: event.target,
-							});
-						},
-					},
-				},
-				{
-					tag: "div",
-					classes: ["menu-item-wrapper", "menu-item-round"],
-					children: [
-						{
-							tag: "img",
-							attributes: { src: "/static/media/image/icon/Align Icon.svg" },
-							classes: ["text-align-toggle", "menu-item"],
-						},
-					],
-					eventHandlers: {
-						click(event) {
-							//TODO: SHOW OPTIONS
-							let previousTextAlign =
-								window.getComputedStyle(currentlyEditing).textAlign;
-							if (previousTextAlign == "center") {
-								currentlyEditing.style.textAlign = "right";
-							} else if (previousTextAlign == "right") {
-								currentlyEditing.style.textAlign = "left";
-							} else currentlyEditing.style.textAlign = "center";
-
-							commandStack.push({
-								command_type: "change-text-align",
-								command_target: currentlyEditing,
-								value: currentlyEditing.style.textAlign,
-								previousState: previousTextAlign,
-								input: event.target,
-							});
-						},
-					},
-				},
-				{
-					tag: "div",
-					classes: ["menu-item-wrapper", "menu-item-round"],
-					children: [
-						{
-							tag: "img",
-							attributes: {
-								src: "/static/media/image/icon/Bullet Point Icon.svg",
-							},
-							classes: ["bullet-point-toggle", "menu-item"],
-						},
-					],
-				},
-				{
-					tag: "div",
-					classes: [
-						"menu-item-wrapper",
-						"menu-item-round",
-						"link-button-wrapper",
-					],
-					children: [
-						{
-							tag: "img",
-							attributes: { src: "/static/media/image/icon/link.svg" },
-							classes: ["menu-item"],
-						},
-						{
-							tag: "div",
-							id: "link-manager",
-							classes: ["editor-item-selector"],
-							children: [
-								{
-									tag: "input",
-									id: "link-url-input",
-									attributes: {
-										type: "url",
-										placeholder: "https://example.com",
-									},
-									eventHandlers: {
-										click(event) {
-											event.stopImmediatePropagation();
-										},
-									},
-								},
-								{
-									tag: "button",
-									id: "link-apply-button",
-									text: "Apply",
-									eventHandlers: {
-										click(event) {
-											let previousValue = currentlyEditing.getAttribute("href");
-											let value = (
-												document.getElementById(
-													"link-url-input"
-												) as HTMLInputElement
-											).value;
-											if (!isValidUrl(value)) {
-												alert("Invalid URL");
-												return;
-											}
-											currentlyEditing.setAttribute("href", value);
-											commandStack.push({
-												command_type: "change-link",
-												command_target: currentlyEditing,
-												value: value,
-												previousState: previousValue,
-												input: event.target,
-											});
-											redo(commandStack[commandStack.length - 1]);
-											event.stopImmediatePropagation();
-										},
-									},
-								},
-							],
-						},
-					],
-					eventHandlers: {
-						click(event) {
-							let previousValue = currentlyEditing.getAttribute("href");
-							(
-								document.getElementById("link-url-input") as HTMLInputElement
-							).value = previousValue;
-							document.getElementById("link-manager").classList.toggle("show");
-						},
-					},
-				},
-				// {
-				// 	tag: "div",
-				// 	classes: ["menu-item-wrapper", "menu-item-round"],
-				// 	children: [
-				// 		{
-				// 			tag: "img",
-				// 			attributes: { src: "/static/media/image/icon/Copy.svg" },
-				// 			classes: ["copy-button", "menu-item"],
-				// 		},
-				// 	],
-				// },
-				{
-					tag: "div",
-					classes: ["menu-item-wrapper", "menu-item-round"],
-					children: [
-						{
-							tag: "img",
-							attributes: { src: "/static/media/image/icon/trash.svg" },
-							classes: ["delete-button", "menu-item"],
-						},
-					],
-					eventHandlers: {
-						click(event) {
-							currentlyEditing.dispatchEvent(new Event("inactive"));
-							commandStack.push({
-								command_type: "delete-element",
-								command_target: currentlyEditing,
-								command_target_parent: currentlyEditing.parentElement,
-								command_target_index: Array.prototype.indexOf.call(
-									currentlyEditing.parentElement.children,
-									currentlyEditing
-								),
-								input: event.target,
-							});
-							currentlyEditing.remove();
-						},
-					},
-				},
-				{
-					tag: "div",
-					classes: ["menu-item-wrapper", "hover-menu", "menu-item-round"],
-					children: [
-						{
-							tag: "img",
-							attributes: { src: "/static/media/image/icon/ellipsis.svg" },
-							classes: ["options-button", "hover-menu__text"],
-						},
-						{
-							tag: "menu",
-							classes: ["hover-menu__content", "right", "menu-bar", "vertical"],
-							children: [
-								{
-									tag: "li",
-									classes: ["hover-menu__item", "edit-mode-exempt"],
-									text: "Item 0",
-								},
-								{
-									tag: "li",
-									classes: ["hover-menu__item", "edit-mode-exempt"],
-									text: "Item 1",
-								},
-								{
-									tag: "li",
-									classes: ["hover-menu__item", "edit-mode-exempt"],
-									text: "Item 2",
-								},
-							],
-						},
-					],
-				},
+				createColorPicker(),
+				createFontSelector(),
+				createFontSizeSelector(),
+				createBoldToggle(),
+				createStrikeThroughToggle(),
+				createUnderlineToggle(),
+				createTextAlignButton(),
+				createBulletPointToggle(),
+				createLinkManager(),
+				createCopyButton(),
+				createDeleteButton(),
+				createTextEditThreeDotsMenu(),
 			],
 		})
 	);
