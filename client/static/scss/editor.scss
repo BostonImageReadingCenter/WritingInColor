@@ -262,11 +262,13 @@ $color-picker-input-size-ratio: math.div(8, 3);
 	z-index: 10;
 	width: 400px;
 	padding: 15px;
-
+	opacity: 0;
+	transition: 0.3s;
 	&.show {
 		display: block;
 		visibility: visible;
-		animation: fadeInSlideUp 0.3s ease-in-out forwards;
+		opacity: 1;
+		// animation: fadeInSlideUp 0.3s ease-in-out forwards;
 	}
 	.file-manager-upload-drop-zone {
 		width: 100%;
