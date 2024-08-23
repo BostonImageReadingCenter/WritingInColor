@@ -11,6 +11,7 @@ let edit_mode_toggle = document.getElementById(
 let textEditMenu: HTMLElement;
 let currentlyEditing: HTMLElement;
 let wrapTextButton: HTMLElement;
+let fileManager: HTMLElement;
 
 interface Command {
 	command_type: string;
@@ -324,6 +325,7 @@ window.addEventListener("DOMContentLoaded", () => {
 	textEditMenu = createTextEditMenu();
 	updateEditMenuPosition();
 	textEditMenu.style.display = "none";
+	fileManager = createFileManager();
 	wrapTextButton = createElement("button", {
 		id: "wrap-text-button",
 		classes: ["hide", "edit-mode-exempt"],
@@ -1095,22 +1097,141 @@ let createTextEditMenu = () =>
 		})
 	);
 
-function createImageEditMenu() {
-	let menu = createElement({
-		tag: "div",
-		classes: ["image-selector"],
-		id: "image-selector",
-		children: [],
-	});
+interface FileData {
+	filename: string;
+	tag: string;
+	file: File;
 }
-
 function createFileManager() {
-	let menu = createElement({
-		tag: "div",
-		classes: ["file-manager"],
-		id: "file-manager",
+	let filesToUpload: FileData[] = [];
+	function createFileElement(file: FileData) {
+		let fileElement = createElement("li", {
+			classes: ["file-manager-file-list-file"],
+			children: [
+				{
+					tag: "span",
+					text: file.filename,
+					attributes: { contenteditable: "true" },
+					eventHandlers: {
+						input(event) {
+							file.filename = event.target.innerText;
+						},
+					},
+				},
+				{
+					tag: "span",
+					classes: ["file-manager-file-list-file-delete"],
+					text: "×",
+					eventHandlers: {
+						click: () => {
+							filesToUpload.splice(filesToUpload.indexOf(file), 1);
+							fileElement.remove();
+						},
+					},
+				},
+			],
+		});
+		fileList.appendChild(fileElement);
+		return fileElement;
+	}
+	function isInFilesToUpload(file: File) {
+		return filesToUpload.some(
+			(f) =>
+				f.file.name === file.name &&
+				f.file.size === file.size &&
+				f.file.type === file.type &&
+				f.file.lastModified === file.lastModified
+		);
+	}
+	function handleFiles(files: FileList) {
+		console.log("handleFiles", files);
+		let files_array = Array.from(files);
+		for (let i = 0; i < files_array.length; i++) {
+			if (isInFilesToUpload(files_array[i])) continue;
+			let fileData: FileData = {
+				filename: files_array[i].name,
+				tag: "",
+				file: files_array[i],
+			};
+			filesToUpload.push(fileData);
+			createFileElement(fileData);
+		}
+		if (files_array.length > 0) {
+			fileDropZone.classList.add("has-files");
+		}
+	}
+	let fileInput = createElement("input", {
+		attributes: {
+			type: "file",
+			multiple: true,
+		},
+		text: "Upload files",
+		classes: ["file-manager-upload-input"],
+		eventHandlers: {
+			change: (event) => {
+				handleFiles(event.target.files);
+				fileInput.value = "";
+			},
+			click: (event) => {
+				event.stopImmediatePropagation();
+			},
+		},
+	}) as HTMLInputElement;
+	let fileList = createElement("ul", {
+		classes: ["file-manager-files-list"],
 		children: [],
 	});
+	let fileDropZone = createElement("div", {
+		classes: ["file-manager-upload-drop-zone"],
+		children: [fileInput],
+		eventHandlers: {
+			dragover: (event) => {
+				event.preventDefault();
+				event.stopPropagation();
+				event.target.classList.add("dragover");
+			},
+			dragleave: (event) => {
+				event.preventDefault();
+				event.stopPropagation();
+				event.target.classList.remove("dragover");
+			},
+			drop: (event) => {
+				event.preventDefault();
+				event.stopPropagation();
+				event.target.classList.remove("dragover");
+				console.log("drop");
+				handleFiles(event.dataTransfer.files);
+			},
+			click: (event) => {
+				fileInput.click();
+			},
+		},
+	});
+	let menu = createElement({
+		tag: "div",
+		classes: ["file-manager", "edit-mode-exempt"],
+		id: "file-manager",
+		children: [
+			{
+				tag: "div",
+				classes: ["file-manager-header"],
+				children: [
+					{
+						tag: "span",
+						text: "×",
+						eventHandlers: {
+							click: () => {
+								menu.classList.remove("show");
+							},
+						},
+					},
+				],
+			},
+			fileDropZone,
+			fileList,
+		],
+	});
+	return document.body.appendChild(menu);
 }
 
 function handleFileUpload() {

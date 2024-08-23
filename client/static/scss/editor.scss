@@ -28,7 +28,7 @@ $color-picker-input-size-ratio: math.div(8, 3);
 	height: $text-edit-element-size + 2 * $editor-menu-padding;
 	border-radius: $text-edit-element-size + 2 * $editor-menu-padding; // Having the border radius set to the height gives it that nice rounding look.
 	box-sizing: border-box;
-	z-index: 99999;
+	z-index: 11;
 	visibility: hidden;
 
 	// Display options
@@ -189,7 +189,7 @@ $color-picker-input-size-ratio: math.div(8, 3);
 	font-size: 18px;
 	line-height: 1;
 	transition: opacity 0.3s ease, transform 0.3s ease;
-	z-index: 1000; /* Ensure it’s above other content */
+	z-index: 10;
 	width: 32px;
 	height: 32px;
 	align-items: center;
@@ -251,4 +251,29 @@ $color-picker-input-size-ratio: math.div(8, 3);
 /* Apply the animation to the text */
 .flash {
 	animation: flashText 1s ease-in-out;
+}
+
+.file-manager {
+	display: none;
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 10;
+	width: 400px;
+	padding: 15px;
+
+	&.show {
+		display: block;
+		visibility: visible;
+		animation: fadeInSlideUp 0.3s ease-in-out forwards;
+	}
+	.file-manager-upload-drop-zone {
+		width: 100%;
+		height: 300px;
+		background-color: $lighter-background-color;
+		.file-manager-upload-input {
+			display: none;
+		}
+	}
 }
