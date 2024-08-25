@@ -58,3 +58,84 @@ export function checkPassword(
 export function measureMemoryUsage() {
 	return process.memoryUsage().heapUsed / 1024 / 1024; // Convert to MB
 }
+export let uploadTags = {
+	image: {
+		person: "/media/image/people/",
+		icon: "/media/image/icon/",
+		course: "/media/image/course/",
+		branding: "/media/image/branding/",
+		logotype: "/media/image/branding/logotype/",
+		background: "/media/image/background/",
+		other: "/media/image/other",
+	},
+	video: {
+		background: "/media/video/background/",
+		effects: "/media/video/effects/",
+		other: "/media/video/other/",
+	},
+	audio: {
+		effects: "/media/audio/effects/",
+		music: "/media/audio/music/",
+		speech: "/media/audio/speech/",
+		other: "/media/audio/other/",
+	},
+	document: {
+		other: "/document/text/",
+	},
+	spreadsheet: {
+		other: "/document/spreadsheet/",
+	},
+	presentation: {
+		other: "/document/presentation/",
+	},
+	compressed: {
+		other: "/compressed/",
+	},
+	other: {
+		other: "/other/",
+	},
+};
+export const MIMETYPES = {
+	image: [/^image\/.*/],
+	video: [/^video\/.*/],
+	audio: [/^audio\/.*/, /application\/x-cdf/],
+	document: [
+		/application\/pdf/,
+		/application\/msword/,
+		/application\/vnd.openxmlformats-officedocument.wordprocessingml.document/,
+		/application\/vnd.amazon.ebook/,
+	],
+	spreadsheet: [
+		/application\/vnd.ms-excel/,
+		/application\/vnd.openxmlformats-officedocument.spreadsheetml.sheet/,
+		/application\/vnd.google-apps.spreadsheet/,
+		/application\/vnd.apple.numbers/,
+	],
+	presentation: [
+		/application\/vnd.google-apps.presentation/,
+		/application\/vnd.apple.keynote/,
+		/application\/vnd.ms-powerpoint/,
+		/application\/vnd.openxmlformats-officedocument.presentationml.presentation/,
+		/application\/vnd.oasis.opendocument.presentation/,
+	],
+	compressed: [
+		/application\/x-freearc/,
+		/application\/x-bzip/,
+		/application\/x-bzip2/,
+		/application\/x-7z-compressed/,
+		/application\/gzip/,
+		/application\/x-gzip/,
+		/application\/vnd.rar/,
+		/application\/x-tar/,
+		/application\/zip/,
+		/x-zip-compressed/,
+		/application\/x-zip-compressed/,
+	],
+};
+
+export function getFileType(mimetype: string): string {
+	for (let key in MIMETYPES)
+		if (MIMETYPES[key].some((regex: RegExp) => regex.test(mimetype)))
+			return key;
+	return "other";
+}

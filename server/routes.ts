@@ -9,6 +9,7 @@ import { pipeline } from "stream";
 import path from "path";
 import { promisify } from "util";
 import fs from "fs";
+import { mkdirSync, existsSync } from "fs";
 
 import {
 	login,
@@ -36,7 +37,7 @@ import {
 	FileFields,
 	UpdateUserInformationParameters,
 } from "./types.js";
-import { Multipart, MultipartFields } from "@fastify/multipart";
+import { Multipart } from "@fastify/multipart";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -277,57 +278,85 @@ async function routes(fastify: FastifyInstance, options) {
 			let user = await getUser(request, reply);
 			if (!(user && user.roles.includes("admin")))
 				return reply.code(401).send("Unauthorized");
-			let json: any = request.body;
+			console.log("Uploading files...");
 			const parts = request.parts();
-			const results: Array<{
-				status: string;
+			const fileData: {
 				filename: string;
-				error?: string;
-			}> = [];
-			const fileFields: FileFields = {};
-
-			for await (const part of parts) {
-				if (part.type === "file") {
-					const customFilename =
-						fileFields[part.fieldname]?.filename || part.filename;
-					const uploadPath = path.join(
-						__dirname,
-						"../client/static",
-						uploadTags[getFileType(part.mimetype)][
-							fileFields[part.fieldname]?.tag ?? "other"
-						],
-						customFilename
-					);
-
-					try {
-						await pipelineAsync(part.file, fs.createWriteStream(uploadPath));
-						results.push({
-							status: "File uploaded successfully",
-							filename: customFilename,
+				path: string;
+				tag: string;
+				mimetype: string;
+				file: any;
+			}[] = [];
+			const tags: string[] = [];
+			const filenames: string[] = [];
+			let numFiles = Infinity;
+			let partResult: IteratorResult<Multipart, any> = {
+				done: false,
+				value: null,
+			};
+			try {
+				while (
+					!partResult.done &&
+					!(tags.length >= numFiles && filenames.length >= numFiles)
+				) {
+					partResult = await parts.next();
+					let part = partResult.value;
+					if (part.type === "file") {
+						// Process each file part
+						fileData.push({
+							filename: part.filename,
+							mimetype: part.mimetype,
+							path: "",
+							tag: "",
+							file: part.file,
 						});
-					} catch (err) {
-						results.push({
-							status: "Upload failed",
-							filename: customFilename,
-							error: err.message,
-						});
-					}
-				} else {
-					// Collect form fields
-					if (
-						part.fieldname.startsWith("filename_") ||
-						part.fieldname.startsWith("tag_")
+					} else if (part.type === "field" && part.fieldname === "tags[]") {
+						tags.push(String(part.value));
+					} else if (
+						part.type === "field" &&
+						part.fieldname === "filenames[]"
 					) {
-						const [type, fieldname] = part.fieldname.split("_");
-						if (!fileFields[fieldname]) {
-							fileFields[fieldname] = { filename: "", tag: "" };
-						}
-						fileFields[fieldname][type] = part.value;
+						filenames.push(String(part.value));
+					} else if (part.type === "field" && part.fieldname === "numFiles") {
+						numFiles = Number(part.value);
 					}
 				}
+			} finally {
+				await parts.return();
 			}
 
-			return reply.send(results);
+			// Determine the file path based on tags
+			for (let i = 0; i < fileData.length; i++) {
+				const file = fileData[i];
+				const tag = tags[i] || "other";
+				const filename = filenames[i] || file.filename;
+				file.filename = filename.replaceAll(/[^a-zA-Z0-9.\-_]/g, "_");
+				file.tag = tag;
+				const fileType = getFileType(file.mimetype);
+				const tagDirectory = path.join(
+					__dirname,
+					"../client/static/",
+					uploadTags[fileType][tag]
+				);
+				const filePath = path.join(tagDirectory, filename);
+				file.path = filePath;
+
+				// Create directory for tag if it doesn't exist
+				if (!existsSync(tagDirectory)) {
+					mkdirSync(tagDirectory, { recursive: true });
+				}
+
+				// Save the file
+				const writeStream = fs.createWriteStream(filePath);
+
+				file.file.pipe(writeStream);
+
+				writeStream.on("finish", () => {
+					console.log(`File saved to ${filePath}`);
+				});
+			}
+
+			reply.send({ message: "Files uploaded successfully" });
 		}
 	);
 	fastify.post(

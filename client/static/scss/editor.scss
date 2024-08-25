@@ -264,6 +264,7 @@ $color-picker-input-size-ratio: math.div(8, 3);
 	padding: 15px;
 	opacity: 0;
 	transition: 0.3s;
+	background-color: white;
 	&.show {
 		display: block;
 		visibility: visible;

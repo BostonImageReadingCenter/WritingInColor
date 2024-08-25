@@ -1,3 +1,4 @@
+import { getFileType, uploadTags } from "../../../server/utils.ts";
 import {
 	buildQuerySelector,
 	createElement,
@@ -1104,6 +1105,33 @@ interface FileData {
 }
 function createFileManager() {
 	let filesToUpload: FileData[] = [];
+	function createTagSelectorDropdown(file: FileData) {
+		let mimetype = file.file.type;
+		let tags = Object.keys(uploadTags[getFileType(mimetype)]);
+
+		let tagSelector = createElement("select", {
+			classes: ["file-manager-file-list-tag-selector"],
+			attributes: {
+				value: "other",
+			},
+			children: tags.map((tag) => {
+				return {
+					tag: "option",
+					attributes: { value: tag, selected: tag === "other" },
+					text: tag,
+				};
+			}),
+			eventHandlers: {
+				change(event) {
+					const selectedOption =
+						event.target.options[event.target.selectedIndex];
+					const selectedValue = selectedOption.value;
+					file.tag = selectedValue;
+				},
+			},
+		});
+		return tagSelector;
+	}
 	function createFileElement(file: FileData) {
 		let fileElement = createElement("li", {
 			classes: ["file-manager-file-list-file"],
@@ -1118,6 +1146,7 @@ function createFileManager() {
 						},
 					},
 				},
+				createTagSelectorDropdown(file),
 				{
 					tag: "span",
 					classes: ["file-manager-file-list-file-delete"],
@@ -1150,7 +1179,7 @@ function createFileManager() {
 			if (isInFilesToUpload(files_array[i])) continue;
 			let fileData: FileData = {
 				filename: files_array[i].name,
-				tag: "",
+				tag: "other",
 				file: files_array[i],
 			};
 			filesToUpload.push(fileData);
@@ -1159,6 +1188,33 @@ function createFileManager() {
 		if (files_array.length > 0) {
 			fileDropZone.classList.add("has-files");
 		}
+	}
+	function handleFilesUpload() {
+		const formData = new FormData();
+		formData.append("numFiles", String(filesToUpload.length));
+		filesToUpload.forEach((fileObject) => {
+			formData.append("files[]", fileObject.file);
+			formData.append("tags[]", fileObject.tag);
+			formData.append("filenames[]", fileObject.filename);
+		});
+
+		fetch("/api/upload", {
+			method: "POST",
+			body: formData,
+		})
+			.then((response) => {
+				if (response.ok) {
+					return response.json();
+				} else {
+					throw new Error("Upload failed");
+				}
+			})
+			.then((data) => {
+				console.log("Upload successful:", data);
+			})
+			.catch((error) => {
+				console.error("Error:", error);
+			});
 	}
 	let fileInput = createElement("input", {
 		attributes: {
@@ -1207,6 +1263,16 @@ function createFileManager() {
 			},
 		},
 	});
+	let uploadButton = createElement("button", {
+		classes: ["file-manager-upload-button"],
+		text: "Upload",
+		eventHandlers: {
+			click: () => {
+				console.log(filesToUpload);
+				handleFilesUpload();
+			},
+		},
+	});
 	let menu = createElement({
 		tag: "div",
 		classes: ["file-manager", "edit-mode-exempt"],
@@ -1229,13 +1295,10 @@ function createFileManager() {
 			},
 			fileDropZone,
 			fileList,
+			uploadButton,
 		],
 	});
 	return document.body.appendChild(menu);
-}
-
-function handleFileUpload() {
-	// TODO: Handle file upload
 }
 
 export { createTextEditMenu };

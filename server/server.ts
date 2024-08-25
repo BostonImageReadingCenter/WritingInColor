@@ -20,7 +20,11 @@ fastify.addHook("onResponse", async (request, reply) => {
 fastify.addHook("onError", async (request, reply, error) => {
 	console.log("\x1b[31m" + error.stack + "\x1b[0m");
 });
-fastify.register(fastify_multipart);
+fastify.register(fastify_multipart, {
+	limits: {
+		fileSize: 50 * 1024 * 1024, // 50 MB limit ,
+	},
+});
 fastify.register(fastify_cookie, {
 	parseOptions: {
 		secure: true,
