@@ -12,6 +12,9 @@ mysql -u root -p -e "
 SET @username = '${env:DB_USERNAME}';
 SET @password = '${env:DB_PASSWORD}';
 
+-- Drop database if exists
+DROP DATABASE IF EXISTS ${DB_NAME};
+
 -- Create database
 CREATE DATABASE IF NOT EXISTS ${DB_NAME};
 -- Create user and grant privileges
