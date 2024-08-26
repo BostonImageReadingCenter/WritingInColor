@@ -94,4 +94,4 @@ Any existing account can be turned into an admin account by following these step
 
 - **Step 1:** Open MySQL with `mysql -u root -p`
 - **Step 2:** Get the account's user id by running `SELECT id FROM users JOIN emails ON users.id = emails.user_id WHERE emails.email = '[your_email]'`, replacing `[your_email]` with the account email.
-- **Step 3:** Run `INSET INTO user_roles (user_id, role_id) VALUES ([user_id], 0)`, replacing `[user_id]` with the user id from the previous step.
+- **Step 3:** Run `INSERT INTO user_roles (user_id, role_id) VALUES ([user_id], 0)`, replacing `[user_id]` with the user id from the previous step.
