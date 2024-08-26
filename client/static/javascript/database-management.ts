@@ -24,10 +24,15 @@ window.addEventListener("load", async (event: Event) => {
 			alert("Saved!");
 		});
 	}
-	function deleteListener(table, rowId) {
+	function deleteListener(table: string, rowId: number) {
+		console.log(table, rowId);
 		JSON_DATA[table].splice(rowId, 1);
 		saveButton.removeAttribute("disabled");
-		document.querySelector("tr[data-row-id='" + rowId + "']").remove();
+		document
+			.querySelector(
+				"table[data-table='" + table + "'] tr[data-row-id='" + rowId + "']"
+			)
+			.remove();
 	}
 	function editListener(
 		element: Element,
@@ -47,7 +52,7 @@ window.addEventListener("load", async (event: Event) => {
 	}
 	for (let button of Array.from(deleteRowButtons)) {
 		let table = button.getAttribute("data-table");
-		let rowId = button.getAttribute("data-row-id");
+		let rowId = parseInt(button.getAttribute("data-row-id"));
 		button.addEventListener("click", () => deleteListener(table, rowId));
 	}
 
@@ -90,8 +95,8 @@ window.addEventListener("load", async (event: Event) => {
 				"table[data-table='" + table + "'] tbody"
 			);
 			tbody.appendChild(row);
+			saveButton.removeAttribute("disabled");
 		});
-		saveButton.removeAttribute("disabled");
 	}
 
 	saveButton.addEventListener("click", save);
