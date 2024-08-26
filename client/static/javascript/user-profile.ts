@@ -28,7 +28,6 @@ window.addEventListener("load", (event: Event) => {
 			method: "POST",
 		}).then(async (response) => {
 			let json = await response.json();
-			console.log(json);
 			handleAction(json.value, json.id);
 		});
 	});

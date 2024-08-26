@@ -278,7 +278,6 @@ async function routes(fastify: FastifyInstance, options) {
 			let user = await getUser(request, reply);
 			if (!(user && user.roles.includes("admin")))
 				return reply.code(401).send("Unauthorized");
-			console.log("Uploading files...");
 			const parts = request.parts();
 			const fileData: {
 				filename: string;

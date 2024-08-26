@@ -1259,7 +1259,6 @@ function createFileManager() {
 				event.preventDefault();
 				event.stopPropagation();
 				event.target.classList.remove("dragover");
-				console.log("drop");
 				handleFiles(event.dataTransfer.files);
 			},
 			click: (event) => {
@@ -1272,7 +1271,6 @@ function createFileManager() {
 		text: "Upload",
 		eventHandlers: {
 			click: () => {
-				console.log(filesToUpload);
 				handleFilesUpload();
 			},
 		},

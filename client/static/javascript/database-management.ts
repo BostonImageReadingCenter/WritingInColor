@@ -25,7 +25,6 @@ window.addEventListener("load", async (event: Event) => {
 		});
 	}
 	function deleteListener(table: string, rowId: number) {
-		console.log(table, rowId);
 		JSON_DATA[table].splice(rowId, 1);
 		saveButton.removeAttribute("disabled");
 		document
