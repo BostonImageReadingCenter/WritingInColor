@@ -34,7 +34,8 @@ var collectionMessageEl: HTMLElement,
 	supportsConditionalUI: boolean,
 	authenticationOptions: PublicKeyCredentialRequestOptionsJSON,
 	documentDisplayBoxEl: HTMLElement,
-	afterFormEl: HTMLElement;
+	afterFormEl: HTMLElement,
+	createAccountButton: HTMLElement;
 
 export var onload: Function[] = [];
 let collectionHandlers: ((event: SubmitEvent) => Promise<
@@ -660,6 +661,7 @@ export async function initLoginPage() {
 	) as HTMLDivElement;
 	afterFormEl = document.getElementById("after-form") as HTMLDivElement;
 	hiddentDataEl = document.getElementById("hidden-data") as HTMLDivElement;
+	createAccountButton = document.getElementById("create-account");
 
 	// Initiate login
 	initLoginSession(false);
