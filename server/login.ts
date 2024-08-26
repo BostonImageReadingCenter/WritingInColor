@@ -246,9 +246,8 @@ export async function* login(
 		actions.push({
 			action: "collect",
 			types: [{ type: "email" }],
-			header: "Log In",
-			message:
-				"By continuing, you agree to the Terms of Use and Privacy Policy.",
+			header: "Please enter your email.",
+			message: "We need your email to verify your identity.",
 		});
 	}
 
