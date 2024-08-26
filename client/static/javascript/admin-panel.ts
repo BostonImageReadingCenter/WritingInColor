@@ -1149,12 +1149,15 @@ function createFileManager() {
 				createTagSelectorDropdown(file),
 				{
 					tag: "span",
-					classes: ["file-manager-file-list-file-delete"],
+					classes: ["file-manager-file-list-file-delete", "x-button"],
 					text: "×",
 					eventHandlers: {
 						click: () => {
 							filesToUpload.splice(filesToUpload.indexOf(file), 1);
 							fileElement.remove();
+							if (filesToUpload.length === 0) {
+								uploadButton.style.visibility = "hidden";
+							}
 						},
 					},
 				},
@@ -1173,7 +1176,6 @@ function createFileManager() {
 		);
 	}
 	function handleFiles(files: FileList) {
-		console.log("handleFiles", files);
 		let files_array = Array.from(files);
 		for (let i = 0; i < files_array.length; i++) {
 			if (isInFilesToUpload(files_array[i])) continue;
@@ -1187,6 +1189,7 @@ function createFileManager() {
 		}
 		if (files_array.length > 0) {
 			fileDropZone.classList.add("has-files");
+			uploadButton.style.visibility = "visible";
 		}
 	}
 	function handleFilesUpload() {
@@ -1240,6 +1243,7 @@ function createFileManager() {
 	let fileDropZone = createElement("div", {
 		classes: ["file-manager-upload-drop-zone"],
 		children: [fileInput],
+		text: "Drag and drop files here or click to select files",
 		eventHandlers: {
 			dragover: (event) => {
 				event.preventDefault();
@@ -1285,6 +1289,7 @@ function createFileManager() {
 					{
 						tag: "span",
 						text: "×",
+						classes: ["x-button"],
 						eventHandlers: {
 							click: () => {
 								menu.classList.remove("show");

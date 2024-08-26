@@ -273,10 +273,17 @@ $color-picker-input-size-ratio: math.div(8, 3);
 	}
 	.file-manager-upload-drop-zone {
 		width: 100%;
-		height: 300px;
+		height: 150px;
 		background-color: $lighter-background-color;
 		.file-manager-upload-input {
 			display: none;
 		}
 	}
+	.file-manager-upload-button {
+		visibility: hidden;
+	}
+}
+.x-button {
+	cursor: pointer;
+	font-size: 1.5rem;
 }
