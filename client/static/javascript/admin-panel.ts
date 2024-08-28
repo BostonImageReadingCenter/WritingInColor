@@ -1,4 +1,5 @@
-import { getFileType, uploadTags } from "../../../server/utils.ts";
+import { FileData } from "../../../server/types.ts";
+import { getFileTypeByMimetype, uploadTags } from "../../../server/utils.ts";
 import {
 	buildQuerySelector,
 	createElement,
@@ -13,7 +14,6 @@ let textEditMenu: HTMLElement;
 let currentlyEditing: HTMLElement;
 let wrapTextButton: HTMLElement;
 let fileManager: HTMLElement;
-
 interface Command {
 	command_type: string;
 	command_target: HTMLElement;
@@ -120,11 +120,6 @@ function isAudio(element: Element) {
 function isIframe(element: Element) {
 	return element.nodeName === "IFRAME";
 }
-
-// Function to check if an element is a link
-function isLink(element: Element) {
-	return element.nodeName === "A" && element.hasAttribute("href");
-}
 /**
  * Gets the raw value of a CSS property for an element, as defined in the element's style.
  */
@@ -186,7 +181,6 @@ const EDITABLE = {
 	video: isVideo,
 	audio: isAudio,
 	iframe: isIframe,
-	link: isLink,
 };
 function getBoundingPageRect(element: HTMLElement) {
 	// Get the bounding client rect of the element
@@ -283,11 +277,58 @@ const HANDLERS = {
 			{ once: true }
 		);
 	},
-	image: (element: HTMLElement) => {},
-	video: (element: HTMLElement) => {},
-	iframe: (element: HTMLElement) => {},
-	audio: (element: HTMLElement) => {},
-	link: (element: HTMLElement) => {},
+	image: (element: HTMLElement) => {
+		currentlyEditing = element;
+		let previousBorder = element.style.border;
+		let previousOutline = element.style.outline;
+		element.style.border = "1px solid white";
+		element.style.outline = "1px solid blue";
+		fileManager.classList.add("show");
+		element.addEventListener("inactive", (event: CustomEvent) => {
+			element.style.border = previousBorder;
+			element.style.outline = previousOutline;
+			fileManager.classList.remove("show");
+		});
+	},
+	video: (element: HTMLElement) => {
+		currentlyEditing = element;
+		let previousBorder = element.style.border;
+		let previousOutline = element.style.outline;
+		element.style.border = "1px solid white";
+		element.style.outline = "1px solid blue";
+		fileManager.classList.add("show");
+		element.addEventListener("inactive", (event: CustomEvent) => {
+			element.style.border = previousBorder;
+			element.style.outline = previousOutline;
+			fileManager.classList.remove("show");
+		});
+	},
+	iframe: (element: HTMLElement) => {
+		currentlyEditing = element;
+		let previousBorder = element.style.border;
+		let previousOutline = element.style.outline;
+		element.style.border = "1px solid white";
+		element.style.outline = "1px solid blue";
+		fileManager.classList.add("show");
+		element.addEventListener("inactive", (event: CustomEvent) => {
+			element.style.border = previousBorder;
+			element.style.outline = previousOutline;
+			fileManager.classList.remove("show");
+		});
+	},
+	audio: (element: HTMLElement) => {
+		currentlyEditing = element;
+		let previousBorder = element.style.border;
+		let previousOutline = element.style.outline;
+		element.style.border = "1px solid white";
+		element.style.outline = "1px solid blue";
+		fileManager.classList.add("show");
+		element.addEventListener("inactive", (event: CustomEvent) => {
+			element.style.border = previousBorder;
+			element.style.outline = previousOutline;
+			fileManager.classList.remove("show");
+		});
+	},
 };
 function hasAncestorWithClass(element: Element, className: string) {
 	return element.closest(`.${className}`) !== null;
@@ -430,19 +471,13 @@ window.addEventListener("DOMContentLoaded", () => {
 				currentlyEditing.getBoundingClientRect();
 			let wrapTextButtonBoundingRect = wrapTextButton.getBoundingClientRect();
 			let textEditMenuBoundingRect = textEditMenu.getBoundingClientRect();
+			let fileManagerBoundingRect = fileManager.getBoundingClientRect();
+			let mousePosition = { x: event.clientX, y: event.clientY };
 			if (
-				!isPointInRect(
-					{ x: event.clientX, y: event.clientY },
-					currentlyEditingBoundingRect
-				) &&
-				!isPointInRect(
-					{ x: event.clientX, y: event.clientY },
-					textEditMenuBoundingRect
-				) &&
-				!isPointInRect(
-					{ x: event.clientX, y: event.clientY },
-					wrapTextButtonBoundingRect
-				)
+				!isPointInRect(mousePosition, currentlyEditingBoundingRect) &&
+				!isPointInRect(mousePosition, textEditMenuBoundingRect) &&
+				!isPointInRect(mousePosition, wrapTextButtonBoundingRect) &&
+				!isPointInRect(mousePosition, fileManagerBoundingRect)
 			) {
 				currentlyEditing.dispatchEvent(new CustomEvent("inactive"));
 				currentlyEditing = null;
@@ -1098,16 +1133,12 @@ let createTextEditMenu = () =>
 		})
 	);
 
-interface FileData {
-	filename: string;
-	tag: string;
-	file: File;
-}
 function createFileManager() {
 	let filesToUpload: FileData[] = [];
+	let fileHierarchy;
 	function createTagSelectorDropdown(file: FileData) {
 		let mimetype = file.file.type;
-		let tags = Object.keys(uploadTags[getFileType(mimetype)]);
+		let tags = Object.keys(uploadTags[getFileTypeByMimetype(mimetype)]);
 
 		let tagSelector = createElement("select", {
 			classes: ["file-manager-file-list-tag-selector"],
@@ -1214,10 +1245,18 @@ function createFileManager() {
 			})
 			.then((data) => {
 				console.log("Upload successful:", data);
+				filesToUpload = [];
+				fileList.innerHTML = "";
 			})
 			.catch((error) => {
 				console.error("Error:", error);
 			});
+	}
+	async function updateFileList() {
+		let response = await fetch("/api/get-files-list", {
+			method: "POST",
+		});
+		fileHierarchy = response.json;
 	}
 	let fileInput = createElement("input", {
 		attributes: {

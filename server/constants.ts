@@ -112,7 +112,6 @@ let SVG = {
 		"utf8"
 	),
 };
-import { uploadTags, MIMETYPES, getFileType } from "./utils.ts";
 
 // Export the updated TOKEN_SECRET and TOKEN_SECRET_EXPIRATION
 export {
@@ -133,7 +132,4 @@ export {
 	passwordRequirements,
 	JSON_DATA,
 	SVG,
-	uploadTags,
-	getFileType,
-	MIMETYPES,
 };

@@ -22,12 +22,10 @@ import {
 } from "./login";
 import { v4 as uuidv4 } from "uuid";
 import {
-	getFileType,
 	origin,
 	ROLES,
 	SVG,
 	JSON_DATA as JSON_DATA_CONST,
-	uploadTags,
 } from "./constants.js";
 import {
 	LoginData,
@@ -36,8 +34,11 @@ import {
 	User,
 	FileFields,
 	UpdateUserInformationParameters,
+	Directory,
+	Filename,
 } from "./types.js";
 import { Multipart } from "@fastify/multipart";
+import { getFileTypeByMimetype, uploadTags } from "./utils.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -86,6 +87,24 @@ function setCookies(cookies: SetCookieOptions[], reply: FastifyReply) {
 				cookie.expires ?? new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
 		});
 	}
+}
+async function getDirectoryHierarchy(directory: string, record_path = true) {
+	let hierarchy: Directory = {
+		path: record_path ? directory : undefined,
+		name: path.basename(directory),
+		contents: [],
+	};
+	let items = fs.readdirSync(directory);
+	items.forEach(async (value: string, index: number) => {
+		const item_path = path.join(directory, value);
+		const stats = fs.lstatSync(item_path);
+		if (stats.isDirectory()) {
+			hierarchy.contents.push(await getDirectoryHierarchy(item_path, false));
+		} else {
+			hierarchy.contents.push(value);
+		}
+	});
+	return hierarchy;
 }
 
 // Define routes
@@ -331,7 +350,7 @@ async function routes(fastify: FastifyInstance, options) {
 				const filename = filenames[i] || file.filename;
 				file.filename = filename.replaceAll(/[^a-zA-Z0-9.\-_]/g, "_");
 				file.tag = tag;
-				const fileType = getFileType(file.mimetype);
+				const fileType = getFileTypeByMimetype(file.mimetype);
 				const tagDirectory = path.join(
 					__dirname,
 					"../client/static/",
@@ -428,6 +447,14 @@ async function routes(fastify: FastifyInstance, options) {
 		setCookies((result.value as LoginData).setCookies || [], reply);
 		if (result.done) delete auth_sessions[id];
 		return reply.send({ id, done: result.done, value: result.value });
+	});
+	fastify.post("/api/get-files-list", async (request, reply) => {
+		let user = await getUser(request, reply);
+		if (!user || !user.roles.includes("admin")) return reply.send(401);
+		let hierarchy = await getDirectoryHierarchy(
+			path.join(__dirname, "../client/static")
+		);
+		return reply.send(hierarchy);
 	});
 }
 export default routes;

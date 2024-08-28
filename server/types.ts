@@ -470,3 +470,14 @@ export interface UpdateUserInformationParameters {
 	"remove-emails"?: string[];
 	"set-primary-email"?: string;
 }
+export type Filename = string;
+export interface Directory {
+	name: string;
+	path?: string;
+	contents: (Filename | Directory)[];
+}
+export interface FileData {
+	filename: string;
+	tag: string;
+	file: File;
+}

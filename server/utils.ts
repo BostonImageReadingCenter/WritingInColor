@@ -61,6 +61,17 @@ export function checkPassword(
 export function measureMemoryUsage() {
 	return process.memoryUsage().heapUsed / 1024 / 1024; // Convert to MB
 }
+export const FILETYPES = [
+	"image",
+	"video",
+	"audio",
+	"document",
+	"spreadsheet",
+	"presentation",
+	"compressed",
+	"other",
+] as const;
+type FileType = (typeof FILETYPES)[number];
 export let uploadTags = {
 	image: {
 		person: "/media/image/people/",
@@ -136,9 +147,29 @@ export const MIMETYPES = {
 	],
 };
 
-export function getFileType(mimetype: string): string {
+export function getFileTypeByMimetype(mimetype: string): FileType {
 	for (let key in MIMETYPES)
 		if (MIMETYPES[key].some((regex: RegExp) => regex.test(mimetype)))
-			return key;
+			return key as FileType;
+	return "other";
+}
+
+export const EXTENSIONS = {
+	image: ["jpg", "jpeg", "png", "gif", "bmp", "tiff", "webp"],
+	video: ["mp4", "avi", "mov", "mkv", "wmv", "flv", "webm"],
+	audio: ["mp3", "wav", "ogg", "flac", "aac", "m4a", "cda"],
+	document: ["pdf", "doc", "docx", "ebook"],
+	spreadsheet: ["xls", "xlsx", "csv", "numbers", "ods"],
+	presentation: ["ppt", "pptx", "key", "odp"],
+	compressed: ["zip", "7z", "rar", "gz", "tar", "bz2", "xz"],
+};
+
+export function getFileTypeByFilename(filename: string): FileType {
+	const extension = filename.split(".").pop()?.toLowerCase();
+	if (!extension) return "other";
+
+	for (let key in EXTENSIONS)
+		if (EXTENSIONS[key].includes(extension)) return key as FileType;
+
 	return "other";
 }
