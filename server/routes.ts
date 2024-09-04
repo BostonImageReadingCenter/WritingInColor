@@ -46,7 +46,7 @@ const client_root = join(__dirname, "../client/");
 let auth_sessions = {};
 let pipelineAsync = promisify(pipeline);
 let JSON_DATA = JSON_DATA_CONST;
-
+path.join();
 // Configure Nunjucks to use the client_root directory.
 let nunjucks_env = new nunjucks.Environment(
 	[new nunjucks.FileSystemLoader(client_root)],
@@ -452,8 +452,10 @@ async function routes(fastify: FastifyInstance, options) {
 		let user = await getUser(request, reply);
 		if (!user || !user.roles.includes("admin")) return reply.send(401);
 		let hierarchy = await getDirectoryHierarchy(
-			path.join(__dirname, "../client/static")
+			path.join(__dirname, "../client/static"),
+			false
 		);
+		hierarchy.path = "/";
 		return reply.send(hierarchy);
 	});
 }

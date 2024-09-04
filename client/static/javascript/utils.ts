@@ -126,3 +126,31 @@ function buildQuerySelector(attributes: { [key: string]: any }) {
 	return selector;
 }
 export { createElement, isValidUrl, namedNodeMapToObject, buildQuerySelector };
+
+/**
+ * Joins all given path segments into a single path, using the appropriate separator.
+ * @param segments - Path segments to be joined.
+ * @returns The combined path.
+ */
+export function pathJoin(...segments: string[]): string {
+	// Define the path separator for client-side
+	const separator = "/";
+
+	// Filter out empty segments and normalize each segment
+	const filteredSegments = segments
+		.map((segment) => segment.trim())
+		.filter((segment) => segment.length > 0);
+
+	// Join the segments using the separator
+	let joinedPath = filteredSegments.join(separator);
+
+	// Normalize the path by removing redundant separators
+	joinedPath = joinedPath.replace(/\/{2,}/g, separator); // Replace multiple slashes with a single one
+
+	// Remove trailing slash if it is more than just "/"
+	if (joinedPath.length > 1 && joinedPath.endsWith(separator)) {
+		joinedPath = joinedPath.slice(0, -1);
+	}
+
+	return joinedPath;
+}

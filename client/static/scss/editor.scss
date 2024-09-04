@@ -272,9 +272,15 @@ $color-picker-input-size-ratio: math.div(8, 3);
 		// animation: fadeInSlideUp 0.3s ease-in-out forwards;
 	}
 	.file-manager-upload-drop-zone {
+		display: flex;
 		width: 100%;
-		height: 150px;
+		font-size: 1.125rem;
+		height: 5rem;
 		background-color: $lighter-background-color;
+		text-align: center;
+		cursor: pointer;
+		justify-content: center;
+		align-items: center;
 		.file-manager-upload-input {
 			display: none;
 		}
@@ -286,4 +292,48 @@ $color-picker-input-size-ratio: math.div(8, 3);
 .x-button {
 	cursor: pointer;
 	font-size: 1.5rem;
+}
+.files-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	width: 100%;
+	height: 400px;
+	overflow-y: scroll;
+	background-color: $light-background-color;
+	li {
+		&.directory {
+			.directory-label {
+				cursor: pointer;
+			}
+			.directory-contents {
+				padding-left: 1rem;
+				display: none;
+			}
+		}
+		.directory-label,
+		&.file {
+			display: flex;
+			padding: 0.33rem;
+			&:hover {
+				background-color: $lighter-background-color;
+			}
+		}
+		&.file {
+			justify-content: space-between;
+			.file-buttons {
+				display: inline-flex;
+				gap: 10px;
+				img {
+					cursor: pointer;
+					width: 15px;
+					height: 15px;
+					transition: 0.3s;
+					&:hover {
+						transform: scale(1.1);
+					}
+				}
+			}
+		}
+	}
 }

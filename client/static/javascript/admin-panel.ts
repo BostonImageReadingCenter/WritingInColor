@@ -1,15 +1,17 @@
-import { FileData } from "../../../server/types.ts";
+import { Directory, FileData } from "../../../server/types.ts";
 import { getFileTypeByMimetype, uploadTags } from "../../../server/utils.ts";
 import {
 	buildQuerySelector,
 	createElement,
 	isValidUrl,
 	namedNodeMapToObject,
+	pathJoin,
 } from "./utils.ts";
 
 let edit_mode_toggle = document.getElementById(
 	"edit-mode-toggle"
 ) as HTMLInputElement;
+
 let textEditMenu: HTMLElement;
 let currentlyEditing: HTMLElement;
 let wrapTextButton: HTMLElement;
@@ -26,6 +28,11 @@ interface Command {
 let commandStack: Command[] = []; // Commands performed. This list is used for undo and redo operations.
 let undid: Command[] = []; // Commands that were undone with ctrl+z
 let windowWidth: number, windowHeight: number;
+let fileSelectionState = {
+	waiting: 0,
+	selections: [] as string[],
+	handler: null as (() => void) | null,
+};
 const selfClosingTags = [
 	"area",
 	"base",
@@ -289,6 +296,11 @@ const HANDLERS = {
 			element.style.outline = previousOutline;
 			fileManager.classList.remove("show");
 		});
+		fileSelectionState.waiting = 1;
+		fileSelectionState.selections = [];
+		fileSelectionState.handler = () => {
+			element.setAttribute("src", fileSelectionState.selections[0]);
+		};
 	},
 	video: (element: HTMLElement) => {
 		currentlyEditing = element;
@@ -1194,7 +1206,7 @@ function createFileManager() {
 				},
 			],
 		});
-		fileList.appendChild(fileElement);
+		fileUploadList.appendChild(fileElement);
 		return fileElement;
 	}
 	function isInFilesToUpload(file: File) {
@@ -1243,21 +1255,192 @@ function createFileManager() {
 					throw new Error("Upload failed");
 				}
 			})
-			.then((data) => {
+			.then(async (data) => {
 				console.log("Upload successful:", data);
 				filesToUpload = [];
-				fileList.innerHTML = "";
+				fileUploadList.innerHTML = "";
+				await updateFileList();
+				let directory = renderDirectory(fileHierarchy);
+				fileList.append(...directory);
 			})
 			.catch((error) => {
 				console.error("Error:", error);
 			});
 	}
+	const caretDown = "/static/media/image/icon/caret-down.svg";
+	const caretRight = "/static/media/image/icon/caret-right.svg";
+	function renderDirectory(directory: Directory, pathToDir?: string) {
+		let absolutePath = pathJoin(
+			pathToDir ?? "",
+			directory.path ?? "",
+			directory.name
+		);
+		console.log(absolutePath);
+		let items: HTMLElement[] = [];
+		for (let item of directory.contents) {
+			if (typeof item === "string") {
+				let element = createElement("li", {
+					classes: ["file"],
+					children: [
+						{
+							tag: "span",
+							classes: ["file-name"],
+							text: item,
+							// TODO: make contenteditable and add renaming via input event handlers.
+						},
+						{
+							tag: "span",
+							classes: ["file-buttons"],
+							children: [
+								{
+									tag: "img",
+									classes: ["file-open-new-tab"],
+									attributes: {
+										src: "/static/media/image/icon/box-arrow-up-right.svg",
+									},
+									eventHandlers: {
+										click() {
+											// Open in new tab
+											window.open(
+												window.location.origin + absolutePath + "/" + item,
+												"_blank"
+											);
+											event.stopImmediatePropagation();
+										},
+									},
+								},
+								{
+									tag: "img",
+									classes: ["file-copy-link"],
+									attributes: {
+										src: "/static/media/image/icon/link.svg",
+									},
+									eventHandlers: {
+										click() {
+											// Copy link to clipboard
+											navigator.clipboard
+												.writeText(
+													window.location.origin + absolutePath + "/" + item
+												)
+												.then(() => {
+													alert("Copied link to clipboard");
+												});
+											event.stopImmediatePropagation();
+										},
+									},
+								},
+								{
+									tag: "img",
+									classes: ["file-delete"],
+									attributes: {
+										src: "/static/media/image/icon/trash.svg",
+									},
+									eventHandlers: {
+										click() {
+											let confirmation = prompt(
+												"To confirm deletion, please type the name of the file:"
+											);
+											if (confirmation == item) {
+												deleteFile(absolutePath + "/" + item); // TODO
+											}
+											event.stopImmediatePropagation();
+										},
+									},
+								},
+							],
+						},
+					],
+					eventHandlers: {
+						click(event: PointerEvent) {
+							if (
+								fileSelectionState.waiting >
+								fileSelectionState.selections.length
+							) {
+								fileSelectionState.selections.push(
+									pathJoin(absolutePath, item)
+								);
+								if (
+									fileSelectionState.selections.length >=
+									fileSelectionState.waiting
+								) {
+									fileManager.classList.remove("show");
+									fileSelectionState.handler();
+									fileSelectionState.waiting = 0;
+								}
+							}
+						},
+					},
+				});
+				items.push(element);
+			} else {
+				let element = createElement("li", {
+					classes: ["directory"],
+					children: [
+						{
+							tag: "span",
+							classes: ["directory-label"],
+							children: [
+								{
+									tag: "img",
+									classes: ["directory-icon"],
+									attributes: {
+										src: caretRight,
+									},
+								},
+								{
+									tag: "span",
+									text: item.name,
+								},
+							],
+							eventHandlers: {
+								click(event: PointerEvent) {
+									let target: HTMLElement = event.currentTarget as HTMLElement;
+									console.log(
+										target,
+										target.getElementsByClassName("directory-icon")
+									);
+									let icon = target.getElementsByClassName(
+										"directory-icon"
+									)[0] as HTMLImageElement;
+									let directoryContents =
+										target.parentElement.getElementsByClassName(
+											"directory-contents"
+										)[0] as HTMLElement;
+									if (icon.getAttribute("src") === caretRight) {
+										icon.setAttribute("src", caretDown);
+										directoryContents.style.display = "block";
+									} else {
+										icon.setAttribute("src", caretRight);
+										directoryContents.style.display = "none";
+									}
+								},
+							},
+						},
+						{
+							tag: "div",
+							classes: ["directory-contents"],
+							children: renderDirectory(item, absolutePath),
+						},
+					],
+				});
+				items.push(element);
+			}
+		}
+		return items;
+	}
 	async function updateFileList() {
 		let response = await fetch("/api/get-files-list", {
 			method: "POST",
 		});
-		fileHierarchy = response.json;
+		// console.log(response, response.json);
+		fileHierarchy = await response.json();
+		return fileHierarchy;
 	}
+	setTimeout(async () => {
+		await updateFileList();
+		let directory = renderDirectory(fileHierarchy);
+		fileList.append(...directory);
+	});
 	let fileInput = createElement("input", {
 		attributes: {
 			type: "file",
@@ -1276,13 +1459,17 @@ function createFileManager() {
 		},
 	}) as HTMLInputElement;
 	let fileList = createElement("ul", {
-		classes: ["file-manager-files-list"],
+		classes: ["files-list"],
+		children: [],
+	});
+	let fileUploadList = createElement("ul", {
+		classes: ["files-upload-list"],
 		children: [],
 	});
 	let fileDropZone = createElement("div", {
 		classes: ["file-manager-upload-drop-zone"],
 		children: [fileInput],
-		text: "Drag and drop files here or click to select files",
+		text: "Drag and drop files here.\n OR \nClick to select files.",
 		eventHandlers: {
 			dragover: (event) => {
 				event.preventDefault();
@@ -1336,8 +1523,9 @@ function createFileManager() {
 				],
 			},
 			fileDropZone,
-			fileList,
+			fileUploadList,
 			uploadButton,
+			fileList,
 		],
 	});
 	return document.body.appendChild(menu);
