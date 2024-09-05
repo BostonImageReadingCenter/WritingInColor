@@ -458,5 +458,14 @@ async function routes(fastify: FastifyInstance, options) {
 		hierarchy.path = "/";
 		return reply.send(hierarchy);
 	});
+	fastify.post("/api/delete-file", async (request, reply) => {
+		let user = await getUser(request, reply);
+		if (!user || !user.roles.includes("admin")) return reply.send(401);
+		let json = request.body as { path: string };
+		let pathOfFileToDelete = path.join(__dirname, "../client/", json.path);
+		console.log(`Deleting "${pathOfFileToDelete}"!`);
+		fs.unlinkSync(pathOfFileToDelete);
+		return reply.send({ errors: [], success: true });
+	});
 }
 export default routes;

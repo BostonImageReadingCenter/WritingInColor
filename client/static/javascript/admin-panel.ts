@@ -1269,6 +1269,34 @@ function createFileManager() {
 	}
 	const caretDown = "/static/media/image/icon/caret-down.svg";
 	const caretRight = "/static/media/image/icon/caret-right.svg";
+	function deleteFile(
+		path: string,
+		on_success: () => void,
+		on_error: () => void
+	) {
+		fetch("/api/delete-file", {
+			method: "POST",
+			body: JSON.stringify({ path }),
+			headers: {
+				"Content-Type": "application/json",
+			},
+		})
+			.then((response) => {
+				if (response.ok) {
+					return response.json();
+				} else {
+					throw new Error("Upload failed");
+				}
+			})
+			.then((data) => {
+				console.log("Upload successful:", data);
+				on_success();
+			})
+			.catch((error) => {
+				console.error("Error:", error);
+				on_error();
+			});
+	}
 	function renderDirectory(directory: Directory, pathToDir?: string) {
 		let absolutePath = pathJoin(
 			pathToDir ?? "",
@@ -1341,7 +1369,15 @@ function createFileManager() {
 												"To confirm deletion, please type the name of the file:"
 											);
 											if (confirmation == item) {
-												deleteFile(absolutePath + "/" + item); // TODO
+												deleteFile(
+													absolutePath + "/" + item,
+													() => {
+														element.remove();
+													},
+													() => {
+														alert("File was not deleted due to an error.");
+													}
+												);
 											}
 											event.stopImmediatePropagation();
 										},
