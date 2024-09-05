@@ -481,3 +481,12 @@ export interface FileData {
 	tag: string;
 	file: File;
 }
+export interface PageEditCommand {
+	command_type: string;
+	command_target: HTMLElement;
+	command_target_parent?: HTMLElement;
+	command_target_index?: number;
+	value?: any;
+	previousState?: any;
+	input?: HTMLElement;
+}

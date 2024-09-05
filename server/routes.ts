@@ -36,6 +36,7 @@ import {
 	UpdateUserInformationParameters,
 	Directory,
 	Filename,
+	PageEditCommand,
 } from "./types.js";
 import { Multipart } from "@fastify/multipart";
 import { getFileTypeByMimetype, uploadTags } from "./utils.js";
@@ -466,6 +467,36 @@ async function routes(fastify: FastifyInstance, options) {
 		console.log(`Deleting "${pathOfFileToDelete}"!`);
 		fs.unlinkSync(pathOfFileToDelete);
 		return reply.send({ errors: [], success: true });
+	});
+	fastify.post("/api/save-site-draft", async (request, reply) => {
+		let user = await getUser(request, reply);
+		if (!user || !user.roles.includes("admin")) return reply.send(401);
+		let json = request.body as {
+			versionName: string;
+			commandStack: PageEditCommand[];
+		};
+		fs.writeFileSync(
+			path.resolve(__dirname, `../site-drafts/${json.versionName}.json`),
+			JSON.stringify(json)
+		);
+	});
+	fastify.post("/api/load-site-draft", async (request, reply) => {
+		let user = await getUser(request, reply);
+		if (!user || !user.roles.includes("admin")) return reply.send(401);
+		let json = request.body as { versionName: string };
+		return reply.send(
+			fs.readFileSync(
+				path.resolve(__dirname, `../site-drafts/${json.versionName}.json`),
+				"utf8"
+			)
+		);
+	});
+	fastify.post("/api/list-site-drafts", async (request, reply) => {
+		let user = await getUser(request, reply);
+		if (!user || !user.roles.includes("admin")) return reply.send(401);
+		return reply.send(
+			fs.readdirSync(path.resolve(__dirname, "../site-drafts"))
+		);
 	});
 }
 export default routes;

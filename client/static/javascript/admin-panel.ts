@@ -1,4 +1,4 @@
-import { Directory, FileData } from "../../../server/types.ts";
+import { Directory, FileData, PageEditCommand } from "../../../server/types.ts";
 import { getFileTypeByMimetype, uploadTags } from "../../../server/utils.ts";
 import {
 	buildQuerySelector,
@@ -16,17 +16,9 @@ let textEditMenu: HTMLElement;
 let currentlyEditing: HTMLElement;
 let wrapTextButton: HTMLElement;
 let fileManager: HTMLElement;
-interface Command {
-	command_type: string;
-	command_target: HTMLElement;
-	command_target_parent?: HTMLElement;
-	command_target_index?: number;
-	value?: any;
-	previousState?: any;
-	input?: HTMLElement;
-}
-let commandStack: Command[] = []; // Commands performed. This list is used for undo and redo operations.
-let undid: Command[] = []; // Commands that were undone with ctrl+z
+
+let commandStack: PageEditCommand[] = []; // Commands performed. This list is used for undo and redo operations.
+let undid: PageEditCommand[] = []; // Commands that were undone with ctrl+z
 let windowWidth: number, windowHeight: number;
 let fileSelectionState = {
 	waiting: 0,
@@ -504,7 +496,7 @@ window.addEventListener("DOMContentLoaded", () => {
 			(commandStack.length > 0 || (event.shiftKey && undid.length > 0))
 		) {
 			event.preventDefault();
-			let command: Command;
+			let command: PageEditCommand;
 			if (event.shiftKey) {
 				if (undid.length <= 0) return;
 				command = undid.pop();
@@ -530,7 +522,7 @@ function copyAttributes(source: Element, target: HTMLElement) {
 		target.setAttribute(attr.name, attr.value);
 	}
 }
-function undo(command: Command) {
+function undo(command: PageEditCommand) {
 	if (command.command_type === "change-text-color") {
 		command.command_target.style.color = command.previousState;
 	} else if (command.command_type === "change-text-size") {
@@ -577,7 +569,7 @@ function undo(command: Command) {
 		command.command_target.innerHTML = command.previousState.html;
 	}
 }
-function redo(command: Command) {
+function redo(command: PageEditCommand) {
 	if (command.command_type === "change-text-color") {
 		command.command_target.style.color = command.value;
 	} else if (command.command_type === "change-text-size") {
