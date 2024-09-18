@@ -1,5 +1,6 @@
 import { Directory, FileData, PageEditCommand } from "../../../server/types.ts";
 import { getFileTypeByMimetype, uploadTags } from "../../../server/utils.ts";
+import { manipulateSCSS } from "./update-page.ts";
 import {
 	buildQuerySelector,
 	createElement,
@@ -16,6 +17,10 @@ let textEditMenu: HTMLElement;
 let currentlyEditing: HTMLElement;
 let wrapTextButton: HTMLElement;
 let fileManager: HTMLElement;
+let saveAsButton: HTMLElement;
+let publishButton: HTMLElement;
+let OpenPageDraftMenu: HTMLElement;
+let draftList: string[] = [];
 
 let commandStack: PageEditCommand[] = []; // Commands performed. This list is used for undo and redo operations.
 let undid: PageEditCommand[] = []; // Commands that were undone with ctrl+z
@@ -361,6 +366,39 @@ function editableClickHandler(
 		return true;
 	}
 }
+function updateDraftList() {
+	fetch("/api/list-site-drafts", {
+		method: "POST",
+	}).then((response) => {
+		response.json().then((json) => {
+			OpenPageDraftMenu.innerHTML = "";
+			json.forEach((draft: string) => {
+				draftList.push(draft);
+				let button = createElement("li", {
+					classes: ["hover-menu__item", "clickable"],
+					text: draft,
+				});
+				button.addEventListener("click", () => {
+					loadDraft(draft); // TODO
+				});
+				OpenPageDraftMenu.appendChild(button);
+			});
+		});
+	});
+}
+function loadDraft(draft: string) {
+	// TODO
+}
+async function saveDraft() {
+	let versionName: string;
+	while (true) {
+		versionName = prompt("Enter a name for the draft:");
+		if (!draftList.includes(versionName)) break;
+	}
+	let SCSSManipulations = [];
+
+	let modifications = await manipulateSCSS([]);
+}
 window.addEventListener("DOMContentLoaded", () => {
 	windowHeight = window.innerHeight;
 	windowWidth = window.innerWidth;
@@ -368,6 +406,12 @@ window.addEventListener("DOMContentLoaded", () => {
 		windowHeight = window.innerHeight;
 		windowWidth = window.innerWidth;
 	});
+	saveAsButton = document.getElementById("save-as-button") as HTMLElement;
+	publishButton = document.getElementById("publish-button") as HTMLElement;
+	OpenPageDraftMenu = document.getElementById(
+		"open-page-draft-menu"
+	) as HTMLElement;
+	updateDraftList();
 	textEditMenu = createTextEditMenu();
 	updateEditMenuPosition();
 	textEditMenu.style.display = "none";
@@ -631,6 +675,7 @@ function redo(command: PageEditCommand) {
 		}
 	}
 }
+
 function isPointInRect(point: { x: number; y: number }, rect: DOMRect) {
 	return (
 		point.x >= rect.left &&
@@ -1139,7 +1184,7 @@ let createTextEditMenu = () =>
 
 function createFileManager() {
 	let filesToUpload: FileData[] = [];
-	let fileHierarchy;
+	let fileHierarchy: Directory;
 	function createTagSelectorDropdown(file: FileData) {
 		let mimetype = file.file.type;
 		let tags = Object.keys(uploadTags[getFileTypeByMimetype(mimetype)]);
