@@ -1,3 +1,5 @@
+// TODO: add undo and redo support for image changes.
+// TODO: finish saving system.
 import { Directory, FileData, PageEditCommand } from "../../../server/types.ts";
 import { getFileTypeByMimetype, uploadTags } from "../../../server/utils.ts";
 import { manipulateSCSS } from "./update-page.ts";
@@ -30,6 +32,7 @@ let fileSelectionState = {
 	selections: [] as string[],
 	handler: null as (() => void) | null,
 };
+let addElementState = null;
 const selfClosingTags = [
 	"area",
 	"base",
@@ -296,6 +299,12 @@ const HANDLERS = {
 		fileSelectionState.waiting = 1;
 		fileSelectionState.selections = [];
 		fileSelectionState.handler = () => {
+			commandStack.push({
+				command_type: "change-image",
+				command_target: element,
+				value: fileSelectionState.selections[0],
+				previousState: element.getAttribute("src"),
+			});
 			element.setAttribute("src", fileSelectionState.selections[0]);
 		};
 	},
@@ -350,7 +359,7 @@ function flashText(element: HTMLElement, onComplete?: () => void) {
 	}, 800);
 }
 function editableClickHandler(
-	event: PointerEvent,
+	event: MouseEvent,
 	type: string,
 	element: Element
 ) {
@@ -396,8 +405,8 @@ async function saveDraft() {
 		if (!draftList.includes(versionName)) break;
 	}
 	let SCSSManipulations = [];
-
-	let modifications = await manipulateSCSS([]);
+	let HTMLModifications = [];
+	let modifications = await manipulateSCSS(SCSSManipulations);
 }
 window.addEventListener("DOMContentLoaded", () => {
 	windowHeight = window.innerHeight;
@@ -412,6 +421,44 @@ window.addEventListener("DOMContentLoaded", () => {
 		"open-page-draft-menu"
 	) as HTMLElement;
 	updateDraftList();
+	document.addEventListener("click", (event) => {
+		let target = event.target as HTMLElement;
+		let parent = target.parentElement;
+		if (!parent.classList.contains("editable") || !addElementState) return;
+		event.preventDefault();
+		event.stopImmediatePropagation();
+		event.stopPropagation();
+		edit_mode_toggle.checked = true;
+		let newElement = createElement(addElementState, {
+			classes: ["editable"],
+		});
+		target.insertAdjacentElement("afterend", newElement);
+		for (let type in EDITABLE) {
+			if (EDITABLE[type](newElement)) {
+				editableClickHandler(event, type, newElement);
+			}
+		}
+		addElementState = null;
+		commandStack.push({
+			command_type: "add-element",
+			command_target: newElement,
+			command_target_index: Array.prototype.indexOf.call(
+				parent.children,
+				newElement
+			),
+			command_target_parent: parent,
+		});
+	});
+	document.getElementById("add-text-button").addEventListener("click", () => {
+		addElementState = "p";
+		alert("Click something to add a text node after it.");
+		edit_mode_toggle.checked = false;
+	});
+	document.getElementById("add-image-button").addEventListener("click", () => {
+		addElementState = "img";
+		alert("Click something to add an image node after it.");
+		edit_mode_toggle.checked = false;
+	});
 	textEditMenu = createTextEditMenu();
 	updateEditMenuPosition();
 	textEditMenu.style.display = "none";
@@ -466,6 +513,12 @@ window.addEventListener("DOMContentLoaded", () => {
 		const selection = window.getSelection();
 		let range = selection.getRangeAt(0);
 		if (range && !range.collapsed) {
+			let parent = range.commonAncestorContainer as HTMLElement;
+			// if the parent is a text node, get its parent
+			if (parent.nodeType === Node.TEXT_NODE) {
+				parent = parent.parentNode as HTMLElement;
+			}
+			let previousState = parent.innerHTML;
 			const span = document.createElement("span");
 			try {
 				range.surroundContents(span);
@@ -474,21 +527,26 @@ window.addEventListener("DOMContentLoaded", () => {
 					`Error: Failed to wrap due to partial selection.\nHelp: You accidentally selected part of another element. Try again.`
 				);
 			}
-			span.addEventListener("click", (event: PointerEvent) =>
+			span.addEventListener("click", (event: MouseEvent) =>
 				editableClickHandler(event, "text", span)
 			);
 			selection.removeAllRanges();
 			currentlyEditing.dispatchEvent(new CustomEvent("inactive"));
 			flashText(span, () => {
 				if (
-					editableClickHandler(new PointerEvent("click"), "text", span) ===
-					false
+					editableClickHandler(new MouseEvent("click"), "text", span) === false
 				) {
 					openTextEditMenu(span);
 				}
 			});
 			wrapTextButton.classList.remove("show");
 			wrapTextButton.classList.add("hide");
+			commandStack.push({
+				command_type: "change-content",
+				command_target: parent,
+				value: parent.innerHTML,
+				previousState: previousState,
+			});
 		}
 	});
 	// Add event listeners to elements
@@ -500,11 +558,12 @@ window.addEventListener("DOMContentLoaded", () => {
 			hasAncestorWithClass(element, "templated")
 		)
 			return;
+		element.classList.add("editable");
 		for (let type in EDITABLE) {
 			if (EDITABLE[type](element)) {
 				element.addEventListener(
 					"click",
-					(event: PointerEvent) => editableClickHandler(event, type, element),
+					(event: MouseEvent) => editableClickHandler(event, type, element),
 					{
 						capture: false,
 					}
@@ -609,8 +668,18 @@ function undo(command: PageEditCommand) {
 			// If the index is out of bounds, append the element at the end
 			command.command_target_parent.appendChild(command.command_target);
 		}
+	} else if (command.command_type === "add-element") {
+		command.command_target_index = Array.prototype.indexOf.call(
+			command.command_target_parent.children,
+			command.command_target
+		); // Update position in case the user made any other changes.
+		command.command_target.remove();
 	} else if (command.command_type === "change-bullet-point") {
 		command.command_target.innerHTML = command.previousState.html;
+	} else if (command.command_type === "change-content") {
+		command.command_target.innerHTML = command.previousState;
+	} else if (command.command_type === "change-image") {
+		command.command_target.setAttribute("src", command.previousState);
 	}
 }
 function redo(command: PageEditCommand) {
@@ -648,7 +717,16 @@ function redo(command: PageEditCommand) {
 		}
 		command.command_target.setAttribute("href", command.value);
 	} else if (command.command_type === "delete-element") {
+		command.command_target_index = Array.prototype.indexOf.call(
+			command.command_target_parent.children,
+			command.command_target
+		); // Update position in case the user made any other changes.
 		command.command_target.remove();
+	} else if (command.command_type === "add-element") {
+		command.command_target_parent.insertBefore(
+			command.command_target,
+			command.command_target_parent.children[command.command_target_index]
+		);
 	} else if (command.command_type === "change-bullet-point") {
 		let list = command.previousState.list;
 		if (!list) {
@@ -673,6 +751,10 @@ function redo(command: PageEditCommand) {
 			// Replace old element with the new one
 			list.replaceWith(newList);
 		}
+	} else if (command.command_type === "change-content") {
+		command.command_target.innerHTML = command.value;
+	} else if (command.command_type === "change-image") {
+		command.command_target.setAttribute("src", command.value);
 	}
 }
 
@@ -1340,7 +1422,6 @@ function createFileManager() {
 			directory.path ?? "",
 			directory.name
 		);
-		console.log(absolutePath);
 		let items: HTMLElement[] = [];
 		for (let item of directory.contents) {
 			if (typeof item === "string") {

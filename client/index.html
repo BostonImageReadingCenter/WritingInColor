@@ -133,6 +133,21 @@
 
 		<script>
 			document.addEventListener("DOMContentLoaded", function () {
+				const menuButton = document.getElementById("menu-button");
+				const menuBar = document.getElementById("menu-bar");
+				const subMenus = document.querySelectorAll(
+					".main-menu p, .account-settings p"
+				);
+
+				menuButton.addEventListener("click", function () {
+					menuBar.classList.toggle("show");
+				});
+
+				subMenus.forEach((menu) => {
+					menu.addEventListener("click", function () {
+						this.classList.toggle("active");
+					});
+				});
 				// Function to scroll smoothly to a target element
 				function scrollToSection(target) {
 					if (target) {
@@ -196,24 +211,6 @@
 					.addEventListener("click", function () {
 						window.location.href = "/my-profile";
 					});
-			});
-
-			document.addEventListener("DOMContentLoaded", function () {
-				const menuButton = document.getElementById("menu-button");
-				const menuBar = document.getElementById("menu-bar");
-				const subMenus = document.querySelectorAll(
-					".main-menu p, .account-settings p"
-				);
-
-				menuButton.addEventListener("click", function () {
-					menuBar.classList.toggle("show");
-				});
-
-				subMenus.forEach((menu) => {
-					menu.addEventListener("click", function () {
-						this.classList.toggle("active");
-					});
-				});
 			});
 		</script>
 		<section class="hero">
