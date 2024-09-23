@@ -160,6 +160,7 @@ export interface HTMLModification {
 		[key: string]: string;
 	};
 	newHTML?: string;
+	delete?: boolean;
 }
 
 function generateSelector(elementState: ElementState) {
@@ -167,11 +168,16 @@ function generateSelector(elementState: ElementState) {
 		console.log(elementState.id);
 		return `#${elementState.id}`;
 	}
-	let selector = `${elementState.tag}.${elementState.classes.join(".")}`;
+	let selector = `${elementState.tag}${elementState.classes.map(
+		(c) => `.${c}`
+	)}`;
 	let parent = "";
 	if (elementState.parent) {
 		parent = generateSelector(elementState.parent);
 		selector = `${parent} > ${selector}`;
+	}
+	if (elementState.index) {
+		selector = `${selector}:nth-child(${elementState.index + 1})`;
 	}
 	console.log(selector);
 	return selector;
@@ -185,7 +191,7 @@ function getMatchingElementsFromOtherDocuments(
 	for (let doc of documents) {
 		elements = elements.concat(Array.from(doc.querySelectorAll(selector)));
 	}
-
+	console.log(elements);
 	return elements;
 }
 function getHTMLBodyContent(doc: Document) {
@@ -211,12 +217,16 @@ export async function modifyNunjucksFile(
 		rendered[sourceFile] = doc;
 	}
 	for (let modification of HTMLModifications) {
+		console.log(modification);
 		let elementState = modification.elementState;
 		let candidates: Element[] = getMatchingElementsFromOtherDocuments(
 			elementState,
 			Object.values(rendered)
 		);
 		let element = candidates[0];
+		if (modification.delete) {
+			element.remove();
+		}
 		if (modification.newHTML) {
 			element.innerHTML = modification.newHTML;
 		}
@@ -235,6 +245,9 @@ export async function modifyNunjucksFile(
 	return unRendered;
 }
 export function saveElementState(element: Element, depth = 1): ElementState {
+	let validParent = !["body", "html", "head"].includes(
+		element.parentElement.tagName.toLowerCase()
+	);
 	return {
 		id: element.id,
 		classes: Array.from(element.classList).filter(
@@ -242,7 +255,9 @@ export function saveElementState(element: Element, depth = 1): ElementState {
 		),
 		tag: element.tagName.toLowerCase(),
 		parent:
-			depth > 0 ? saveElementState(element.parentElement, depth - 1) : null,
+			validParent && depth > 0
+				? saveElementState(element.parentElement, depth - 1)
+				: null,
 		children:
 			depth > 0
 				? Array.from(element.children).map((value) =>
@@ -251,5 +266,8 @@ export function saveElementState(element: Element, depth = 1): ElementState {
 				: null,
 		innerText: element.textContent,
 		innerHTML: element.innerHTML,
+		index: validParent
+			? Array.prototype.indexOf.call(element.parentElement.children, element)
+			: null,
 	};
 }

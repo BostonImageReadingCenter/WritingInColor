@@ -489,6 +489,7 @@ export interface ElementState {
 	children: ElementState[];
 	innerText: string;
 	innerHTML: string;
+	index?: number;
 }
 export interface PageEditCommand {
 	command_type: string;

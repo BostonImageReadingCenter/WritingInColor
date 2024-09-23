@@ -458,6 +458,101 @@ async function generateModifiedFiles() {
 						id: command.value,
 					},
 				});
+				break;
+			case "change-text-size":
+				SCSSManipulations.push({
+					element: command.command_target,
+					propertyName: "font-size",
+					propertyValue: command.value,
+				});
+				break;
+			case "change-text-decoration":
+				SCSSManipulations.push({
+					element: command.command_target,
+					propertyName: "text-decoration",
+					propertyValue: command.value,
+				});
+				break;
+			case "change-font-weight":
+				SCSSManipulations.push({
+					element: command.command_target,
+					propertyName: "font-weight",
+					propertyValue: command.value,
+				});
+				break;
+			case "change-text-align":
+				SCSSManipulations.push({
+					element: command.command_target,
+					propertyName: "text-align",
+					propertyValue: command.value,
+				});
+				break;
+			case "change-text":
+				HTMLModifications.push({
+					element: command.command_target,
+					elementState: command.command_target_state,
+					attributeModifications: {},
+					newHTML: command.value,
+				});
+				break;
+			case "change-font-family":
+				SCSSManipulations.push({
+					element: command.command_target,
+					propertyName: "font-family",
+					propertyValue: fontFamilies
+						.find((family) => {
+							return family[0].toLowerCase() === command.value;
+						})
+						.join(", "),
+				});
+				break;
+			case "change-link":
+				HTMLModifications.push({
+					element: command.command_target,
+					elementState: command.command_target_state,
+					attributeModifications: {
+						href: command.value,
+					},
+					newHTML: command.command_target_state.innerHTML,
+				});
+				break;
+			case "delete-element":
+				HTMLModifications.push({
+					element: command.command_target,
+					elementState: command.command_target_state,
+					delete: true,
+				});
+				break;
+			case "add-element":
+				HTMLModifications.push({
+					element: command.command_target.parentElement,
+					elementState: command.command_target_state.parent,
+					newHTML: command.command_target_state.parent.innerHTML,
+				});
+				break;
+			case "change-bullet-point":
+				HTMLModifications.push({
+					element: command.command_target,
+					elementState: command.command_target_state,
+					newHTML: command.value,
+				});
+				break;
+			case "change-content":
+				HTMLModifications.push({
+					element: command.command_target,
+					elementState: command.command_target_state,
+					newHTML: command.value,
+				});
+				break;
+			case "change-image":
+				HTMLModifications.push({
+					element: command.command_target,
+					elementState: command.command_target_state,
+					attributeModifications: {
+						src: command.value,
+					},
+				});
+				break;
 		}
 	}
 	let scssmodifications = await manipulateSCSS(SCSSManipulations);
@@ -511,12 +606,7 @@ window.addEventListener("DOMContentLoaded", () => {
 			classes: ["editable"],
 		});
 		target.insertAdjacentElement("afterend", newElement);
-		for (let type in EDITABLE) {
-			if (EDITABLE[type](newElement)) {
-				editableClickHandler(event, type, newElement);
-			}
-		}
-		addElementState = null;
+		newElement.id = generateElementId(newElement);
 		commandStack.push({
 			command_type: "add-element",
 			command_target: newElement,
@@ -525,8 +615,21 @@ window.addEventListener("DOMContentLoaded", () => {
 				newElement
 			),
 			command_target_parent: parent,
-			command_target_state: saveElementState(parent),
+			command_target_state: saveElementState(parent, 2),
 		});
+		for (let type in EDITABLE) {
+			if (EDITABLE[type](newElement)) {
+				editableClickHandler(event, type, newElement);
+				newElement.addEventListener(
+					"click",
+					(event: MouseEvent) => editableClickHandler(event, type, newElement),
+					{
+						capture: false,
+					}
+				);
+			}
+		}
+		addElementState = null;
 	});
 	document.getElementById("add-text-button").addEventListener("click", () => {
 		addElementState = "p";
@@ -796,6 +899,7 @@ function redo(command: PageEditCommand) {
 			command.command_target.appendChild(anchor);
 		}
 		command.command_target.setAttribute("href", command.value);
+		command.command_target_state = saveElementState(command.command_target);
 	} else if (command.command_type === "delete-element") {
 		command.command_target_index = Array.prototype.indexOf.call(
 			command.command_target_parent.children,
@@ -1169,7 +1273,7 @@ let createBulletPointToggle = () =>
 				let command: PageEditCommand = {
 					command_type: "change-bullet-point",
 					command_target: currentlyEditing,
-					value: currentlyEditing.innerText,
+					value: currentlyEditing.innerHTML,
 					previousState: {
 						list,
 						html,

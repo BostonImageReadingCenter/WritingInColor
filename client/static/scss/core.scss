@@ -207,21 +207,17 @@ p {
 }
 
 @media (max-width: 1000px) {
-	.mission .image-section {
-		display: none; // Hide the image when screen width is 768px or smaller
+	// .mission .image-section {
+	// 	display: none; // Hide the image when screen width is 768px or smaller
+	// }
+	#homepage-content-wrapper {
+		padding: 1.5rem;
 	}
 	.hero .text-section,
 	.mission .text-section {
 		font-size: large;
 		width: 70%;
 		padding: 10px;
-	}
-
-	.hero .text-section,
-	.mission .text-section,
-	.hero .image-section,
-	.mission .image-section {
-		width: 50px;
 	}
 	#site-title {
 		display: none;
@@ -243,6 +239,9 @@ p {
 	}
 }
 @media screen and (max-width: 400px) {
+	#homepage-content-wrapper {
+		padding: 0.5rem;
+	}
 	#donate-button {
 		display: none;
 	}

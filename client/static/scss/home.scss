@@ -264,7 +264,7 @@ main {
 		flex: 1;
 		min-width: 45%;
 		letter-spacing: 0.05em;
-		width: 50%;
+		// width: 50%;
 		max-width: 100%;
 		display: flex;
 		flex-direction: column;
@@ -283,8 +283,11 @@ main {
 	}
 }
 @media only screen and (max-width: 768px) {
-	.mission .image-section img {
-		display: none;
+	// .mission .image-section img {
+	// 	display: none;
+	// }
+	#homepage-content-wrapper {
+		padding: 1rem;
 	}
 	.mission .container {
 		flex-direction: column; // Stacks elements vertically on smaller screens
@@ -335,6 +338,9 @@ main {
 }
 
 #text-section-in3xkhuwj {
+	color: #000000;
+}
 
-color: #000000;
+#-mewzuo345 {
+	color: #dc0909;
 }
