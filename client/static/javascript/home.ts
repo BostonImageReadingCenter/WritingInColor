@@ -14,7 +14,7 @@ window.addEventListener("load", () => {
 	});
 	document.getElementById("social-insta").addEventListener("click", () => {
 		window.location.href =
-			"'https://www.instagram.com/writingincolorboston/?igsh=MWxzZ3A1OTF1aGxsOA%3D%3D'";
+			"https://www.instagram.com/writingincolorboston/?igsh=MWxzZ3A1OTF1aGxsOA%3D%3D";
 	});
 	document.getElementById("login-icon").addEventListener("click", () => {
 		window.location.href = "/login";

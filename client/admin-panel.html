@@ -10,7 +10,7 @@
 				<!-- The bottom class here tells it to open this menu under the element. -->
 				<menu class="menu-bar vertical">
 					<!-- This creates a vertical menu bar. -->
-					<div class="hover-menu">
+					{# <div class="hover-menu">
 						<div class="hover-menu__text">Open Draft</div>
 						<ul class="hover-menu__content right">
 							<menu class="menu-bar vertical" id="open-page-draft-menu">
@@ -20,8 +20,8 @@
 								<li class="hover-menu__item clickable">Item 4</li>
 							</menu>
 						</ul>
-					</div>
-					<li class="clickable" id="save-as-button">Save As</li>
+					</div> #}
+					{# <li class="clickable" id="save-as-button">Save As</li> #}
 					<li class="clickable" id="publish-button">Publish</li>
 				</menu>
 			</div>
@@ -29,7 +29,7 @@
 		<li class="clickable" onclick="window.location.href='/admin/manage-db'">
 			Database
 		</li>
-		<li class="clickable">Help</li>
+		{# <li class="clickable">Help</li> #}
 		<div class="hover-menu">
 			<div class="hover-menu__text symbol">
 				<svg

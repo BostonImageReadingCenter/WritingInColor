@@ -337,3 +337,32 @@ $color-picker-input-size-ratio: math.div(8, 3);
 		}
 	}
 }
+.context-menu {
+	display: none;
+	position: fixed;
+	&.show {
+		display: block;
+		visibility: visible;
+		animation: fadeInSlideUp 0.3s ease-in-out forwards;
+	}
+	list-style: none;
+	overflow: hidden;
+	background-color: rgba(255, 255, 255, 0.5);
+	backdrop-filter: blur(16px);
+	box-shadow: 0 3px 5px 3px rgba(0, 0, 0, 0.1);
+	width: 300px;
+	padding: 5px;
+	margin: 0;
+	border-radius: 18px;
+	li {
+		cursor: default;
+		font-size: 1rem;
+		border-radius: 18px;
+		font-family: "Inter", sans-serif;
+		margin: 0;
+		padding: 0.33rem;
+		&:hover {
+			background-color: rgba(0, 122, 255, 0.8);
+		}
+	}
+}

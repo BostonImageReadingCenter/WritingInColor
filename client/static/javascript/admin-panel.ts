@@ -27,8 +27,11 @@ let wrapTextButton: HTMLElement;
 let fileManager: HTMLElement;
 let saveAsButton: HTMLElement;
 let publishButton: HTMLElement;
+let contextMenu: HTMLElement;
 let OpenPageDraftMenu: HTMLElement;
 let draftList: string[] = [];
+let scrollPosition = { x: 0, y: 0 };
+let isContextMenuOpen = false;
 
 let commandStack: PageEditCommand[] = []; // Commands performed. This list is used for undo and redo operations.
 let undid: PageEditCommand[] = []; // Commands that were undone with ctrl+z
@@ -586,14 +589,16 @@ window.addEventListener("DOMContentLoaded", () => {
 		windowHeight = window.innerHeight;
 		windowWidth = window.innerWidth;
 	});
-	saveAsButton = document.getElementById("save-as-button") as HTMLElement;
-	saveAsButton.onclick = saveDraft;
+	// saveAsButton = document.getElementById("save-as-button") as HTMLElement;
+	// saveAsButton.onclick = saveDraft;
 	publishButton = document.getElementById("publish-button") as HTMLElement;
 	publishButton.onclick = publishDraft;
-	OpenPageDraftMenu = document.getElementById(
-		"open-page-draft-menu"
-	) as HTMLElement;
-	updateDraftList();
+	// OpenPageDraftMenu = document.getElementById(
+	// 	"open-page-draft-menu"
+	// ) as HTMLElement;
+	// updateDraftList();
+	contextMenu = createContextMenu();
+	document.body.appendChild(contextMenu);
 	document.addEventListener("click", (event) => {
 		let target = event.target as HTMLElement;
 		let parent = target.parentElement;
@@ -742,6 +747,18 @@ window.addEventListener("DOMContentLoaded", () => {
 		)
 			return;
 		element.classList.add("editable");
+		element.addEventListener("contextmenu", (event: MouseEvent) => {
+			if (!edit_mode_toggle.checked) return;
+			event.preventDefault();
+			event.stopImmediatePropagation();
+			event.stopPropagation();
+			isContextMenuOpen = true;
+			disableScrolling();
+			contextMenu.style.top = `${event.clientY}px`;
+			contextMenu.style.left = `${event.clientX}px`;
+			contextMenu.classList.add("show");
+			currentlyEditing = element as HTMLElement;
+		});
 		for (let type in EDITABLE) {
 			if (EDITABLE[type](element)) {
 				element.addEventListener(
@@ -762,15 +779,20 @@ window.addEventListener("DOMContentLoaded", () => {
 			let wrapTextButtonBoundingRect = wrapTextButton.getBoundingClientRect();
 			let textEditMenuBoundingRect = textEditMenu.getBoundingClientRect();
 			let fileManagerBoundingRect = fileManager.getBoundingClientRect();
+			let contextMenuBoundingRect = contextMenu.getBoundingClientRect();
 			let mousePosition = { x: event.clientX, y: event.clientY };
 			if (
 				!isPointInRect(mousePosition, currentlyEditingBoundingRect) &&
 				!isPointInRect(mousePosition, textEditMenuBoundingRect) &&
 				!isPointInRect(mousePosition, wrapTextButtonBoundingRect) &&
-				!isPointInRect(mousePosition, fileManagerBoundingRect)
+				!isPointInRect(mousePosition, fileManagerBoundingRect) &&
+				!isPointInRect(mousePosition, contextMenuBoundingRect)
 			) {
 				currentlyEditing.dispatchEvent(new CustomEvent("inactive"));
 				currentlyEditing = null;
+				contextMenu.classList.remove("show");
+				isContextMenuOpen = false;
+				enableScrolling();
 			}
 		}
 	});
@@ -1458,7 +1480,40 @@ let createTextEditMenu = () =>
 			],
 		})
 	);
-
+let createContextMenu = () =>
+	createElement("menu", {
+		classes: ["context-menu"],
+		children: [
+			{
+				tag: "li",
+				text: "Delete",
+				eventHandlers: {
+					click(event) {
+						currentlyEditing.dispatchEvent(new Event("inactive"));
+						commandStack.push({
+							/*************  ✨ Codeium Command ⭐  *************/
+							/**
+							 * Creates a file manager for uploading files to the server.
+							 *
+							 * @returns {HTMLDivElement} the file manager element.
+							 */
+							/******  f3fb62c7-db9f-40c5-a582-7a3867e44d83  *******/
+							command_type: "delete-element",
+							command_target: currentlyEditing,
+							command_target_parent: currentlyEditing.parentElement,
+							command_target_index: Array.prototype.indexOf.call(
+								currentlyEditing.parentElement.children,
+								currentlyEditing
+							),
+							input: event.target,
+							command_target_state: saveElementState(currentlyEditing),
+						});
+						currentlyEditing.remove();
+					},
+				},
+			},
+		],
+	});
 function createFileManager() {
 	let filesToUpload: FileData[] = [];
 	let fileHierarchy: Directory;
@@ -1875,4 +1930,26 @@ function createFileManager() {
 	return document.body.appendChild(menu);
 }
 
+function disableScrolling() {
+	// Store the current scroll positions
+	scrollPosition.x = window.scrollX || window.pageXOffset;
+	scrollPosition.y = window.scrollY || window.pageYOffset;
+
+	// Set up the scroll-locking mechanism
+	window.addEventListener("scroll", preventScroll);
+	window.addEventListener("wheel", preventScroll, { passive: false }); // Prevents scrolling with the mouse wheel
+	window.addEventListener("touchmove", preventScroll, { passive: false }); // Prevents touch-based scrolling
+}
+
+function enableScrolling() {
+	// Remove the scroll-locking mechanism
+	window.removeEventListener("scroll", preventScroll);
+	window.removeEventListener("wheel", preventScroll);
+	window.removeEventListener("touchmove", preventScroll);
+}
+
+function preventScroll(event) {
+	window.scrollTo(scrollPosition.x, scrollPosition.y); // Keep the scroll at the stored position
+	event.preventDefault(); // Prevent the default scroll behavior
+}
 export { createTextEditMenu };
