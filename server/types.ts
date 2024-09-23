@@ -481,6 +481,15 @@ export interface FileData {
 	tag: string;
 	file: File;
 }
+export interface ElementState {
+	id: string | null;
+	classes: string[];
+	tag: string;
+	parent: ElementState | null;
+	children: ElementState[];
+	innerText: string;
+	innerHTML: string;
+}
 export interface PageEditCommand {
 	command_type: string;
 	command_target: HTMLElement;
@@ -489,4 +498,5 @@ export interface PageEditCommand {
 	value?: any;
 	previousState?: any;
 	input?: HTMLElement;
+	command_target_state: ElementState;
 }

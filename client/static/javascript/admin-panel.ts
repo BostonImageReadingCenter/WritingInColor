@@ -2,7 +2,13 @@
 // TODO: finish saving system.
 import { Directory, FileData, PageEditCommand } from "../../../server/types.ts";
 import { getFileTypeByMimetype, uploadTags } from "../../../server/utils.ts";
-import { manipulateSCSS } from "./update-page.ts";
+import {
+	HTMLModification,
+	manipulateSCSS,
+	modifyNunjucksFile,
+	saveElementState,
+	SCSSManipulation,
+} from "./update-page.ts";
 import {
 	buildQuerySelector,
 	createElement,
@@ -90,6 +96,16 @@ const fontFamilies = [
 	["fantasy"],
 ];
 
+/**
+ * Generates a unique ID for an element.
+ * @returns A unique ID.
+ */
+function generateUniqueId(): string {
+	return Math.random().toString(36).substring(2, 11);
+}
+function generateElementId(element: HTMLElement) {
+	return Array.from(element.classList).join("-") + "-" + generateUniqueId();
+}
 function isOnlyTextNode(element: Element) {
 	// Check if element is a node and has child nodes
 	if (element.nodeType === Node.TEXT_NODE) return true;
@@ -263,6 +279,7 @@ const HANDLERS = {
 				value: element.innerText,
 				previousState: previousText,
 				input: element,
+				command_target_state: saveElementState(element),
 			});
 			previousText = element.innerText;
 		};
@@ -304,6 +321,7 @@ const HANDLERS = {
 				command_target: element,
 				value: fileSelectionState.selections[0],
 				previousState: element.getAttribute("src"),
+				command_target_state: saveElementState(element),
 			});
 			element.setAttribute("src", fileSelectionState.selections[0]);
 		};
@@ -398,15 +416,58 @@ function updateDraftList() {
 function loadDraft(draft: string) {
 	// TODO
 }
+async function generateModifiedFiles() {
+	let SCSSManipulations: SCSSManipulation[] = [];
+	let HTMLModifications: HTMLModification[] = [];
+	for (let i = 0; i < commandStack.length; i++) {
+		let command = commandStack[i];
+		let target = command.command_target;
+		if (!target.id) {
+			let newID = generateElementId(target);
+			command = {
+				command_type: "change-id",
+				command_target: target,
+				command_target_state: saveElementState(target),
+				value: newID,
+				previousState: null,
+			};
+			target.id = newID;
+			commandStack.splice(i, 0, command); // Add command to the stack directly before the current command.
+			i--; // Decrement so that we still run the current command.
+		}
+		switch (command.command_type) {
+			case "change-text-color":
+				SCSSManipulations.push({
+					element: command.command_target,
+					propertyName: "color",
+					propertyValue: command.value,
+				});
+				break;
+			case "change-id":
+				HTMLModifications.push({
+					element: command.command_target,
+					elementState: command.command_target_state,
+					attributeModifications: {
+						id: command.value,
+					},
+				});
+		}
+	}
+	let scssmodifications = await manipulateSCSS(SCSSManipulations);
+	let htmlmodifications = await modifyNunjucksFile(HTMLModifications);
+	console.log(scssmodifications, htmlmodifications);
+	return { ...scssmodifications, ...htmlmodifications };
+}
 async function saveDraft() {
 	let versionName: string;
 	while (true) {
 		versionName = prompt("Enter a name for the draft:");
 		if (!draftList.includes(versionName)) break;
 	}
-	let SCSSManipulations = [];
-	let HTMLModifications = [];
-	let modifications = await manipulateSCSS(SCSSManipulations);
+	let changedFiles = await generateModifiedFiles();
+}
+async function publishDraft() {
+	let changedFiles = await generateModifiedFiles();
 }
 window.addEventListener("DOMContentLoaded", () => {
 	windowHeight = window.innerHeight;
@@ -416,7 +477,9 @@ window.addEventListener("DOMContentLoaded", () => {
 		windowWidth = window.innerWidth;
 	});
 	saveAsButton = document.getElementById("save-as-button") as HTMLElement;
+	saveAsButton.onclick = saveDraft;
 	publishButton = document.getElementById("publish-button") as HTMLElement;
+	publishButton.onclick = publishDraft;
 	OpenPageDraftMenu = document.getElementById(
 		"open-page-draft-menu"
 	) as HTMLElement;
@@ -447,6 +510,7 @@ window.addEventListener("DOMContentLoaded", () => {
 				newElement
 			),
 			command_target_parent: parent,
+			command_target_state: saveElementState(parent),
 		});
 	});
 	document.getElementById("add-text-button").addEventListener("click", () => {
@@ -546,6 +610,7 @@ window.addEventListener("DOMContentLoaded", () => {
 				command_target: parent,
 				value: parent.innerHTML,
 				previousState: previousState,
+				command_target_state: saveElementState(parent),
 			});
 		}
 	});
@@ -819,6 +884,7 @@ let createColorPicker = () =>
 							value: newValue,
 							previousState,
 							input: event.target,
+							command_target_state: saveElementState(command_target),
 						});
 					},
 				},
@@ -879,6 +945,8 @@ let createFontSelector = () =>
 												value: family[0].toLowerCase(),
 												previousState,
 												input: event.target,
+												command_target_state:
+													saveElementState(currentlyEditing),
 											});
 											event.stopImmediatePropagation();
 										},
@@ -935,6 +1003,7 @@ let createFontSizeSelector = () =>
 					value: event.target.value,
 					previousState,
 					input: event.target,
+					command_target_state: saveElementState(currentlyEditing),
 				});
 			},
 		},
@@ -961,6 +1030,7 @@ let createBoldToggle = () =>
 					value: currentlyEditing.style.fontWeight,
 					previousState: previousFontWeight,
 					input: event.target,
+					command_target_state: saveElementState(currentlyEditing),
 				});
 			},
 		},
@@ -992,6 +1062,7 @@ let createStrikeThroughToggle = () =>
 					value: currentlyEditing.style.textDecoration,
 					previousState: previousTextDecoration,
 					input: event.target,
+					command_target_state: saveElementState(currentlyEditing),
 				});
 			},
 		},
@@ -1024,6 +1095,7 @@ let createUnderlineToggle = () =>
 					value: currentlyEditing.style.textDecoration,
 					previousState: previousTextDecoration,
 					input: event.target,
+					command_target_state: saveElementState(currentlyEditing),
 				});
 			},
 		},
@@ -1057,6 +1129,7 @@ let createTextAlignButton = () =>
 					value: currentlyEditing.style.textAlign,
 					previousState: previousTextAlign,
 					input: event.target,
+					command_target_state: saveElementState(currentlyEditing),
 				});
 			},
 		},
@@ -1078,7 +1151,7 @@ let createBulletPointToggle = () =>
 			click(event) {
 				let list = currentlyEditing.querySelector("ul, ol");
 				let html = currentlyEditing.innerHTML;
-				let command = {
+				let command: PageEditCommand = {
 					command_type: "change-bullet-point",
 					command_target: currentlyEditing,
 					value: currentlyEditing.innerText,
@@ -1087,6 +1160,7 @@ let createBulletPointToggle = () =>
 						html,
 					},
 					input: event.target,
+					command_target_state: saveElementState(currentlyEditing),
 				};
 				commandStack.push(command);
 				redo(command);
@@ -1142,6 +1216,7 @@ let createLinkManager = () =>
 									value: value,
 									previousState: previousValue,
 									input: event.target,
+									command_target_state: saveElementState(currentlyEditing),
 								});
 								redo(commandStack[commandStack.length - 1]);
 								event.stopImmediatePropagation();
@@ -1204,6 +1279,7 @@ let createDeleteButton = () =>
 						currentlyEditing
 					),
 					input: event.target,
+					command_target_state: saveElementState(currentlyEditing),
 				});
 				currentlyEditing.remove();
 			},

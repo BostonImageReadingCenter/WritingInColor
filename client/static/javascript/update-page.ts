@@ -1,3 +1,5 @@
+import { ElementState } from "../../../server/types";
+
 /**
  * Manipulates CSS/SCSS properties of an element and returns updated file contents.
  * @param element - The HTML element to modify.
@@ -5,12 +7,12 @@
  * @param propertyValue - The new value for the CSS property.
  * @returns A promise that resolves to an object mapping file paths to the new versions of the modified SCSS files.
  */
-interface manipulation {
+export interface SCSSManipulation {
 	element: HTMLElement;
 	propertyName: string;
 	propertyValue: string;
 }
-export async function manipulateSCSS(manipulations: manipulation[]) {
+export async function manipulateSCSS(manipulations: SCSSManipulation[]) {
 	// Ensure the element has an ID
 
 	// Get all stylesheets
@@ -19,12 +21,12 @@ export async function manipulateSCSS(manipulations: manipulation[]) {
 	// Filter out external stylesheets and map CSS files to SCSS
 	const scssFiles = stylesheets
 		.filter((stylesheet) => stylesheet.href && stylesheet.href.endsWith(".css"))
-		.map((stylesheet) => stylesheet.href.replace(".css", ".scss"));
+		.map((stylesheet) => stylesheet.href.replaceAll("css", "scss"));
 
-	const result = {};
 	const scssFilesContent: {
 		[key: string]: string[];
 	} = {};
+	const changedFiles = [];
 	for (const scssFile of scssFiles) {
 		try {
 			const response = await fetch(scssFile);
@@ -37,9 +39,6 @@ export async function manipulateSCSS(manipulations: manipulation[]) {
 	}
 	for (let manipulation of manipulations) {
 		let { element, propertyName, propertyValue } = manipulation;
-		if (!element.id) {
-			element.id = generateUniqueId();
-		}
 		const selector = `#${element.id}`;
 		const matchData = [];
 		for (let scssFile of scssFiles) {
@@ -49,7 +48,7 @@ export async function manipulateSCSS(manipulations: manipulation[]) {
 				selectorIndex: includesSelector(lines, selector),
 				propertyIndex: -1,
 			};
-			if (data.selectorIndex) {
+			if (data.selectorIndex !== -1) {
 				data.propertyIndex = includesProperty(
 					lines,
 					data.selectorIndex,
@@ -60,7 +59,7 @@ export async function manipulateSCSS(manipulations: manipulation[]) {
 		}
 		let haveProperty = matchData.filter((data) => data.propertyIndex !== -1);
 		let editMade = false;
-		let lineToAdd = `${propertyName}: ${propertyValue}`;
+		let lineToAdd = `${propertyName}: ${propertyValue};`;
 		for (let hasProperty of haveProperty) {
 			if (!editMade) {
 				scssFilesContent[hasProperty.scssFile][hasProperty.propertyIndex] =
@@ -72,6 +71,7 @@ export async function manipulateSCSS(manipulations: manipulation[]) {
 					1
 				); // Remove the conflicting property
 			}
+			changedFiles.push(hasProperty.scssFile);
 		}
 		if (!editMade) {
 			let hasSelector = matchData.find((data) => data.selectorIndex !== -1);
@@ -110,19 +110,22 @@ export async function manipulateSCSS(manipulations: manipulation[]) {
 					scssFilesContent[hasSelector.scssFile][hasSelector.selectorIndex] =
 						split.join(selector);
 				}
+				changedFiles.push(hasSelector.scssFile);
+			} else {
+				scssFilesContent[scssFiles[0]].push(`${selector} {\n}`);
+				scssFilesContent[scssFiles[0]].push(" ".repeat(2) + lineToAdd);
+				scssFilesContent[scssFiles[0]].push("}\n");
+				changedFiles.push(scssFiles[0]);
 			}
 		}
 	}
+	let result = {};
+	for (let scssFile of changedFiles) {
+		let joined = scssFilesContent[scssFile].join("\n");
+		result[scssFile] = joined;
+	}
 
 	return result;
-}
-
-/**
- * Generates a unique ID for an element.
- * @returns A unique ID.
- */
-function generateUniqueId(): string {
-	return "element-" + Math.random().toString(36).substring(2, 11);
 }
 
 function includesSelector(lines: string[], selector: string) {
@@ -149,4 +152,114 @@ function includesProperty(
 		}
 	}
 	return -1;
+}
+export interface HTMLModification {
+	element: HTMLElement;
+	elementState: ElementState;
+	attributeModifications?: {
+		[key: string]: string;
+	};
+	newHTML?: string;
+}
+
+function generateSelector(elementState: ElementState) {
+	if (elementState.id) {
+		console.log(elementState.id);
+		return `#${elementState.id}`;
+	}
+	let selector = `${elementState.tag}.${elementState.classes.join(".")}`;
+	let parent = "";
+	if (elementState.parent) {
+		parent = generateSelector(elementState.parent);
+		selector = `${parent} > ${selector}`;
+	}
+	console.log(selector);
+	return selector;
+}
+function getMatchingElementsFromOtherDocuments(
+	elementState: ElementState,
+	documents: Document[]
+) {
+	let selector = generateSelector(elementState);
+	let elements: Element[] = [];
+	for (let doc of documents) {
+		elements = elements.concat(Array.from(doc.querySelectorAll(selector)));
+	}
+
+	return elements;
+}
+function getRawHtml(document: Document) {
+	// Create a new XMLSerializer to serialize the document
+	const serializer = new XMLSerializer();
+
+	// Serialize the document and include the DOCTYPE
+	const doctype = document.doctype ? `<!DOCTYPE ${document.doctype.name}>` : "";
+
+	// Serialize the document's body
+	const htmlContent = serializer.serializeToString(document);
+
+	// Concatenate the DOCTYPE and the serialized HTML
+	return doctype + htmlContent;
+}
+export async function modifyNunjucksFile(
+	HTMLModifications: HTMLModification[]
+) {
+	let sourceFiles = [];
+	document
+		.querySelectorAll("meta[name=page-raw-template]")
+		.forEach((element) => {
+			sourceFiles.push(element.getAttribute("content"));
+		});
+	let rendered: {
+		[key: string]: Document;
+	} = {};
+	for (let sourceFile of sourceFiles) {
+		const response = await fetch(sourceFile);
+		const sourceContent = await response.text();
+		let parser = new DOMParser();
+		let doc = parser.parseFromString(sourceContent, "text/html");
+		rendered[sourceFile] = doc;
+	}
+	for (let modification of HTMLModifications) {
+		let elementState = modification.elementState;
+		let candidates: Element[] = getMatchingElementsFromOtherDocuments(
+			elementState,
+			Object.values(rendered)
+		);
+		let element = candidates[0];
+		if (modification.newHTML) {
+			element.innerHTML = modification.newHTML;
+		}
+		if (modification.attributeModifications) {
+			for (let attribute in modification.attributeModifications) {
+				let value = modification.attributeModifications[attribute];
+				element.setAttribute(attribute, value);
+			}
+		}
+	}
+	// Convert back to text.
+	let unRendered = {};
+	for (let sourceFile of sourceFiles) {
+		unRendered[sourceFile] = getRawHtml(rendered[sourceFile]);
+	}
+	return unRendered;
+}
+export function saveElementState(element: Element, depth = 1): ElementState {
+	return {
+		id: element.id,
+		classes: Array.from(element.classList).filter(
+			(value) => value !== "editable"
+		),
+		tag: element.tagName.toLowerCase(),
+		parent:
+			depth > 0 ? saveElementState(element.parentElement, depth - 1) : null,
+		children:
+			depth > 0
+				? Array.from(element.children).map((value) =>
+						saveElementState(value, depth - 1)
+				  )
+				: null,
+		innerText: element.textContent,
+		innerHTML: element.innerHTML,
+	};
 }
