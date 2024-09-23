@@ -112,9 +112,9 @@ export async function manipulateSCSS(manipulations: SCSSManipulation[]) {
 				}
 				changedFiles.push(hasSelector.scssFile);
 			} else {
-				scssFilesContent[scssFiles[0]].push(`${selector} {\n}`);
+				scssFilesContent[scssFiles[0]].push(`${selector} {`);
 				scssFilesContent[scssFiles[0]].push(" ".repeat(2) + lineToAdd);
-				scssFilesContent[scssFiles[0]].push("}\n");
+				scssFilesContent[scssFiles[0]].push("}");
 				changedFiles.push(scssFiles[0]);
 			}
 		}
@@ -188,18 +188,8 @@ function getMatchingElementsFromOtherDocuments(
 
 	return elements;
 }
-function getRawHtml(document: Document) {
-	// Create a new XMLSerializer to serialize the document
-	const serializer = new XMLSerializer();
-
-	// Serialize the document and include the DOCTYPE
-	const doctype = document.doctype ? `<!DOCTYPE ${document.doctype.name}>` : "";
-
-	// Serialize the document's body
-	const htmlContent = serializer.serializeToString(document);
-
-	// Concatenate the DOCTYPE and the serialized HTML
-	return doctype + htmlContent;
+function getHTMLBodyContent(doc: Document) {
+	return doc.body.innerHTML;
 }
 export async function modifyNunjucksFile(
 	HTMLModifications: HTMLModification[]
@@ -214,8 +204,8 @@ export async function modifyNunjucksFile(
 		[key: string]: Document;
 	} = {};
 	for (let sourceFile of sourceFiles) {
-		const response = await fetch(sourceFile);
-		const sourceContent = await response.text();
+		const response = await fetch(`/template-body/${sourceFile}`);
+		const sourceContent = `<!DOCTYPE html><html><body>${await response.text()}</body></html>`;
 		let parser = new DOMParser();
 		let doc = parser.parseFromString(sourceContent, "text/html");
 		rendered[sourceFile] = doc;
@@ -240,7 +230,7 @@ export async function modifyNunjucksFile(
 	// Convert back to text.
 	let unRendered = {};
 	for (let sourceFile of sourceFiles) {
-		unRendered[sourceFile] = getRawHtml(rendered[sourceFile]);
+		unRendered[sourceFile] = getHTMLBodyContent(rendered[sourceFile]);
 	}
 	return unRendered;
 }

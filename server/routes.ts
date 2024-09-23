@@ -107,7 +107,65 @@ async function getDirectoryHierarchy(directory: string, record_path = true) {
 	});
 	return hierarchy;
 }
+function extractAndMapPath(url: string): string {
+	// Handle different URL formats
+	let extractedPath: string;
 
+	if (url.startsWith("http://") || url.startsWith("https://")) {
+		const urlObj = new URL(url);
+		extractedPath = urlObj.pathname; // Get pathname for URLs with protocol
+	} else if (url.startsWith("localhost")) {
+		extractedPath = url.split("/").slice(1).join("/"); // Remove "localhost:3000" part
+	} else {
+		extractedPath = url; // Assume it's a direct path
+	}
+
+	// Normalize the path by removing leading slashes
+	return path.join(client_root, extractedPath.replace(/^\/+/, ""));
+}
+function extractBlockContent(
+	templatePath: string,
+	blockName: string
+): string | null {
+	const templateContent = fs.readFileSync(templatePath, "utf-8");
+
+	// Regular expression to match block definitions
+	const blockRegex = new RegExp(
+		`{% block ${blockName} %}(.*?){% endblock ${blockName} %}`,
+		"s"
+	);
+	const match = templateContent.match(blockRegex);
+
+	return match ? match[1].trim() : null; // Return the content of the block or null if not found
+}
+function overwriteBlockContent(
+	templatePath: string,
+	blockName: string,
+	newContent: string
+): void {
+	const templateContent = fs.readFileSync(templatePath, "utf-8");
+
+	// Regular expression to match block definitions
+	const blockRegex = new RegExp(
+		`{% block ${blockName} %}(.*?){% endblock ${blockName} %}`,
+		"s"
+	);
+
+	// Check if the block exists
+	if (blockRegex.test(templateContent)) {
+		// Replace the block content
+		const updatedContent = templateContent.replace(
+			blockRegex,
+			`{% block ${blockName} %}\n${newContent}\n{% endblock ${blockName} %}`
+		);
+
+		// Write the updated content back to the file
+		fs.writeFileSync(templatePath, updatedContent, "utf-8");
+		console.log(`Block '${blockName}' has been overwritten successfully.`);
+	} else {
+		console.log(`Block '${blockName}' not found.`);
+	}
+}
 // Define routes
 async function routes(fastify: FastifyInstance, options) {
 	console.log("\x1b[34mServing from:", client_root, "\x1b[0m");
@@ -497,6 +555,43 @@ async function routes(fastify: FastifyInstance, options) {
 		return reply.send(
 			fs.readdirSync(path.resolve(__dirname, "../site-drafts"))
 		);
+	});
+	fastify.post("/api/publish-changes", async (request, reply) => {
+		let user = await getUser(request, reply);
+		if (!user || !user.roles.includes("admin")) return reply.send(401);
+
+		let json = request.body as {
+			changedFiles: {
+				scssmodifications: {
+					[key: string]: string;
+				};
+				htmlmodifications: {
+					[key: string]: string;
+				};
+			};
+		};
+		let { scssmodifications, htmlmodifications } = json.changedFiles;
+		for (let givenPath in scssmodifications) {
+			let fileContent = scssmodifications[givenPath];
+			let filePath = extractAndMapPath(givenPath);
+			console.log(`Writing to ${filePath}:`, fileContent);
+			fs.writeFile(filePath, fileContent, (err) => {
+				if (err) {
+					console.error(`Error writing to file ${filePath}:`, err);
+				} else {
+					console.log(`Successfully updated ${filePath}`);
+				}
+			});
+		}
+		for (let givenPath in htmlmodifications) {
+			let fileContent = htmlmodifications[givenPath];
+			let filePath = extractAndMapPath(givenPath);
+			overwriteBlockContent(filePath, "body", fileContent);
+		}
+	});
+	fastify.get("/template-body/*", async (request, reply) => {
+		const filePath = path.join(client_root, request.params["*"]); // Get the wildcard part
+		return extractBlockContent(filePath, "body");
 	});
 }
 export default routes;

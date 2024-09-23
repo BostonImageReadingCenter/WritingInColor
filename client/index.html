@@ -1,48 +1,16 @@
-{% extends "layout.html" %} {% block title %}Writing in Color – Home{% endblock
-%} {% block head %}
-<link rel="stylesheet" href="/static/css/home.css" />
-<script defer>
-	window.addEventListener("load", () => {
-		Array.from(document.getElementsByClassName("donate-button")).forEach(
-			(element) => {
-				element.addEventListener("click", () => {
-					window.location.href = "https://givebutter.com/l6Qr7d";
-				});
-			}
-		);
-		document.getElementById("social-fb").addEventListener("click", () => {
-			window.location.href = "https://www.facebook.com/squarespace";
-		});
-		document.getElementById("social-X").addEventListener("click", () => {
-			window.location.href = "https://x.com/WICnonprofit";
-		});
-		document.getElementById("social-insta").addEventListener("click", () => {
-			window.location.href =
-				"'https://www.instagram.com/writingincolorboston/?igsh=MWxzZ3A1OTF1aGxsOA%3D%3D'";
-		});
-		document.getElementById("login-icon").addEventListener("click", () => {
-			window.location.href = "/login";
-		});
-		document
-			.getElementById("contact-us-button")
-			.addEventListener("click", () => {
-				window.location.href = "https://forms.gle/rS6dqRQDqKGDYNRH6";
-			});
-		document.getElementById("phrase").addEventListener("click", () => {
-			window.location.href = "https://forms.gle/rS6dqRQDqKGDYNRH6";
-		});
-	});
-</script>
-<meta name="page-raw-template" content="/index.html" />
-{% endblock %} {% block body %}
+{% extends "layout.html" %} 
+{% block title %}Writing in Color – Home{% endblock title %} 
+
+{% block head %}
+	<link rel="stylesheet" href="/static/css/home.css" />
+	<script src="/static/javascript/bundle/home.js" defer></script>
+	<meta name="page-raw-template" content="/index.html" />
+{% endblock head %} 
+{% block body %}
 <header id="header">
 	<div class="header-container">
 		<div class="logo">
-			<img
-				src="/static/media/image/branding/logotype/WIC_Logo.svg"
-				alt="WIC Logo"
-				class="logo"
-			/>
+			<img src="/static/media/image/branding/logotype/WIC_Logo.svg" alt="WIC Logo" class="logo">
 		</div>
 		<h1 id="site-title">Writing in Color</h1>
 
@@ -51,38 +19,34 @@
 		</div>
 		<div class="login-container">
 			<div class="hover-menu">
-				<img
-					src="/static/media/image/icon/person-circle.svg"
-					id="login-icon"
-					width="30"
-				/>
+				<img src="/static/media/image/icon/person-circle.svg" id="login-icon" width="30">
 			</div>
 		</div>
 		<div id="menu-button">
-			<img src="/static/media/image/icon/menu-icon.svg" width="30" />
-			<img src="/static/media/image/icon/menu-lines.svg" width="30" />
+			<img src="/static/media/image/icon/menu-icon.svg" width="30">
+			<img src="/static/media/image/icon/menu-lines.svg" width="30">
 		</div>
 	</div>
 </header>
 <main>
 	<div id="homepage-content-wrapper">
 		<div id="menu-bar" class="templated">
-		{% if user %}
+			{% if user %}
 			<div id="top-menu">
 				<p id="welcome-phrase">
 					Hello {{user.first_name | default("Unnamed User")}}!
 				</p>
 				<p id="profile-type">
 					{% if user.roles.includes("admin") %}
-					Admin Account 
-					{% elif user.roles.includes("moderator") %} 
-					Moderator Profile 
-					{% elif user.roles.includes("instructor") %} 
-					Instructor Profile 
-					{% elif user.roles.includes("developer") %} 
-					Developer Profile 
+					Admin Account
+					{% elif user.roles.includes("moderator") %}
+					Moderator Profile
+					{% elif user.roles.includes("instructor") %}
+					Instructor Profile
+					{% elif user.roles.includes("developer") %}
+					Developer Profile
 					{% else %}
-					Student Profile 
+					Student Profile
 					{% endif %}
 				</p>
 			</div>
@@ -90,151 +54,62 @@
 			<div class="main-menu">
 				<p>MAIN</p>
 				<p id="home">
-					<img src="/static/media/image/icon/Home-simple-door.svg" /> Home
+					<img src="/static/media/image/icon/Home-simple-door.svg"> Home
 				</p>
 				<p id="course">
-					<img src="/static/media/image/icon/Eduction Icon.svg" /> Courses &
-					Workshops <span class="arrow">&#9662;</span>
+					<img src="/static/media/image/icon/Eduction Icon.svg"> Courses &amp;
+					Workshops <span class="arrow">▾</span>
 				</p>
 				<div class="submenu">
 					<p>Narrative Medicine</p>
 					<p>Poetry for</p>
 				</div>
 				<p id="mission">
-					<img src="/static/media/image/icon/Knowledge.svg" /> Mission
+					<img src="/static/media/image/icon/Knowledge.svg"> Mission
 				</p>
 				<p id="testimonials">
-					<img src="/static/media/image/icon/testimonials-icon.svg" />
+					<img src="/static/media/image/icon/testimonials-icon.svg">
 					Testimonials
 				</p>
 				<p id="founders">
-					<img src="/static/media/image/icon/founders-icon.svg" /> Founders
-					<span class="arrow">&#9662;</span>
+					<img src="/static/media/image/icon/founders-icon.svg"> Founders
+					<span class="arrow">▾</span>
 				</p>
 				<div class="submenu">
 					<p>Farah’s Story</p>
 					<p>Adaira’s Story</p>
 				</div>
 				<p id="contact">
-					<img src="/static/media/image/icon/phone-icon.svg" /> Contact
+					<img src="/static/media/image/icon/phone-icon.svg"> Contact
 				</p>
 			</div>
 			{% if user %}
 			<div class="account-settings">
 				<p>ACCOUNT SETTINGS</p>
 				<p id="settings">
-					<img src="/static/media/image/icon/Settings.svg" /> Settings
+					<img src="/static/media/image/icon/Settings.svg"> Settings
 				</p>
 				<p id="sign-out">
-					<img src="/static/media/image/icon/User 1.svg" /> Sign Out
+					<img src="/static/media/image/icon/User 1.svg"> Sign Out
 				</p>
 			</div>
 			{% endif %}
 		</div>
 
-		<script>
-			document.addEventListener("DOMContentLoaded", function () {
-				const menuButton = document.getElementById("menu-button");
-				const menuBar = document.getElementById("menu-bar");
-				const subMenus = document.querySelectorAll(
-					".main-menu p, .account-settings p"
-				);
-
-				menuButton.addEventListener("click", function () {
-					menuBar.classList.toggle("show");
-				});
-
-				subMenus.forEach((menu) => {
-					menu.addEventListener("click", function () {
-						this.classList.toggle("active");
-					});
-				});
-				// Function to scroll smoothly to a target element
-				function scrollToSection(target) {
-					if (target) {
-						window.scrollTo({
-							top: target.offsetTop,
-							behavior: "smooth",
-						});
-					}
-				}
-
-				// Set event listeners for menu items
-				document
-					.getElementById("course")
-					.addEventListener("click", function (e) {
-						e.preventDefault();
-						const courseSection = document.querySelector(".courses");
-						scrollToSection(courseSection);
-					});
-
-				document
-					.getElementById("testimonials")
-					.addEventListener("click", function (e) {
-						e.preventDefault();
-						const testimonialsSection = document.getElementById(
-							"testimonial-section"
-						);
-						scrollToSection(testimonialsSection);
-					});
-
-				document
-					.getElementById("mission")
-					.addEventListener("click", function (e) {
-						e.preventDefault();
-						const missionSection = document.querySelector(".mission");
-						scrollToSection(missionSection);
-					});
-
-				document
-					.getElementById("founders")
-					.addEventListener("click", function (e) {
-						e.preventDefault();
-						const foundersSection = document.querySelector(".founders");
-						scrollToSection(foundersSection);
-					});
-				/*
-				document
-					.getElementById("icons")
-					.addEventListener("click", function (e) {
-						e.preventDefault();
-						const contactUs = document.querySelector(".icons");
-						scrollToSection(contactUs);
-					});
-				*/
-				document
-					.getElementById("sign-out")
-					.addEventListener("click", function () {
-						window.location.href = "/logout";
-					});
-				document
-					.getElementById("settings")
-					.addEventListener("click", function () {
-						window.location.href = "/my-profile";
-					});
-			});
-		</script>
 		<section class="hero">
 			<div class="container">
-				<h1 class="text-section">
+				<h1 class="text-section" id="text-section-in3xkhuwj">
 					Teaching People of Color How to Write via Free Educational Writing
 					Courses
 				</h1>
 				<div class="image-section">
-					<img
-						src="static/media/image/branding/logotype/main_image.svg"
-						alt="Main Image"
-					/>
+					<img src="static/media/image/branding/logotype/main_image.svg" alt="Main Image">
 				</div>
 			</div>
 		</section>
 
 		<section class="courses">
-			<img
-				src="static/media/image/background/courses-background-image.png"
-				class="background"
-				id="course-background"
-			/>
+			<img src="static/media/image/background/courses-background-image.png" class="background" id="course-background">
 			<div id="phrase">
 				<h2>Check it Out!</h2>
 			</div>
@@ -243,33 +118,24 @@
 				{% for course in COURSES %}
 				<div class="course">
 					<!-- Course details here -->
-					<img src="{{ course.image }}" class="course-image" />
+					<img src="{{ course.image }}" class="course-image">
 					<div class="course-header">
-						<img
-							src="static/media/image/icon/svg_education_icon.svg"
-							class="education_icon"
-						/>
+						<img src="static/media/image/icon/svg_education_icon.svg" class="education_icon">
 						<h3 class="course-name">{{ course.name }}</h3>
 					</div>
 					<div class="star-container">
 						{% set num_stars = 5 %} {% set percentage = 100 * (course.rating /
-						num_stars) %} {% set overlay_width = 100 - percentage %} {% for i in
-						range(num_stars) %} {{ SVG.star | safe }} {% endfor %}
+							num_stars) %} {% set overlay_width = 100 - percentage %} {% for i in
+							range(num_stars) %} {{ SVG.star | safe }} {% endfor %}
 						<div class="star-overlay" style="width:{{ overlay_width }}%"></div>
 					</div>
 					<p class="course-description">{{ course.description }}</p>
 					<div class="time_course-item class-time">
-						<img
-							src="static/media/image/icon/hourglass-icon.svg"
-							class="hourglass-icon"
-						/>
+						<img src="static/media/image/icon/hourglass-icon.svg" class="hourglass-icon">
 						<p>{{ course.class_time }}</p>
 					</div>
 					<div class="time_course-item course-duration">
-						<img
-							src="static/media/image/icon/time_icon.svg"
-							class="time_icon"
-						/>
+						<img src="static/media/image/icon/time_icon.svg" class="time_icon">
 						<p>{{ course.course_duration }}</p>
 					</div>
 				</div>
@@ -280,7 +146,7 @@
 		<section class="mission">
 			<div class="container">
 				<div class="image-section">
-					<img src="static/media/image/icon/new-mission.svg" />
+					<img src="static/media/image/icon/new-mission.svg">
 				</div>
 				<div class="text-section">
 					<h2>What We Stand For</h2>
@@ -302,24 +168,16 @@
 		</section>
 
 		<section id="testimonial-section">
-			<img
-				src="static/media/image/background/testimonial-grad-bg.png"
-				class="background"
-				id="testimonial-background"
-				alt="Background Image"
-			/>
+			<img src="static/media/image/background/testimonial-grad-bg.png" class="background" id="testimonial-background" alt="Background Image">
 			<h2 id="testimonial-header">Testimonials From Our Students</h2>
 			<div class="testimonial-grid templated">
 				{% for testimonial in TESTIMONIALS %}
-				<div
-					class="statement"
-					style="
+				<div class="statement" style="
 						background-image: url('{{ testimonial.image }}');
-					"
-				>
+					">
 					<p class="testimonial-quote">“{{ testimonial.content }}”</p>
 					<div class="testimonial-person-wrapper">
-						<img src="{{ testimonial.person_image }}" />
+						<img src="{{ testimonial.person_image }}">
 					</div>
 				</div>
 				{% endfor %}
@@ -327,22 +185,13 @@
 		</section>
 
 		<section class="founders">
-			<img
-				src="static/media/image/background/founders_background.png"
-				class="background"
-				id="founders-background"
-				alt="Background Image"
-			/>
+			<img src="static/media/image/background/founders_background.png" class="background" id="founders-background" alt="Background Image">
 			<h1 id="founder-section">Our Founders</h1>
 			<h2 id="founder-phrase">Meet The Ones Making This Possible</h2>
 			<div class="founders-container templated">
 				{% for founder in FOUNDERS %}
 				<div class="founder">
-					<img
-						src="{{ founder.image }}"
-						class="founder-image"
-						alt="{{ founder.name }}"
-					/>
+					<img src="{{ founder.image }}" class="founder-image" alt="{{ founder.name }}">
 					<div class="founder-info">
 						<span class="founder-name">{{ founder.name }}</span>
 						<span class="founder-role">{{ founder.role }}</span>
@@ -357,40 +206,22 @@
 <footer>
 	<!-- TODO: put global footer content here. -->
 	<section class="icons">
-		<img
-			src="/static/media/image/branding/logotype/WIC_Logo.svg"
-			class="footer-logo"
-		/>
+		<img src="/static/media/image/branding/logotype/WIC_Logo.svg" class="footer-logo">
 		<p class="footer-phrase">Get in Touch</p>
 		<div class="social-icons-container">
-			<img
-				src="/static/media/image/icon/instagram.png"
-				id="social-insta"
-				class="social-button"
-			/>
-			<img
-				src="/static/media/image/icon/X.png"
-				id="social-X"
-				class="social-button"
-			/>
-			<img
-				src="/static/media/image/icon/facebook.png"
-				id="social-fb"
-				class="social-button"
-			/>
+			<img src="/static/media/image/icon/instagram.png" id="social-insta" class="social-button">
+			<img src="/static/media/image/icon/X.png" id="social-X" class="social-button">
+			<img src="/static/media/image/icon/facebook.png" id="social-fb" class="social-button">
 		</div>
 		<div id="footer-buttons">
 			<button id="contact-us-button">Contact Us</button>
 
-			<button
-				class="donate-button"
-				onclick="window.location.href = 'https://givebutter.com/l6Qr7d'"
-			>
+			<button class="donate-button" onclick="window.location.href = 'https://givebutter.com/l6Qr7d'">
 				Donate
 			</button>
 		</div>
 		<!-- Personally, I would use a button here instead of an image -->
-		<img src="/static/media/image/icon/Line 1.png" class="seperate" />
+		<img src="/static/media/image/icon/Line 1.png" class="seperate">
 		<!-- You could just style up a hr for this as well. -->
 	</section>
 	<section class="guidelines">
@@ -403,4 +234,4 @@
 		</p>
 	</section>
 </footer>
-{% endblock %}
+{% endblock body %}

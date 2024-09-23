@@ -4,13 +4,12 @@
 <html lang="en">
 	<head>
 		<!-- Meta tags -->
-		<meta name="page-raw-template" content="/layout.html" />
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<meta name="theme-color" content="#fff7ee" />
 		<!-- WiC-36: Add all meta tags. TODO -->
 
-		<title>{% block title %}Writing in Color{% endblock %}</title>
+		<title>{% block title %}Writing in Color{% endblock title %}</title>
 
 		<!--Font-->
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -28,7 +27,7 @@
 		{% endif %}
 
 		<!-- Template block -->
-		{% block head %}{% endblock %}
+		{% block head %}{% endblock head %}
 
 		<!-- Admin Panel -->
 		{% if user and user.roles.includes("admin") %} {{ admin.admin_imports() }}
@@ -36,7 +35,6 @@
 	</head>
 
 	<body>
-		{% if user and user.roles.includes("admin") %} {{ admin.admin_panel() }} {%
-		endif %} {% block body %}{% endblock %}
+		{% if user and user.roles.includes("admin") %} {{ admin.admin_panel() }} {% endif %} {% block body %}{% endblock body %}
 	</body>
 </html>

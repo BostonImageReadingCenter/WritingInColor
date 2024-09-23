@@ -104,8 +104,15 @@ function generateUniqueId(): string {
 	return Math.random().toString(36).substring(2, 11);
 }
 function generateElementId(element: HTMLElement) {
-	return Array.from(element.classList).join("-") + "-" + generateUniqueId();
+	return (
+		Array.from(element.classList)
+			.filter((value) => value !== "editable")
+			.join("-") +
+		"-" +
+		generateUniqueId()
+	);
 }
+
 function isOnlyTextNode(element: Element) {
 	// Check if element is a node and has child nodes
 	if (element.nodeType === Node.TEXT_NODE) return true;
@@ -455,8 +462,7 @@ async function generateModifiedFiles() {
 	}
 	let scssmodifications = await manipulateSCSS(SCSSManipulations);
 	let htmlmodifications = await modifyNunjucksFile(HTMLModifications);
-	console.log(scssmodifications, htmlmodifications);
-	return { ...scssmodifications, ...htmlmodifications };
+	return { scssmodifications, htmlmodifications };
 }
 async function saveDraft() {
 	let versionName: string;
@@ -465,9 +471,18 @@ async function saveDraft() {
 		if (!draftList.includes(versionName)) break;
 	}
 	let changedFiles = await generateModifiedFiles();
+	// TODO
 }
 async function publishDraft() {
 	let changedFiles = await generateModifiedFiles();
+	console.log(changedFiles);
+	fetch("/api/publish-changes", {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json",
+		},
+		body: JSON.stringify({ changedFiles }),
+	});
 }
 window.addEventListener("DOMContentLoaded", () => {
 	windowHeight = window.innerHeight;
@@ -1625,10 +1640,6 @@ function createFileManager() {
 							eventHandlers: {
 								click(event: PointerEvent) {
 									let target: HTMLElement = event.currentTarget as HTMLElement;
-									console.log(
-										target,
-										target.getElementsByClassName("directory-icon")
-									);
 									let icon = target.getElementsByClassName(
 										"directory-icon"
 									)[0] as HTMLImageElement;
@@ -1662,7 +1673,6 @@ function createFileManager() {
 		let response = await fetch("/api/get-files-list", {
 			method: "POST",
 		});
-		// console.log(response, response.json);
 		fileHierarchy = await response.json();
 		return fileHierarchy;
 	}

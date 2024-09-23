@@ -11,6 +11,7 @@ module.exports = {
 			"./client/static/javascript/passive-authentication.ts",
 		"database-management": "./client/static/javascript/database-management.ts",
 		userProfile: "./client/static/javascript/user-profile.ts",
+		home: "./client/static/javascript/home.ts",
 	},
 	output: {
 		filename: "[name].js",
