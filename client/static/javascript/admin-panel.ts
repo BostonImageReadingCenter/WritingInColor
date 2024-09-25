@@ -1196,6 +1196,7 @@ let createStrikeThroughToggle = () =>
 					newValue += "underline";
 				if (!previousTextDecoration.includes("line-through"))
 					newValue += " line-through";
+				if (newValue == "") newValue = "none";
 				currentlyEditing.style.textDecoration = newValue;
 				commandStack.push({
 					command_type: "change-text-decoration",
@@ -1229,6 +1230,7 @@ let createUnderlineToggle = () =>
 					newValue += "underline";
 				if (previousTextDecoration.includes("line-through"))
 					newValue += " line-through";
+				if (newValue == "") newValue = "none";
 				currentlyEditing.style.textDecoration = newValue;
 				commandStack.push({
 					command_type: "change-text-decoration",
@@ -1400,7 +1402,7 @@ let createCopyButton = () =>
 let createDeleteButton = () =>
 	createElement({
 		tag: "div",
-		classes: ["menu-item-wrapper", "menu-item-round"],
+		classes: ["menu-item-wrapper", "menu-item-round", "edit-mode-exempt"],
 		children: [
 			{
 				tag: "img",
@@ -1482,7 +1484,7 @@ let createTextEditMenu = () =>
 	);
 let createContextMenu = () =>
 	createElement("menu", {
-		classes: ["context-menu"],
+		classes: ["context-menu", "edit-mode-exempt"],
 		children: [
 			{
 				tag: "li",

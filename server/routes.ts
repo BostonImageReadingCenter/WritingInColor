@@ -11,6 +11,8 @@ import { promisify } from "util";
 import fs from "fs";
 import { mkdirSync, existsSync } from "fs";
 
+import { exec } from "child_process";
+
 import {
 	login,
 	isLoggedIn,
@@ -588,6 +590,10 @@ async function routes(fastify: FastifyInstance, options) {
 			let filePath = extractAndMapPath(givenPath);
 			overwriteBlockContent(filePath, "body", fileContent);
 		}
+		// Run ./build.sh production
+
+		exec("bash ./build.sh production");
+		return reply.send({ success: true });
 	});
 	fastify.get("/template-body/*", async (request, reply) => {
 		const filePath = path.join(client_root, request.params["*"]); // Get the wildcard part
