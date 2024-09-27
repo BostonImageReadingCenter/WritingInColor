@@ -599,6 +599,10 @@ window.addEventListener("DOMContentLoaded", () => {
 	// updateDraftList();
 	contextMenu = createContextMenu();
 	document.body.appendChild(contextMenu);
+	let undoButton = document.getElementById("undo-button") as HTMLElement;
+	let redoButton = document.getElementById("redo-button") as HTMLElement;
+	undoButton.addEventListener("click", () => handleUndoRedo(false));
+	redoButton.addEventListener("click", () => handleUndoRedo(true));
 	document.addEventListener("click", (event) => {
 		let target = event.target as HTMLElement;
 		let parent = target.parentElement;
@@ -804,26 +808,29 @@ window.addEventListener("DOMContentLoaded", () => {
 			(commandStack.length > 0 || (event.shiftKey && undid.length > 0))
 		) {
 			event.preventDefault();
-			let command: PageEditCommand;
-			if (event.shiftKey) {
-				if (undid.length <= 0) return;
-				command = undid.pop();
-				redo(command);
-			} else {
-				command = commandStack.pop();
-				undo(command);
-				undid.push(command);
-			}
-			let targetBoundingBox = getBoundingPageRect(command.command_target);
-			command.command_target.click();
-			command.command_target.focus();
-			window.scrollTo({
-				left: targetBoundingBox.left + innerWidth / 2,
-				top: targetBoundingBox.top - innerHeight / 2,
-			});
+			handleUndoRedo(event.shiftKey);
 		}
 	});
 });
+function handleUndoRedo(shouldRedo: boolean) {
+	let command: PageEditCommand;
+	if (shouldRedo) {
+		if (undid.length <= 0) return;
+		command = undid.pop();
+		redo(command);
+	} else {
+		command = commandStack.pop();
+		undo(command);
+		undid.push(command);
+	}
+	let targetBoundingBox = getBoundingPageRect(command.command_target);
+	command.command_target.click();
+	command.command_target.focus();
+	window.scrollTo({
+		left: targetBoundingBox.left + innerWidth / 2,
+		top: targetBoundingBox.top - innerHeight / 2,
+	});
+}
 function copyAttributes(source: Element, target: HTMLElement) {
 	for (let i = 0; i < source.attributes.length; i++) {
 		const attr = source.attributes[i];
@@ -962,6 +969,7 @@ function redo(command: PageEditCommand) {
 	} else if (command.command_type === "change-image") {
 		command.command_target.setAttribute("src", command.value);
 	}
+	commandStack.push(command);
 }
 
 function isPointInRect(point: { x: number; y: number }, rect: DOMRect) {
@@ -1491,15 +1499,9 @@ let createContextMenu = () =>
 				text: "Delete",
 				eventHandlers: {
 					click(event) {
+						event.target.parentElement.classList.remove("show");
 						currentlyEditing.dispatchEvent(new Event("inactive"));
 						commandStack.push({
-							/*************  ✨ Codeium Command ⭐  *************/
-							/**
-							 * Creates a file manager for uploading files to the server.
-							 *
-							 * @returns {HTMLDivElement} the file manager element.
-							 */
-							/******  f3fb62c7-db9f-40c5-a582-7a3867e44d83  *******/
 							command_type: "delete-element",
 							command_target: currentlyEditing,
 							command_target_parent: currentlyEditing.parentElement,
