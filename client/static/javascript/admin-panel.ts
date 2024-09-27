@@ -818,8 +818,8 @@ window.addEventListener("DOMContentLoaded", () => {
 			command.command_target.click();
 			command.command_target.focus();
 			window.scrollTo({
-				left: targetBoundingBox.left,
-				top: targetBoundingBox.top,
+				left: targetBoundingBox.left + innerWidth / 2,
+				top: targetBoundingBox.top - innerHeight / 2,
 			});
 		}
 	});
