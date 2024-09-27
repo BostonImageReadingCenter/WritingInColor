@@ -573,7 +573,7 @@ async function saveDraft() {
 }
 async function publishDraft() {
 	let changedFiles = await generateModifiedFiles();
-	console.log(changedFiles);
+	// console.log(changedFiles);
 	fetch("/api/publish-changes", {
 		method: "POST",
 		headers: {
