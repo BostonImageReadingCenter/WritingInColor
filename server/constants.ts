@@ -14,7 +14,7 @@ import { PoolOptions } from "mysql2";
 config();
 
 const ROLES = ["admin", "moderator", "instructor", "developer"];
-const rpID = "localhost";
+const rpID = process.env.HOST;
 const rpName = "Writing in Color";
 const AVERAGE_MONTH_LENGTH = 30.4368645;
 const ACCESS_TOKEN_EXPIRATION_TIME = 1000 * 60 * 60 * 30; // 30 minutes
