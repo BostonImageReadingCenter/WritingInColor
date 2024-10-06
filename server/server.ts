@@ -49,7 +49,7 @@ function restart() {
  */
 const start = async () => {
 	try {
-		await fastify.listen({ host: "0.0.0.0", port: 80 });
+		await fastify.listen({ host: "0.0.0.0", port: 80 }); // TODO: allow customization in .env
 		console.log(`rpID: ${rpID}`);
 		console.log("\x1b[32mServer running!\x1b[0m");
 	} catch (err) {
