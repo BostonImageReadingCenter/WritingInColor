@@ -48,11 +48,12 @@ function restart() {
  */
 const start = async () => {
 	try {
-		await fastify.listen({ port: 3000 });
+		await fastify.listen({ port: 80 });
 		console.log("\x1b[32mServer running!\x1b[0m");
 	} catch (err) {
+		console.error(err);
 		fastify.log.error(err);
-		restart(); // restart the server
+		// restart(); // restart the server
 	}
 };
 start();
