@@ -5,6 +5,7 @@ import fp from "fastify-plugin";
 import { spawn } from "child_process";
 import path from "path";
 import fastify_multipart from "@fastify/multipart";
+import { rpID } from "./constants.js";
 
 const fastify = Fastify({
 	logger: false,
@@ -49,6 +50,7 @@ function restart() {
 const start = async () => {
 	try {
 		await fastify.listen({ host: "0.0.0.0", port: 80 });
+		console.log(`rpID: ${rpID}`);
 		console.log("\x1b[32mServer running!\x1b[0m");
 	} catch (err) {
 		console.error(err);

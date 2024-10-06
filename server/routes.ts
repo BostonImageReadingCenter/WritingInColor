@@ -28,6 +28,7 @@ import {
 	ROLES,
 	SVG,
 	JSON_DATA as JSON_DATA_CONST,
+	rpID,
 } from "./constants.js";
 import {
 	LoginData,
@@ -116,8 +117,8 @@ function extractAndMapPath(url: string): string {
 	if (url.startsWith("http://") || url.startsWith("https://")) {
 		const urlObj = new URL(url);
 		extractedPath = urlObj.pathname; // Get pathname for URLs with protocol
-	} else if (url.startsWith("localhost")) {
-		extractedPath = url.split("/").slice(1).join("/"); // Remove "localhost:3000" part
+	} else if (url.startsWith(rpID)) {
+		extractedPath = url.split("/").slice(1).join("/");
 	} else {
 		extractedPath = url; // Assume it's a direct path
 	}
