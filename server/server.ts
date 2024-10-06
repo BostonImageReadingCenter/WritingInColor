@@ -48,7 +48,7 @@ function restart() {
  */
 const start = async () => {
 	try {
-		await fastify.listen({ port: 80 });
+		await fastify.listen({ host: "0.0.0.0", port: 80 });
 		console.log("\x1b[32mServer running!\x1b[0m");
 	} catch (err) {
 		console.error(err);
