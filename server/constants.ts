@@ -11,7 +11,7 @@ import {
 import { PasswordRequirements } from "./types";
 import { PoolOptions } from "mysql2";
 // Load environment variables from .env file
-config();
+config({ path: path.resolve(__dirname, "../.env") });
 
 const ROLES = ["admin", "moderator", "instructor", "developer"];
 const rpID = process.env.HOST;
