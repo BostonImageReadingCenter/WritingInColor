@@ -9,7 +9,7 @@ import { rpID, USE_HTTPS } from "./constants.js";
 import fs from "fs";
 
 const fastify = Fastify({
-	logger: true,
+	logger: false,
 	https: USE_HTTPS
 		? {
 				key: fs.readFileSync(path.resolve(__dirname, `../${rpID}/private.key`)),
@@ -19,12 +19,6 @@ const fastify = Fastify({
 		  }
 		: undefined,
 	http2: false,
-});
-fastify.addHook("preParsing", async (request, reply) => {
-	console.log(
-		"\x1b[34m" + "preParsing" + request.method + "\x1b[0m",
-		request.url
-	);
 });
 fastify.addHook("onResponse", async (request, reply) => {
 	console.log(
