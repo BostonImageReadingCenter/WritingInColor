@@ -7,12 +7,14 @@ import path from "path";
 import fastify_multipart from "@fastify/multipart";
 import { rpID } from "./constants.js";
 import fs from "fs";
-console.log("rpID: ", rpID);
+
 const fastify = Fastify({
 	logger: false,
 	https: {
-		key: fs.readFileSync(path.resolve(__dirname, `${rpID}/private.key`)),
-		cert: fs.readFileSync(path.resolve(__dirname, `${rpID}/certificate.crt`)),
+		key: fs.readFileSync(path.resolve(__dirname, `../${rpID}/private.key`)),
+		cert: fs.readFileSync(
+			path.resolve(__dirname, `../${rpID}/certificate.crt`)
+		),
 	},
 	http2: true,
 });
