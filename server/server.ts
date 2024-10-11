@@ -9,7 +9,7 @@ import { rpID, USE_HTTPS } from "./constants.js";
 import fs from "fs";
 
 const fastify = Fastify({
-	logger: false,
+	logger: true,
 	https: USE_HTTPS
 		? {
 				key: fs.readFileSync(path.resolve(__dirname, `../${rpID}/private.key`)),
