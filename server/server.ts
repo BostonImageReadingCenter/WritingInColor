@@ -6,9 +6,15 @@ import { spawn } from "child_process";
 import path from "path";
 import fastify_multipart from "@fastify/multipart";
 import { rpID } from "./constants.js";
+import fs from "fs";
 
 const fastify = Fastify({
 	logger: false,
+	https: {
+		key: fs.readFileSync(path.resolve(__dirname, `${rpID}/private.key`)),
+		cert: fs.readFileSync(path.resolve(__dirname, `${rpID}/certificate.crt`)),
+	},
+	http2: true,
 });
 
 fastify.addHook("onResponse", async (request, reply) => {
