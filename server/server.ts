@@ -16,7 +16,7 @@ const fastify = Fastify({
 			path.resolve(__dirname, `../${rpID}/certificate.crt`)
 		),
 	},
-	http2: true,
+	http2: false,
 });
 
 fastify.addHook("onResponse", async (request, reply) => {
