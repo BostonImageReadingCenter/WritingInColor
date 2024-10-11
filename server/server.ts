@@ -7,7 +7,7 @@ import path from "path";
 import fastify_multipart from "@fastify/multipart";
 import { rpID } from "./constants.js";
 import fs from "fs";
-
+console.log("rpID: ", rpID);
 const fastify = Fastify({
 	logger: false,
 	https: {
