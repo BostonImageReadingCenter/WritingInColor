@@ -320,14 +320,14 @@ export async function* login(
 		}
 		let user = await database.getUserByEmail(email);
 		if (!user) {
-			// return {
-			// 	actions: [
-			// 		{
-			// 			action: "error",
-			// 			errors: ["Account creation is currently disabled."],
-			// 		},
-			// 	],
-			// };
+			return {
+				actions: [
+					{
+						action: "error",
+						errors: ["Account creation is currently disabled."],
+					},
+				],
+			};
 			// User does not exist
 			result = yield {
 				actions: [
@@ -522,6 +522,10 @@ export async function* login(
 						actions,
 					};
 				}
+			} else {
+				result = yield {
+					actions: [collectPasswordAction],
+				};
 			}
 		} else {
 			result = yield {
