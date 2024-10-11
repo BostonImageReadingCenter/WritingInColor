@@ -20,6 +20,7 @@ const AVERAGE_MONTH_LENGTH = 30.4368645;
 const ACCESS_TOKEN_EXPIRATION_TIME = 1000 * 60 * 60 * 30; // 30 minutes
 const REFRESH_TOKEN_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * 30; // 30 days
 const KEY_PAIR_EXPIRATION_TIME = 1000 * 60 * 60 * 24 * AVERAGE_MONTH_LENGTH * 6; // 6 months
+const USE_HTTPS = process.env.USE_HTTPS === "true";
 
 const origin: string = `http://${rpID}:3000`;
 var SECRET_PRIVATE_KEY_BASE64 = process.env.SECRET_PRIVATE_KEY_BASE64;
@@ -132,4 +133,5 @@ export {
 	passwordRequirements,
 	JSON_DATA,
 	SVG,
+	USE_HTTPS,
 };

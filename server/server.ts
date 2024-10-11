@@ -5,17 +5,19 @@ import fp from "fastify-plugin";
 import { spawn } from "child_process";
 import path from "path";
 import fastify_multipart from "@fastify/multipart";
-import { rpID } from "./constants.js";
+import { rpID, USE_HTTPS } from "./constants.js";
 import fs from "fs";
 
 const fastify = Fastify({
 	logger: false,
-	https: {
-		key: fs.readFileSync(path.resolve(__dirname, `../${rpID}/private.key`)),
-		cert: fs.readFileSync(
-			path.resolve(__dirname, `../${rpID}/certificate.crt`)
-		),
-	},
+	https: USE_HTTPS
+		? {
+				key: fs.readFileSync(path.resolve(__dirname, `../${rpID}/private.key`)),
+				cert: fs.readFileSync(
+					path.resolve(__dirname, `../${rpID}/certificate.crt`)
+				),
+		  }
+		: undefined,
 	http2: false,
 });
 fastify.addHook("preParsing", async (request, reply) => {
@@ -62,7 +64,7 @@ function restart() {
  */
 const start = async () => {
 	try {
-		await fastify.listen({ host: "0.0.0.0", port: 80 }); // TODO: allow customization in .env
+		await fastify.listen({ host: "0.0.0.0", port: USE_HTTPS ? 443 : 80 }); // TODO: allow customization in .env
 		console.log(`rpID: ${rpID}`);
 		console.log("\x1b[32mServer running!\x1b[0m");
 	} catch (err) {
