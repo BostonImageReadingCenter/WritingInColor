@@ -18,7 +18,12 @@ const fastify = Fastify({
 	},
 	http2: false,
 });
-
+fastify.addHook("preParsing", async (request, reply) => {
+	console.log(
+		"\x1b[34m" + "preParsing" + request.method + "\x1b[0m",
+		request.url
+	);
+});
 fastify.addHook("onResponse", async (request, reply) => {
 	console.log(
 		"\x1b[34m" + request.method + "\x1b[0m",
