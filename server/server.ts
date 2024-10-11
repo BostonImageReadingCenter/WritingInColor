@@ -63,9 +63,10 @@ function restart() {
  * Run the server!
  */
 const start = async () => {
+	let port = USE_HTTPS ? 443 : 80
 	try {
-		await fastify.listen({ host: "0.0.0.0", port: USE_HTTPS ? 443 : 80 }); // TODO: allow customization in .env
-		console.log(`rpID: ${rpID}`);
+		await fastify.listen({ host: "0.0.0.0", port:  }); // TODO: allow customization in .env
+		console.log(`rpID: ${rpID}; port: ${port}`);
 		console.log("\x1b[32mServer running!\x1b[0m");
 	} catch (err) {
 		console.error(err);
