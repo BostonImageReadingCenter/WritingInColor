@@ -18,7 +18,7 @@ const fastify = Fastify({
 				),
 		  }
 		: undefined,
-	http2: false,
+	http2: true,
 });
 fastify.addHook("onResponse", async (request, reply) => {
 	console.log(
